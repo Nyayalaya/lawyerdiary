@@ -45,8 +45,8 @@ namespace CourtApp.Application.Features.CaseDetails
             var predicate = PredicateBuilder.True<CaseDetailEntity>();
 
             // Filtering
-            if (request.LinkedIds?.Any() == true)
-                predicate = predicate.And(c => request.LinkedIds.Contains(c.CreatedBy));
+            //if (request.LinkedIds?.Any() == true)
+            //    predicate = predicate.And(c => request.LinkedIds.Contains(c.CreatedBy));
 
             if (request.Year != 0)
                 predicate = predicate.And(c => c.CaseYear == request.Year);
@@ -66,7 +66,7 @@ namespace CourtApp.Application.Features.CaseDetails
 
             try
             {
-                var baseQuery = (from c in _repository.Entites
+                var baseQuery = (from c in _repository.Entites.Where(predicate)
                                   join ac in _assignRepo.Entities
                                   on c.Id equals ac.CaseId into caseAssignments
                                   from ac in caseAssignments.DefaultIfEmpty()

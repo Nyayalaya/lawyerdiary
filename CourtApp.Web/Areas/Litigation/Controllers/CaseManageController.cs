@@ -142,31 +142,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             return null;
         }
 
-        //[HttpPost]
-        //public async Task<IActionResult> LoadAll([FromBody] DataTableRequest request)
-        //{
-        //    var response = await _mediator.Send(new GetCaseInfoQuery()
-        //    {
-        //        UserId = CurrentUser.Id,
-        //        PageSize = request.PageSize,
-        //        PageNumber = request.PageNumber
-        //    });
-        //    if (response.Succeeded)
-        //    {
-        //        var viewModel = _mapper.Map<List<GetCaseInfoViewModel>>(response.Data);
-        //        _logger.LogInformation("Loaded paginated cases successfully!");
-
-        //        return Json(new
-        //        {
-        //            draw = request.PageNumber,
-        //            recordsTotal = response.TotalCount, // Total records count before filtering
-        //            recordsFiltered = response.TotalPages, // Records after filtering
-        //            data = viewModel
-        //        });
-        //    }
-        //    return null;
-        //}
-
+        
 
         public async Task<IActionResult> CreateOrUpdateAsync(Guid id, string from)
         {
