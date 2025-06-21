@@ -1,0 +1,57 @@
+﻿@model List<string>
+
+<style>
+    /* DL Envelope Layout */
+    .envelope {
+        width: 220mm;
+        height: 110mm;
+        margin: 0 auto;
+        padding: 15mm 10mm;
+        box-sizing: border-box;
+        background: white;
+        border: 1px dashed #ccc;
+        position: relative;
+        overflow: hidden;
+        page-break-after: always;
+    }
+
+    .address-block {
+        font-size: 14pt;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        max-width: 100%;
+        position: absolute;
+        top: 35mm; /* Center vertically */
+        left: 65mm; /* Center horizontally for landscape */
+        width: 90mm;
+        text-align: center;
+    }
+
+    @@media print {
+        body, html {
+            margin: 0;
+            padding: 0;
+        }
+
+        .envelope {
+            border: none;
+            page-break-after: always;
+        }
+
+        .no-print {
+            display: none;
+        }
+    }
+</style>
+
+<div id="printableArea">
+    @for (int i = 0; i < Model.Count; i++)
+    {
+        <div class="envelope">
+            <div class="address-block">
+                @Html.Raw(Model[i])
+            </div>
+        </div>
+    }
+</div>

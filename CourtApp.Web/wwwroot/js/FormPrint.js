@@ -1,11 +1,22 @@
 ﻿$(document).ready(function () {
-    $("#CaseIds").select2({
-        placeholder: "Select a case",
-        theme: "bootstrap4",
-        allowClear: true,
-        escapeMarkup: function (m) {
-            return m;
-        }
+    $('#CaseIds').multiselect({
+        includeSelectAllOption: true,
+        enableFiltering: true,
+        enableCaseInsensitiveFiltering: true,
+        filterPlaceholder: 'Search Cases',
+        buttonWidth: '100%',
+        dropUp: false, // force dropdown to open downward
+        maxHeight: 300
+    });
+
+    $("#TitleIds").multiselect({
+        includeSelectAllOption: true,
+        enableFiltering: true,
+        enableCaseInsensitiveFiltering: true,
+        filterPlaceholder: 'Search Titles',
+        buttonWidth: '100%',
+        dropUp: false, // force dropdown to open downward
+        maxHeight: 300
     });
 
 
@@ -23,19 +34,105 @@
     });
 
     $("#CaseIds").on("change", function () {
-        $("#TitleIds").empty();
-        $.getJSON("/Litigation/CaseInfoPrinting/GetCompTitlesByCases?caseIds=" + $("#CaseIds").val(), function (data) {
-            console.log(data);
+        const selectedIds = $("#CaseIds").val();
+
+        $("#TitleIds").empty(); // Clear previous options
+
+        $.getJSON("/Litigation/CaseInfoPrinting/GetCompTitlesByCases?caseIds=" + selectedIds, function (data) {
             $.each(data, function (i, item) {
-                console.log(item.Name);
-                $("#TitleIds").append(`<option /><option value="${item.Id}">${item.Name}</option>`);
+                $("#TitleIds").append(`<option value="${item.Id}">${item.Name}</option>`);
             });
+
+            // Refresh multiselect after updating options
+            $("#TitleIds").multiselect('rebuild');
         });
     });
 
     $("#btnPrint").click(function () {
+        var frmType = $("#FormTypeId :selected").text();
+        if (frmType === "Envalop")
+            printEnvalop();
         printData();
     });
+    function printEnvalop() {
+        var divToPrint = document.getElementById("printableArea");
+        var newWin = window.open("", "_blank");
+
+        newWin.document.write('<html><head><title>Print Envelope</title>');
+
+        newWin.document.write(`
+    <style>
+    @media print {
+        @page {
+            size: 110mm 220mm; /* DL envelope in landscape */
+            margin: 0;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Times New Roman', serif;
+            font-size: 14pt;
+        }
+
+        .envelope-size {
+            width: 220mm;
+            height: 110mm;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .address-box {
+            width: 90mm;
+            position: absolute;
+            top: 40mm;
+            left: 60mm;
+            text-align: center;
+            line-height: 1.5;
+        }
+    }
+
+    /* Optional screen preview styles */
+    body {
+        margin: 0;
+        font-family: 'Times New Roman', serif;
+    }
+
+    .envelope-size {
+        width: 220mm;
+        height: 110mm;
+        border: 1px dashed #ccc;
+        position: relative;
+    }
+
+    .address-box {
+        width: 90mm;
+        position: absolute;
+        top: 40mm;
+        left: 60mm;
+        text-align: center;
+        font-size: 14pt;
+        line-height: 1.5;
+    }
+</style>
+
+`);
+
+        newWin.document.write('</head><body>');
+        newWin.document.write('<div class="envelope-size">');
+        newWin.document.write(divToPrint.innerHTML);
+        newWin.document.write('</div>');
+        newWin.document.write('</body></html>');
+
+        newWin.document.close();
+        newWin.focus();
+
+        newWin.onload = function () {
+            newWin.print();
+            newWin.close();
+        };
+
+    }
 
     function printData1() {
         var divToPrint = document.getElementById("printableArea");
@@ -422,15 +519,10 @@
         newWin.document.close();
     }
 
-    $("#TitleIds").select2({
-        placeholder: "Select title",
-        theme: "bootstrap4",
-        escapeMarkup: function (m) {
-            return m;
-        }
-    });
+
 
     $("#btnSearch").on("click", function () {
+        debugger;
         var t = $("#FormTypeId").val();
         var v = $("#CaseIds").val();
         var title = $("#TitleIds").val();
@@ -447,5 +539,17 @@
     });
 });
 function loadData(t, v, title) {
-    $('#viewAll').load('/Litigation/CaseInfoPrinting/LoadFormPrinting?type=' + t + "&Cases=" + v + "&AppNo=" + title);
+    $.ajax({
+        url: '/Litigation/CaseInfoPrinting/LoadFormPrinting',
+        traditional: true, // 👈 this fixes the array serialization!
+        data: {
+            type: t,
+            Cases: v,
+            AppNo: title
+        },
+        success: function (data) {
+            $('#viewAll').html(data);
+        }
+    });
+    //$('#viewAll').load('/Litigation/CaseInfoPrinting/LoadFormPrinting?type=' + t + "&Cases=" + v + "&AppNo=" + title);
 }

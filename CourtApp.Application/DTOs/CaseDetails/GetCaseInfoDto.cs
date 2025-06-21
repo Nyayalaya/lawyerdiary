@@ -5,6 +5,7 @@ namespace CourtApp.Application.DTOs.CaseDetails
     public class GetCaseInfoDto
     {
         public Guid Id { get; set; }
+        public DateTime InstitutionDate { get; set; }
         public string Reference { get; set; }
         public string CourtType { get; set; }
         public string Court { get; set; }

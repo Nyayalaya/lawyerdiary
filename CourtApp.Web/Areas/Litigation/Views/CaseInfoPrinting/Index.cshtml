@@ -1,76 +1,7 @@
 ﻿@{
     ViewData["Title"] = localizer["Form Print"];
 }
-@* @model FmpViewModel
-
-<div class="card shadow">
-    <!-- Search Panel -->
-    <div class="card shadow border-0 mb-4">
-        <div class="card-header">
-            <h5 class="mb-0 text-primary">@localizer["Generate Case Documents"]</h5>
-        </div>
-        <div class="card-body pt-3">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">Select Court Type <span class="text-danger">*</span></label>
-                    <select class="form-control select2bs4" asp-for="CourtTypeId" asp-items="@Model.CourtTypes">
-                        <option value="">-- Select --</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Select Case Type <span class="text-danger">*</span></label>
-                    <select class="form-control select2bs4" asp-for="CaseTypeId" asp-items="@Model.CaseTypes">
-                        <option value="">-- Select --</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Select Form Type <span class="text-danger">*</span></label>
-                    <select class="form-control select2bs4" asp-for="FormTypeId" asp-items="@Model.FormTypes">
-                        <option value="">-- Select --</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Select Case <span class="text-danger">*</span></label>
-                    <select class="form-control select2bs4" asp-for="CaseIds" asp-items="@Model.Cases">
-                        <option value="">-- Select --</option>
-                    </select>
-                </div>
-                <div class="col-md-9">
-                    <label class="form-label">Select Title</label>
-                    <select class="form-control select2bs4" asp-for="TitleIds" asp-items="@Model.Titles">
-                        <option value="">-- Select --</option>
-                    </select>
-                </div>
-                <div class="col-md-3 d-flex align-items-end justify-content-end">
-                    <div class="d-flex w-100 gap-2">
-                        <a id="btnSearch" class="btn btn-success w-50">
-                            <i class="fa fa-search"></i> Generate
-                        </a>
-                        <a id="reload" class="btn btn-primary w-50">
-                            <i class="fa fa-undo"></i> Reset
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Output Section -->
-    <div class="card shadow border-0">
-        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 text-primary" id="lblHeader">Output Section</h5>
-            <a href="#" id="btnPrint" class="btn btn-outline-primary">
-                <i class="fa fa-print"></i> Print
-            </a>
-        </div>
-        <div class="card-body">
-            <div id="viewAll" class="table-responsive">
-                <!-- Dynamic content will render here -->
-            </div>
-        </div>
-    </div>
-</div> *@
-
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-multiselect@1.1.1/dist/css/bootstrap-multiselect.css">
 
 @model FmpViewModel
 <div class="card shadow">
@@ -81,36 +12,29 @@
         </div>
         <div class="card-body pt-3">
             <div class="row g-3">
-                @* <div class="col-md-3">
-                    <label class="form-label">Select Court Type <span class="text-danger">*</span></label>
-                    <select class="form-control select2bs4" asp-for="CourtTypeId" asp-items="@Model.CourtTypes">
-                        <option value="">-- Select --</option>
+                <div class="col-md-3">
+                    <label class="form-label">Select Case <span class="text-danger">*</span></label>
+                    <select class="form-control" multiple asp-for="CaseIds"
+                            data-placeholder="Select Cases"
+                            asp-items="@Model.Cases">
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Select Case Type <span class="text-danger">*</span></label>
-                    <select class="form-control select2bs4" asp-for="CaseTypeId" asp-items="@Model.CaseTypes">
-                        <option value="">-- Select --</option>
+                    <label class="form-label">Select Title</label>
+                    <select class="form-control" asp-for="TitleIds" multiple
+                            data-placeholder="Select Titles"
+                            asp-items="@Model.Titles">
                     </select>
-                </div> *@
+                </div>
+
                 <div class="col-md-3">
                     <label class="form-label">Select Form Type <span class="text-danger">*</span></label>
                     <select class="form-control select2bs4" asp-for="FormTypeId" asp-items="@Model.FormTypes">
                         <option value="">-- Select --</option>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">Select Case <span class="text-danger">*</span></label>
-                    <select class="form-control select2bs4" asp-for="CaseIds" asp-items="@Model.Cases">
-                        <option value="">-- Select --</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Select Title</label>
-                    <select class="form-control select2bs4" asp-for="TitleIds" asp-items="@Model.Titles">
-                        <option value="">-- Select --</option>
-                    </select>
-                </div>
+
+
                 <div class="col-md-3 d-flex align-items-end justify-content-end">
                     <div class="d-flex w-100 gap-2">
                         <a id="btnSearch" class="btn btn-success">
@@ -144,5 +68,7 @@
 
 @section Scripts
 {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-multiselect@1.1.1/dist/js/bootstrap-multiselect.min.js"></script>
+
     <script src="~/js/formprint.js"></script>
 }

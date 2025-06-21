@@ -9,6 +9,7 @@ namespace CourtApp.Web.Areas.Dashboard.Models
         public int DisposedCases { get; set; }
         public int PendingCases { get; set; }
         public int AssignedCases { get; set; }
+        public int TodayHearing { get; set; }
 
         public List<CaseStatusSummary> StatusSummaries { get; set; } = new();
         public List<NextHearingItem> UpcomingHearings { get; set; } = new();
@@ -21,9 +22,9 @@ namespace CourtApp.Web.Areas.Dashboard.Models
     }
     public class NextHearingItem
     {
-        public int CaseId { get; set; }
+        public Guid CaseId { get; set; }
         public string CaseTitle { get; set; }
-        public DateTime HearingDate { get; set; }
+        public string HearingDate { get; set; }
         public string CourtName { get; set; }
         public string OpponentName { get; set; }
     }

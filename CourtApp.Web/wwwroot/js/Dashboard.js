@@ -4,7 +4,7 @@
     if (typeof ChartDataLabels !== 'undefined') {
         Chart.register(ChartDataLabels);
     }
-   
+       
     //Pie Chart data Variables
     if (!window.caseStatusData) {
         console.error('No monthly case status data found');
@@ -12,8 +12,8 @@
     }
 
     const lawyerStatusData = window.caseStatusData;
-    const labels = lawyerStatusData.map(item => item.Status);
-    const data = lawyerStatusData.map(item => item.Count);
+    const statusLabels = lawyerStatusData.map(item => item.Status);
+    const statusData = lawyerStatusData.map(item => item.Count);
 
     //Monthly Filed and Disposed status
     if (!window.monthlyCaseData) {
@@ -37,45 +37,44 @@
             ]
         },
         options: {
-            responsive: false, maintainAspectRatio: false, scales: {
-                y: {
-                    beginAtZero: true
+            responsive: false,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom', // ⬅️ moves legend to the right side
+                    align: 'center'    // optional: aligns the legend items vertically
                 }
             }
+            //,
+            //scales: {
+            //    y: {
+            //        beginAtZero: true
+            //    }
+            //}
         }
     });
 
     new Chart(pieCtx, {
         type: 'pie',
         data: {
-            labels: labels,
-            datasets: [{ data: data, backgroundColor: ['#007bff', '#20c997', '#fd7e14'] }]
+            labels: statusLabels,
+            datasets: [{ data: statusData, backgroundColor: ['#007bff', '#20c997', '#fd7e14', '#ab7e14'] }]
         },
         options: {
-            responsive: true,
+            responsive: false,
+            maintainAspectRatio: false,
             plugins: {
-                datalabels: {
-                    color: '#fff',
-                    formatter: (value, ctx) => {
-                        return value;
-                    },
-                    font: {
-                        weight: 'bold',
-                        size: 14
-                    }
-                },
                 legend: {
-                    position: 'bottom'
+                    position: 'bottom', // ⬅️ moves legend to the right side
+                    align: 'center'    // optional: aligns the legend items vertically
                 }
             }
-        },
-        plugins: [ChartDataLabels]
-        //options: {
-        //    responsive: false, maintainAspectRatio: false, scales: {
-        //        y: {
-        //            beginAtZero: true
-        //        }
-        //    }
-        //}
+            //,
+            //scales: {
+            //    y: {
+            //        beginAtZero: true
+            //    }
+            //}
+        }
     });
 });

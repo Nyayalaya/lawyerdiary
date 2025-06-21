@@ -13,7 +13,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
-using static CourtApp.Application.Constants.Permissions;
 
 namespace CourtApp.Web.Areas.Litigation.Controllers
 {
@@ -35,7 +34,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 fmpViewModel.FormTypes = new SelectList(formsDt, "Id", "FormName");
             }
             fmpViewModel.Cases = await UserCaseTitle(Guid.Empty);
-            fmpViewModel.Titles = await UserCaseTitle(Guid.Empty);
+            //fmpViewModel.Titles = await UserCaseTitle(Guid.Empty);
             return View(fmpViewModel);
         }
         public async Task<IActionResult> Index1()
@@ -46,134 +45,262 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             fmpViewModel.Titles = await UserCaseTitle(Guid.Empty);
             return View(fmpViewModel);
         }
-
         public async Task<IActionResult> LoadFormPrinting(Guid type, List<Guid> Cases, List<string> AppNo)
         {
             try
             {
-                // Fetch form template
-                var formTemplates = await _mediator.Send(new CourtFormSearchQuery { StateId = 1, Id = type });
-                if (!formTemplates.Succeeded || formTemplates.Data == null || !formTemplates.Data.Any())
-                {
-                    Console.WriteLine("No form template found.");
-                    return BadRequest("Form template not found.");
-                }
+                // 1. Fetch Form Template
+                var formTemplateResult = await _mediator.Send(new CourtFormSearchQuery { StateId = 1, Id = type });
 
-                var formTemplate = formTemplates.Data.FirstOrDefault()?.FormTemplate;
-                if (string.IsNullOrWhiteSpace(formTemplate))
-                {
-                    Console.WriteLine("Form template is empty.");
-                    return BadRequest("Form template is empty.");
-                }
+                var formTemplateEntity = formTemplateResult.Data?.FirstOrDefault();
+                var formTemplate = formTemplateEntity?.FormTemplate;
+                var formName = formTemplateEntity?.FormName;
 
-                Console.WriteLine("Template is available.");
+                if (!formTemplateResult.Succeeded || string.IsNullOrWhiteSpace(formTemplate))
+                    return BadRequest("Form template not found or is empty.");
 
-                // Fetch case details
-                var caseDetail = await _mediator.Send(new GetFormPrintDataQuery { CaseIds = Cases });
-                if (!caseDetail.Succeeded || caseDetail.Data == null)
-                {
-                    Console.WriteLine("Case details retrieval failed.");
+                // 2. Fetch Case Data
+                var caseDataResult = await _mediator.Send(new GetFormPrintDataQuery { CaseIds = Cases });
+
+                if (!caseDataResult.Succeeded || caseDataResult.Data == null)
                     return BadRequest("Unable to retrieve case details.");
-                }
 
-                var caseInfoDetails = _mapper.Map<List<FormPrintData>>(caseDetail.Data);
+                var caseInfoDetails = _mapper.Map<List<FormPrintData>>(caseDataResult.Data);
+
                 if (caseInfoDetails == null || !caseInfoDetails.Any())
-                {
-                    Console.WriteLine("No case data available to process.");
                     return BadRequest("No case data available.");
-                }
 
-                List<string> formRawHtml = new List<string>();
-
-                foreach (var v in caseInfoDetails)
+                // 3. Generate HTML
+                var formHtmlList = new List<string>();
+                var formNames= new List<string>();
+                formNames.Add("Notice");
+                formNames.Add("Envalop");
+                bool isAddress = formNames.Contains(formName) == true;
+                var vwName = "_GlobalFormPrintPartial";
+                foreach (var caseInfo in caseInfoDetails)
                 {
-                    if (v == null || v.Applicants == null)
+                    var againstDetail = caseInfo.AgainstCourtDetail;
+
+                    if (isAddress)
                     {
-                        Console.WriteLine("Skipping null case info or applicants.");
-                        continue;
-                    }
-
-                    var agCaseDetail = v.AgainstCourtDetail;
-
-                    foreach (var ad in v.Applicants)
-                    {
-                        if (ad == null)
+                        vwName = "_Envalop";
+                        foreach (var applicant in caseInfo.Applicants?.Where(a => a != null) ?? Enumerable.Empty<ApplicantDetailViewModel>())
                         {
-                            Console.WriteLine("Skipping null applicant.");
-                            continue;
-                        }
-
-                        try
-                        {
-                            Console.WriteLine($"Generating form for ApplicantNo: {ad.ApplicantNo}");
-
-                            // Clone template each iteration
-                            var tempForm = formTemplate;
-
-                            // Use null-safe dictionary approach
-                            var replacements = new Dictionary<string, string>
+                            try
                             {
-                                ["#InstitutionDate#"] = v.InstitutionDate ?? "",
-                                ["#StateName#"] = v.State ?? "",
-                                ["#CourtType#"] = v.CourtType ?? "",
-                                ["#CourtDistrict#"] = v.CourtDistrict ?? "",
-                                ["#CourtComplex#"] = v.CourtComplex ?? "",
-                                ["#Court#"] = v.Court ?? "",
-                                ["#Strength#"] = v.Strength ?? "",
-                                ["#CaseNoYear#"] = v.CaseNoYear ?? "",
-                                ["#CaseCategory#"] = v.CaseCategory ?? "",
-                                ["#CaseType#"] = v.CaseType ?? "",
-                                ["#CisNoYear#"] = v.CisNoYear ?? "",
-                                ["#PetitionerAppearance#"] = v.PetitionerAppearance ?? "",
-                                ["#Petitioner#"] = v.Petitioner ?? "",
-                                ["#RespondantAppearance#"] = v.RespondantAppearance ?? "",
-                                ["#Respondant#"] = v.Respondent ?? "",
-                                ["#NextDate#"] = v.NextDate ?? "",
-                                ["#CaseStage#"] = v.CaseStage ?? "",
-                                ["#DisposalDate#"] = v.DisposalDate ?? "",
-                                ["#CnrNo#"] = v.CnrNo ?? "",
-                                ["#CurrentDate#"] = DateTime.Now.ToString("dd/MM/yyyy"),
-                                ["#ApplicantNo#"] = ad.ApplicantNo.ToString() ?? "",
-                                ["#ApplicantDetail#"] = ad.Applicant ?? "",
-                                ["#ImpugedOrder#"] = agCaseDetail?.CourtBench ?? "",
-                                ["#AgState#"] = agCaseDetail?.State ?? "",
-                                ["#AgCourtType#"] = agCaseDetail?.CourtType ?? "",
-                                ["#AgCourtDistrict#"] = agCaseDetail?.CourtDistrict ?? "",
-                                ["#AgCourtComplex#"] = agCaseDetail?.CourtComplex ?? "",
-                                ["#AgCourtBench#"] = agCaseDetail?.CourtBench ?? "",
-                                ["#AgCaseNoYear#"] = $"{agCaseDetail?.CaseNo ?? ""}/{agCaseDetail?.CaseYear ?? ""}",
-                                ["#AgCaseType#"] = agCaseDetail?.CaseType ?? "",
-                                ["#AgCnrNo#"] = agCaseDetail?.CnrNo ?? "",
-                                ["#Cadre#"] = agCaseDetail?.Cadre ?? "",
-                                ["#OfficerName#"] = agCaseDetail?.OfficerName ?? "",
-                                ["#AgCaseCategory#"] = agCaseDetail?.CaseCategory ?? "",
-                                ["#DecisionDate#"]= v.DisposalDate?? v.NextDate
-                            };
-
-                            foreach (var pair in replacements)
-                            {
-                                tempForm = tempForm.Replace(pair.Key, pair.Value);
+                                var html = ReplaceFormPlaceholders(formTemplate, caseInfo, applicant, againstDetail);
+                                formHtmlList.Add(HttpUtility.HtmlDecode(html));
                             }
-
-                            formRawHtml.Add(HttpUtility.HtmlDecode(tempForm));
+                            catch (Exception innerEx)
+                            {
+                                Console.WriteLine($"Error generating form for Applicant {applicant.ApplicantNo}: {innerEx.Message}");
+                                // Optionally log
+                            }
+                        }
+                    }
+                    else
+                    {
+                        try
+                        {                            
+                            var html = ReplaceFormPlaceholders(formTemplate, caseInfo, null, againstDetail); ;
+                            formHtmlList.Add(HttpUtility.HtmlDecode(html));
                         }
                         catch (Exception innerEx)
                         {
-                            Console.WriteLine($"Error processing applicant {ad.ApplicantNo}: {innerEx.Message}");
-                            continue; // skip and continue other applicants
+                            Console.WriteLine("Error generating non-applicant form: " + innerEx.Message);
+                            // Optionally log
                         }
                     }
                 }
 
-                return PartialView("_GlobalFormPrintPartial", formRawHtml);
+                return PartialView(vwName, formHtmlList);
             }
             catch (Exception ex)
             {
-                // Consider logging with a logger instead of just console
                 Console.WriteLine($"Unhandled Exception: {ex.Message}\n{ex.StackTrace}");
                 return StatusCode(500, "An internal error occurred while generating the form.");
             }
         }
+
+
+        private string ReplaceFormPlaceholders(string template, FormPrintData caseInfo, ApplicantDetailViewModel applicant, AgainstCaseDecisionViewModel agDetail)
+        {
+            var replacements = new Dictionary<string, string>
+            {
+                ["#InstitutionDate#"] = caseInfo.InstitutionDate ?? "",
+                ["#StateName#"] = caseInfo.State.ToUpper() ?? "",
+                ["#CourtType#"] = caseInfo.CourtType.ToUpper() ?? "",
+                ["#CourtDistrict#"] = caseInfo.CourtDistrict ?? "",
+                ["#CourtComplex#"] = caseInfo.CourtComplex ?? "",
+                ["#Bench#"] = caseInfo.Court.ToUpper() ?? "",
+                ["#Court#"] = caseInfo.Court.ToUpper() ?? "",
+                ["#Strength#"] = caseInfo.Strength.ToUpper() ?? "",
+                ["#CaseNoYear#"] = caseInfo.CaseNoYear ?? "",
+                ["#CaseCategory#"] = caseInfo.CaseCategory.ToUpper() ?? "",
+                ["#CaseType#"] = caseInfo.CaseType.ToUpper() ?? "",
+                ["#CisNoYear#"] = caseInfo.CisNoYear ?? "",
+                ["#PetitionerAppearance#"] = caseInfo.PetitionerAppearance.ToUpper() ?? "",
+                ["#Petitioner#"] = caseInfo.Petitioner.ToUpper() ?? "",
+                ["#RespondantAppearance#"] = caseInfo.RespondantAppearance.ToUpper() ?? "",
+                ["#Respondant#"] = caseInfo.Respondent.ToUpper() ?? "",
+                ["#NextDate#"] = caseInfo.NextDate ?? "",
+                ["#CaseStage#"] = caseInfo.CaseStage.ToUpper() ?? "",
+                ["#DisposalDate#"] = caseInfo.DisposalDate ?? "",
+                ["#CnrNo#"] = caseInfo.CnrNo ?? "",
+                ["#CurrentDate#"] = DateTime.Now.ToString("dd/MM/yyyy"),
+                ["#ApplicantNo#"] = applicant!=null? applicant.ApplicantNo?.ToString() : "",
+                ["#ApplicantDetail#"] = applicant != null ? applicant.Applicant.ToUpper() : "",
+                ["#ImpugedOrder#"] = agDetail?.ImpugedOrder ?? "",
+                ["#AgState#"] = agDetail?.State ?? "",
+                ["#AgCourtType#"] = agDetail?.CourtType ?? "",
+                ["#AgCourtDistrict#"] = agDetail?.CourtDistrict ?? "",
+                ["#AgCourtComplex#"] = agDetail?.CourtComplex ?? "",
+                ["#AgCourtBench#"] = agDetail?.CourtBench ?? "",
+                ["#AgCaseNoYear#"] = $"{agDetail?.CaseNo ?? ""}/{agDetail?.CaseYear ?? ""}",
+                ["#AgCaseType#"] = agDetail?.CaseType ?? "",
+                ["#AgCnrNo#"] = agDetail?.CnrNo ?? "",
+                ["#Cadre#"] = agDetail?.Cadre ?? "",
+                ["#OfficerName#"] = agDetail?.OfficerName ?? "",
+                ["#AgCaseCategory#"] = agDetail?.CaseCategory ?? "",
+                ["#DecisionDate#"] = caseInfo.DisposalDate ?? caseInfo.NextDate ?? ""
+            };
+
+            foreach (var (key, value) in replacements)
+            {
+                template = template.Replace(key, value);
+            }
+
+            return template;
+        }
+
+
+        //public async Task<IActionResult> LoadFormPrinting(Guid type, List<Guid> Cases, List<string> AppNo)
+        //{
+        //    try
+        //    {
+        //        // Fetch form template
+        //        var formTemplates = await _mediator.Send(new CourtFormSearchQuery { StateId = 1, Id = type });
+        //        if (!formTemplates.Succeeded || formTemplates.Data == null || !formTemplates.Data.Any())
+        //        {
+        //            Console.WriteLine("No form template found.");
+        //            return BadRequest("Form template not found.");
+        //        }
+
+        //        var formTemplate = formTemplates.Data.FirstOrDefault()?.FormTemplate;
+        //        if (string.IsNullOrWhiteSpace(formTemplate))
+        //        {
+        //            Console.WriteLine("Form template is empty.");
+        //            return BadRequest("Form template is empty.");
+        //        }
+
+        //        Console.WriteLine("Template is available.");
+
+        //        // Fetch case details
+        //        var caseDetail = await _mediator.Send(new GetFormPrintDataQuery { CaseIds = Cases });
+        //        if (!caseDetail.Succeeded || caseDetail.Data == null)
+        //        {
+        //            Console.WriteLine("Case details retrieval failed.");
+        //            return BadRequest("Unable to retrieve case details.");
+        //        }
+
+        //        var caseInfoDetails = _mapper.Map<List<FormPrintData>>(caseDetail.Data);
+        //        if (caseInfoDetails == null || !caseInfoDetails.Any())
+        //        {
+        //            Console.WriteLine("No case data available to process.");
+        //            return BadRequest("No case data available.");
+        //        }
+
+        //        List<string> formRawHtml = new List<string>();
+
+        //        foreach (var v in caseInfoDetails)
+        //        {
+        //            if (v == null || v.Applicants == null)
+        //            {
+        //                Console.WriteLine("Skipping null case info or applicants.");
+        //                continue;
+        //            }
+
+        //            var agCaseDetail = v.AgainstCourtDetail;
+
+        //            foreach (var ad in v.Applicants)
+        //            {
+        //                if (ad == null)
+        //                {
+        //                    Console.WriteLine("Skipping null applicant.");
+        //                    continue;
+        //                }
+
+        //                try
+        //                {
+        //                    Console.WriteLine($"Generating form for ApplicantNo: {ad.ApplicantNo}");
+
+        //                    // Clone template each iteration
+        //                    var tempForm = formTemplate;
+
+        //                    // Use null-safe dictionary approach
+        //                    var replacements = new Dictionary<string, string>
+        //                    {
+        //                        ["#InstitutionDate#"] = v.InstitutionDate ?? "",
+        //                        ["#StateName#"] = v.State ?? "",
+        //                        ["#CourtType#"] = v.CourtType ?? "",
+        //                        ["#CourtDistrict#"] = v.CourtDistrict ?? "",
+        //                        ["#CourtComplex#"] = v.CourtComplex ?? "",
+        //                        ["#Court#"] = v.Court ?? "",
+        //                        ["#Strength#"] = v.Strength ?? "",
+        //                        ["#CaseNoYear#"] = v.CaseNoYear ?? "",
+        //                        ["#CaseCategory#"] = v.CaseCategory ?? "",
+        //                        ["#CaseType#"] = v.CaseType ?? "",
+        //                        ["#CisNoYear#"] = v.CisNoYear ?? "",
+        //                        ["#PetitionerAppearance#"] = v.PetitionerAppearance ?? "",
+        //                        ["#Petitioner#"] = v.Petitioner ?? "",
+        //                        ["#RespondantAppearance#"] = v.RespondantAppearance ?? "",
+        //                        ["#Respondant#"] = v.Respondent ?? "",
+        //                        ["#NextDate#"] = v.NextDate ?? "",
+        //                        ["#CaseStage#"] = v.CaseStage ?? "",
+        //                        ["#DisposalDate#"] = v.DisposalDate ?? "",
+        //                        ["#CnrNo#"] = v.CnrNo ?? "",
+        //                        ["#CurrentDate#"] = DateTime.Now.ToString("dd/MM/yyyy"),
+        //                        ["#ApplicantNo#"] = ad.ApplicantNo.ToString() ?? "",
+        //                        ["#ApplicantDetail#"] = ad.Applicant ?? "",
+        //                        ["#ImpugedOrder#"] = agCaseDetail?.CourtBench ?? "",
+        //                        ["#AgState#"] = agCaseDetail?.State ?? "",
+        //                        ["#AgCourtType#"] = agCaseDetail?.CourtType ?? "",
+        //                        ["#AgCourtDistrict#"] = agCaseDetail?.CourtDistrict ?? "",
+        //                        ["#AgCourtComplex#"] = agCaseDetail?.CourtComplex ?? "",
+        //                        ["#AgCourtBench#"] = agCaseDetail?.CourtBench ?? "",
+        //                        ["#AgCaseNoYear#"] = $"{agCaseDetail?.CaseNo ?? ""}/{agCaseDetail?.CaseYear ?? ""}",
+        //                        ["#AgCaseType#"] = agCaseDetail?.CaseType ?? "",
+        //                        ["#AgCnrNo#"] = agCaseDetail?.CnrNo ?? "",
+        //                        ["#Cadre#"] = agCaseDetail?.Cadre ?? "",
+        //                        ["#OfficerName#"] = agCaseDetail?.OfficerName ?? "",
+        //                        ["#AgCaseCategory#"] = agCaseDetail?.CaseCategory ?? "",
+        //                        ["#DecisionDate#"]= v.DisposalDate?? v.NextDate
+        //                    };
+
+        //                    foreach (var pair in replacements)
+        //                    {
+        //                        tempForm = tempForm.Replace(pair.Key, pair.Value);
+        //                    }
+
+        //                    formRawHtml.Add(HttpUtility.HtmlDecode(tempForm));
+        //                }
+        //                catch (Exception innerEx)
+        //                {
+        //                    Console.WriteLine($"Error processing applicant {ad.ApplicantNo}: {innerEx.Message}");
+        //                    continue; // skip and continue other applicants
+        //                }
+        //            }
+        //        }
+
+        //        return PartialView("_GlobalFormPrintPartial", formRawHtml);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // Consider logging with a logger instead of just console
+        //        Console.WriteLine($"Unhandled Exception: {ex.Message}\n{ex.StackTrace}");
+        //        return StatusCode(500, "An internal error occurred while generating the form.");
+        //    }
+        //}
 
 
 

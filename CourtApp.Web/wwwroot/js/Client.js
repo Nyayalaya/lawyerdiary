@@ -1,14 +1,10 @@
 ﻿$(document).ready(function () {
-    
 
-
-    $("#ClientType").select2({
-        placeholder: "Select a client type",
-        theme: "bootstrap4",
-        escapeMarkup: function (m) {
-            return m;
-        }
-    });        
+    $('#ClientType').select2({
+        theme: 'bootstrap4',
+        placeholder: 'Select a client type',
+        allowClear: true
+    });      
 
     let selectedIndex = -1; // Track the index of the currently highlighted suggestion
 
