@@ -48,8 +48,14 @@
 </table>
 <script>
     $(document).ready(function () {
-        var ecols=[0];
-        JqueryDataTable("tblCaseStage","Case Stage Data",ecols);
-
+            JqueryDataTable("tblCaseStage", {
+        title: "Case Stage Data",
+        ajaxUrl: null,
+        serverSide:false,
+        columns: [{"data":"CaseStage"}],
+        exportColumns: [0]
+    });
+        // var ecols=[0];        
+        // JqueryDataTable("tblCaseStage", "Case Stage Data", ecols);
     });
 </script>

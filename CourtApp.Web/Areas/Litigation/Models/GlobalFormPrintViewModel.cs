@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using CourtApp.Web.Areas.LawyerDiary.Models.Lawyer;
+using System.Collections.Generic;
 
 namespace CourtApp.Web.Areas.Litigation.Models
 {
     public class GlobalFormPrintViewModel
     {
         public List<FormPrintData> CasesInfo { get; set; }
+        public LawyerLViewModel CaseLawyerInfo { get; set; }
     }
     public class FormPrintData
     {

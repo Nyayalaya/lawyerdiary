@@ -33,6 +33,7 @@ using CourtApp.Web.Areas.Litigation.Models;
 using CourtApp.Web.Extensions;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Google.Apis.Drive.v3.Data;
 using HtmlAgilityPack;
 using HtmlToOpenXml;
 using MediatR;
@@ -70,7 +71,11 @@ namespace CourtApp.Web.Abstractions
                     Id = User.FindFirstValue(ClaimTypes.NameIdentifier),
                     UserName = User.FindFirstValue(ClaimTypes.Name),
                     Email = User.FindFirstValue(ClaimTypes.Email),
-                    Role = User.FindFirstValue(ClaimTypes.Role)
+                    Role = User.FindFirstValue(ClaimTypes.Role),
+                    FirstName= User?.FindFirst("FirstName")?.Value,
+                    LastName= User?.FindFirst("LastName")?.Value,
+                    Address= User.FindFirstValue(ClaimTypes.StreetAddress),
+                    Mobile= User.FindFirstValue(ClaimTypes.MobilePhone),
                     // Retrieve other claims as needed
                 };
             }

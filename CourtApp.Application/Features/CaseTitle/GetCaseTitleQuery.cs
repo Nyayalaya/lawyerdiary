@@ -22,6 +22,7 @@ namespace CourtApp.Application.Features.CaseTitle
         public int PageSize { get; set; }
         public int TypeId { get; set; }
         public List<Guid> CaseIds { get; set; }
+        public List<string> LinkedIds { get; set; }
     }
 
     public class GetCaseTitleQueryHandler : IRequestHandler<GetCaseTitleQuery, PaginatedResult<CaseTitleResponse>>
@@ -54,6 +55,8 @@ namespace CourtApp.Application.Features.CaseTitle
             var predicate = PredicateBuilder.True<CaseTitleEntity>();
             if (predicate != null)
             {
+                if (request.LinkedIds!=null && request.LinkedIds.Any())
+                    predicate = predicate.And(c => request.LinkedIds.Contains(c.CreatedBy));
                 if (request.TypeId != 0)
                     predicate = predicate.And(y => y.TypeId == request.TypeId);
                 if (request.CaseIds != null && request.CaseIds.Count() > 0)

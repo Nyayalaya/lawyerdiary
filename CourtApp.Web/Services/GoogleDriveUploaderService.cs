@@ -30,7 +30,7 @@ namespace CourtApp.Web.Services
             {
                 "Draft" => _settings.Folders["DraftDocuments"],
                 "Order" => _settings.Folders["OrderDocuments"],
-                "Profile" => _settings.Folders["ProfileImages"],
+                "ProfileImage" => _settings.Folders["ProfileImages"],
                 _ => throw new ArgumentException("Invalid document type")
             };
             //var jsonKeyPath = Path.Combine(_environment.WebRootPath, "service-account-key.json");

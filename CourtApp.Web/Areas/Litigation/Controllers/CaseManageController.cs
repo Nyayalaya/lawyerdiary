@@ -15,6 +15,7 @@ using CourtApp.Web.Extensions;
 using CourtApp.Web.Helpers;
 using CourtApp.Web.Models;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -619,6 +620,84 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             return Json(new { success = respose.Failed, respose.Message });
 
         }
+
+
+        [HttpPost]
+        [RequestSizeLimit(MaxFileSize)]
+        public async Task<IActionResult> ReplaceDocument(Guid caseId,Guid docId,IFormFile newDocument)
+        {
+            if (newDocument == null || newDocument.Length == 0)
+            {
+                return Json(new { success = false, message = "No document provided." });
+            }
+
+            var fileExtension = Path.GetExtension(newDocument.FileName).ToLower();
+            if (fileExtension != ".pdf" && (fileExtension != ".docx" || fileExtension != ".doc"))
+            {
+                return Json(new { success = false, message = "Only PDF and DOCX are allowed." });
+            }
+
+            if (newDocument.Length > MaxFileSize)
+            {
+                return Json(new { success = false, message = "File size exceeds 30MB." });
+            }
+
+            try
+            {
+                // Step 1: Get Existing Document Info
+                //var existingDoc = await _mediator.Send(new GetDocumentByCaseAndDocIdQuery { CaseId=caseId,DocId = docId });
+                //if (existingDoc == null)
+                //{
+                //    return Json(new { success = false, message = "Document not found." });
+                //}
+
+                //string oldPath = existingDoc.DocPath;
+                //string documentType = existingDoc.TypeId == 1 ? "Draft" : "Order";
+
+                // Step 2: Delete the old file from blob
+                //bool deleted = await _documentUploadService.DeleteFileAsync(oldPath);
+                //if (!deleted)
+                //{
+                //    return Json(new { success = false, message = "Failed to delete the old document from storage." });
+                //}
+
+                // Step 3: Compress and Upload New File
+                string compressedFileName = $"{Path.GetFileNameWithoutExtension(newDocument.FileName)}_{Guid.NewGuid()}.zip";
+                using var docStream = newDocument.OpenReadStream();
+                using var memoryStream = new MemoryStream();
+                using (var zipArchive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+                {
+                    var zipEntry = zipArchive.CreateEntry(newDocument.FileName);
+                    using var entryStream = zipEntry.Open();
+                    await docStream.CopyToAsync(entryStream);
+                }
+                memoryStream.Seek(0, SeekOrigin.Begin);
+
+                //string newPath = await _documentUploadService.UploadFileAsync(memoryStream, compressedFileName, documentType);
+
+                // Step 4: Update document record in database
+                //var updateResult = await _mediator.Send(new ReplaceCaseDocumentCommand
+                //{
+                //    DocId = docId,
+                //    NewDocPath = newPath,
+                //    UpdatedOn = DateTime.UtcNow
+                //});
+
+                //if (updateResult.Succeeded)
+                //    return Json(new { success = true });
+
+                return Json(new { success = false, message = "Failed to update document information." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error replacing document: {ex.Message}");
+                return StatusCode(500, "Internal Server Error while replacing the file.");
+            }
+        }
+
+
+
+
         #endregion
 
         #region Case Detail

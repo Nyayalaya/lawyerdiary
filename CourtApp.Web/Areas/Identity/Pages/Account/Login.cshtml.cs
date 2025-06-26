@@ -161,7 +161,12 @@ namespace CourtApp.Web.Areas.Identity.Pages.Account
                                 {
                                     new Claim(ClaimTypes.NameIdentifier, user.Id),
                                     new Claim(ClaimTypes.Name, user.UserName),
-                                    new Claim("LinkedIds", lawyerIdsCsv)
+                                    new Claim("LinkedIds", lawyerIdsCsv),
+                                    new Claim(ClaimTypes.MobilePhone,user.Mobile),
+                                    new Claim(ClaimTypes.StreetAddress,user.AddressInfo!=null?user.AddressInfo.StreetAddress:""),
+                                    new Claim("OfficeAddress",user.WorkLocInfo!=null?user.WorkLocInfo.Address:""),
+                                    new Claim("FirstName",user.FirstName),
+                                    new Claim("LastName",user.LastName)                                   
                                 };
 
                 // Add role claims (one per role)

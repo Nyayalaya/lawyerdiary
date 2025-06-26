@@ -3,6 +3,7 @@ using CourtApp.Application.Features.CaseTitle;
 using CourtApp.Application.Features.FSTitle;
 using CourtApp.Web.Abstractions;
 using CourtApp.Web.Areas.LawyerDiary.Models.Title;
+using CourtApp.Web.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,12 @@ namespace CourtApp.Web.Areas.LawyerDiary.Controllers
 
         public async Task<IActionResult> LoadAll()
         {
-            var response = await _mediator.Send(new GetCaseTitleQuery() { PageNumber = 1, PageSize = 5000 });
+            var response = await _mediator.Send(new GetCaseTitleQuery()
+            {
+                PageNumber = 1,
+                PageSize = 5000,
+                LinkedIds = User.GetUserLinkedIds(),
+            });
             if (response.Succeeded)
             {
                 var viewModel = _mapper.Map<List<TitleGetViewModel>>(response.Data);

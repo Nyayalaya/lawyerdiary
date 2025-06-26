@@ -1,9 +1,9 @@
 ﻿@model CaseActionViewModel
 <div class="btn-group">
-    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <button type="button" class="btn btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         Action
     </button>
-    <div class="dropdown-menu shadow animated--grow-in">
+    <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in">
         <a onclick="jQueryModalGet('/Litigation/casemanage/OnGetCaseHistory?CaseId=@Model.CaseId', 'See History')" class="dropdown-item" title="See History">
             <i class="fa fa-history"></i> Case History
         </a>
