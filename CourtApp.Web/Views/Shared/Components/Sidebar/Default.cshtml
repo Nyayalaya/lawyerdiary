@@ -39,8 +39,13 @@
                     var canAccessCopReg = (await AuthorizationService.AuthorizeAsync(User, "Register.Menu.Copying")).Succeeded;
                     var canAccessInspReg = (await AuthorizationService.AuthorizeAsync(User, "Register.Menu.Institue")).Succeeded;
                     var canAccessOthpReg = (await AuthorizationService.AuthorizeAsync(User, "Register.Menu.Other")).Succeeded;
-                    var canAccessTools = (await AuthorizationService.AuthorizeAsync(User, Permissions.Tool.MenuAccess)).Succeeded;
-                    
+
+                    var canAccessTools = (await AuthorizationService.AuthorizeAsync(User, "Menu.Tools.canAccess")).Succeeded;
+                    var canAccessCourtFeeCalculator = (await AuthorizationService.AuthorizeAsync(User, "Menu.CourtFeeCalculator.canAccess")).Succeeded;
+                    var canAccessLimitationCounterCalculator = (await AuthorizationService.AuthorizeAsync(User, "Menu.LimitationCounterCalculator.canAccess")).Succeeded;
+                    var canAccessInterestCalculator = (await AuthorizationService.AuthorizeAsync(User, "Menu.InterestCalculator.canAccess")).Succeeded;
+                    var canAccessStampDutyCalculator = (await AuthorizationService.AuthorizeAsync(User, "Menu.StampDutyCalculator.canAccess")).Succeeded;
+
                     var canAccessAppMaster = User.IsInRole("SuperAdmin");
                 }
 
@@ -160,6 +165,12 @@
                                     <p>@localizer["Court forms"]</p>
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a is-active-route asp-area="LawyerDiary" asp-controller="CourtFee" asp-action="index" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>@localizer["Court Fee"]</p>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 }
@@ -247,7 +258,7 @@
                 {
                     <li class="nav-item has-treeview">
                         <a href="#" class="nav-link">
-                            <i class="nav-icon fas fa-balance-scale"></i>
+                            <i class="nav-icon fas fa-balance-scale" style="color:royalblue"></i>
                             <p>@localizer["Case Info"] <i class="right fas fa-angle-left"></i></p>
                         </a>
                         <ul class="nav nav-treeview">
@@ -272,7 +283,7 @@
                             {
                                 <li class="nav-item">
                                     <a is-active-route asp-area="Litigation" asp-controller="Hearing" asp-action="index" class="nav-link">
-                                        <i class="fa fa-deafness" aria-hidden="true"></i>
+                                        <i class="fa fa-deaf" style="color:navy" aria-hidden="true"></i>
                                         <p>@localizer["Today Hearing"]</p>
                                     </a>
                                 </li>
@@ -374,7 +385,6 @@
                     </li>
                 }
 
-
                 @if (canAccessTools)
                 {
                     <li class="nav-item has-treeview">
@@ -383,11 +393,38 @@
                             <p>@localizer["Tools"] <i class="right fas fa-angle-left"></i></p>
                         </a>
                         <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a asp-area="Client" asp-controller="Tools" asp-action="AdvalremFeeCal" class="nav-link">
-                                    <i class="fa fa-calculator"></i> <p>@localizer["Advalrem Fee Calculator"]</p>
-                                </a>
-                            </li>
+                            @if (canAccessCourtFeeCalculator)
+                            {
+                                <li class="nav-item">
+                                    <a asp-area="Tools" asp-controller="CourtFee" asp-action="index" class="nav-link">
+                                        <i class="fas fa-file-invoice-dollar"></i> <p>@localizer["Court Fee Calculator"]</p>
+                                    </a>
+                                </li>
+                            }
+                            @if (canAccessLimitationCounterCalculator)
+                            {
+                                <li class="nav-item">
+                                    <a asp-area="Tools" asp-controller="CourtFee" asp-action="index" class="nav-link">
+                                        <i class="fas fa-hourglass-half"></i> <p>@localizer["Limitation Counter"]</p>
+                                    </a>
+                                </li>
+                            }
+                            @if (canAccessInterestCalculator)
+                            {
+                                <li class="nav-item">
+                                    <a asp-area="Tools" asp-controller="CourtFee" asp-action="index" class="nav-link">
+                                        <i class="fas fa-percentage"></i> <p>@localizer["Interest Calculator"]</p>
+                                    </a>
+                                </li>
+                            }
+                            @if (canAccessStampDutyCalculator)
+                            {
+                                <li class="nav-item">
+                                    <a asp-area="Tools" asp-controller="CourtFee" asp-action="index" class="nav-link">
+                                        <i class="fas fa-stamp"></i> <p>@localizer["StampDuty Calculator"]</p>
+                                    </a>
+                                </li>
+                            }
                         </ul>
                     </li>
                 }

@@ -2,6 +2,7 @@
 using CourtApp.Application.Enums;
 using CourtApp.Infrastructure.Identity.Models;
 using Microsoft.AspNetCore.Identity;
+using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -19,7 +20,14 @@ namespace CourtApp.Infrastructure.Identity.Seeds
             {
                 if (!allClaims.Any(c => c.Type == "Permission" && c.Value == permission))
                 {
-                    await roleManager.AddClaimAsync(role, new Claim("Permission", permission));
+                    try
+                    {
+                        await roleManager.AddClaimAsync(role, new Claim("Permission", permission));
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.StackTrace);
+                    }
                 }
             }
         }

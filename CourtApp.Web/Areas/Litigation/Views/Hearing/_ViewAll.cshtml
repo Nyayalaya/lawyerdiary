@@ -1,4 +1,10 @@
 ﻿@model BringTodayCaseViewModel
+<style>
+    .custom-green td {
+        color: green !important;
+        background-color: honeydew !important;
+    }
+</style>
 <div class="card">
     <div id="viewAll" class="card-body table-responsive">
         <form asp-controller="Hearing" method="post" asp-action="AssignWorkCase" class="d-inline">
@@ -33,7 +39,7 @@
                                     col = "green";
                                 }
                                 else col = "";
-                                <tr style="color:@col">
+                                <tr class="@(Model.CaseList[i].IsProceedingDone ? "custom-green" : "")">
                                     <td style="width:5%">
                                         <input type="hidden" asp-for="@Model.CaseList[i].Id" />
                                         @(count = count + 1)
@@ -50,6 +56,12 @@
                                     <td style="width:10%">
                                         <input type="hidden" asp-for="@Model.CaseList[i].CaseNumber" />
                                         @Model.CaseList[i].CaseNumber
+                                        <small>
+                                            @if (Model.CaseList[i].HasChild)
+                                            {
+                                                <span class="badge badge-success">@localizer["Parent Case"]</span>
+                                            }
+                                        </small>
                                     </td>
                                     <td style="width:5%">
                                         <input type="hidden" asp-for="@Model.CaseList[i].CaseYear" />
@@ -75,7 +87,7 @@
                                             actionModel.Reference = @Model.CaseList[i].Reference;
                                             actionModel.IsCaseAssigned = @Model.CaseList[i].IsCaseAssigned;
                                         }
-                                        <partial name="_CaseGroupActionPartial" model="@actionModel" ></partial>
+                                        <partial name="_CaseGroupActionPartial" model="@actionModel"></partial>
                                     </td>
                                 </tr>
                             }

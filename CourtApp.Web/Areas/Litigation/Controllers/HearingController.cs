@@ -99,6 +99,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 hearing.IsProceedingDone = item.IsProceedingDone;
                 hearing.Reference = item.Reference;
                 hearing.IsCaseAssigned = item.IsCaseAssigned;
+                hearing.HasChild = item.HasChild;
                 cdt.Add(hearing);
             }
             model.CaseList = cdt;

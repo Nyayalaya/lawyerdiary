@@ -5,12 +5,9 @@
 
 <div class="card">
     <div class="col-sm-12" style="padding:20px">
-        @if ((AuthorizationService.AuthorizeAsync(User, Permissions.BookTypes.Create)).Result.Succeeded)
-        {
-            <a onclick="jQueryModalGet('/lawyerdiary/courtfee/OnGetCreateOrEdit','Create Court Fee')" class="btn bg-success">
-                <i class="fa fa-plus-square"></i> Create
-            </a>
-        }
+        <a onclick="jQueryModalGet('/lawyerdiary/courtfee/OnGetCreateOrEdit','Create Court Fee')" class="btn bg-success">
+            <i class="fa fa-plus-square"></i> Create
+        </a>
 
         <a id="reload" class="btn btn-primary text-white">
             <i class="fa fas fa-bolt"></i>
@@ -21,8 +18,7 @@
     </div>
 </div>
 @section Scripts
-{
-    <script src="~/js/site.js"></script>
+{    
     <script>
         $(document).ready(function () {
             $("#brandTable").DataTable();

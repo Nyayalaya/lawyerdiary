@@ -6,6 +6,8 @@ using CourtApp.Application.Interfaces.Repositories;
 using CourtApp.Domain.Entities.CaseDetails;
 using KT3Core.Areas.Global.Classes;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -59,12 +61,122 @@ namespace CourtApp.Application.Features.UserCase
         }
         public async Task<PaginatedResult<CaseDetailResponse>> Handle(GetCaseDetailsQuery request, CancellationToken cancellationToken)
         {
+            // Step 1: Prepare raw EF Core query user wise data and its linked user data
+            var baseQuery = from c in _RepoCase.Entites.AsNoTracking()
+                            join ac in _assignRepo.Entities on c.Id equals ac.CaseId into caseAssignments
+                            from ac in caseAssignments.DefaultIfEmpty()
+                            where request.LinkedIds.Contains(c.CreatedBy)
+                                  || request.LinkedIds.Contains(ac.LawyerId.ToString())
+                            select new
+                            {
+                                Case = new
+                                {
+                                    c.Id,
+                                    c.CaseNo,
+                                    FTitleType = c.FTitle.Name_En,
+                                    c.FirstTitle,
+                                    STitleType = c.STitle.Name_En,
+                                    c.SecondTitle,
+                                    CaseYear = c.CaseYear.ToString(),
+                                    CourtType = c.CourtType.CourtType.ToString(),
+                                    CaseTypeName = c.CaseType.Name_En,
+                                    CourtName = c.CourtBench.CourtBench_En,
+                                    c.CaseStage.CaseStage,
+                                    c.CaseProcEntities,
+                                    c.NextDate
+                                },
+                                Assign = ac,
+                                Refer = ac != null && request.LinkedIds.Contains(ac.LawyerId.ToString()) ? "Assigned" : "Self"
+                            };
 
+            // Optional: filter by hearing date (before loading to memory)
+            if (request.HearingDate != default)
+            {
+                var hearingDate = request.HearingDate.Date;
+
+                baseQuery = baseQuery.Where(e =>
+                    e.Case.CaseProcEntities
+                        .Any(p => p.ProceedingDate.HasValue && p.ProceedingDate.Value.Date == hearingDate)
+                    || e.Case.CaseProcEntities
+                        .Any(p => p.NextDate.HasValue && p.NextDate.Value.Date == hearingDate)
+                    || e.Case.NextDate.HasValue && e.Case.NextDate.Value.Date == hearingDate);
+            }
+
+            // ✅ Step 2: Get total count BEFORE pagination
+            var totalCount = await baseQuery.CountAsync();
+
+            // ✅ Step 3: Paginate
+            var pagedRawData = await baseQuery
+                .OrderByDescending(e => e.Case.NextDate ?? e.Case.CaseProcEntities
+                    .OrderByDescending(p => p.NextDate)
+                    .Select(p => p.NextDate)
+                    .FirstOrDefault()) // for ordering
+                .Skip((request.PageNumber - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToListAsync();
+
+            // ✅ Step 4: In-memory projection
+            var results = pagedRawData.Select(e =>
+            {
+                var c = e.Case;
+                var ac = e.Assign;
+                var refer = e.Refer;
+
+                var maxProcDate = c.CaseProcEntities != null
+                        ? c.CaseProcEntities.OrderByDescending(p => p.NextDate)
+                            .Select(p => p.NextDate)
+                            .FirstOrDefault() ?? default
+                        : (c.NextDate ?? default);
+
+
+
+                var matchingProceeding = c.CaseProcEntities != null ?
+                                         c.CaseProcEntities.FirstOrDefault(p =>
+                                         p.ProceedingDate.HasValue
+                                        && p.ProceedingDate.Value.Date == request.HearingDate.Date) : null;
+
+                return new CaseDetailResponse
+                {
+                    Id = c.Id,
+                    Reference = refer,
+                    CaseNumber = c.CaseNo,
+                    FTitleType = c.FTitleType,
+                    FirstTitle = c.FirstTitle,
+                    STitleType = c.FTitleType,
+                    SecondTitle = c.SecondTitle,
+                    CaseYear = c.CaseYear.ToString(),
+                    CourtType = c.CourtType.ToString(),
+                    CaseTypeName = c.CaseTypeName,
+                    CourtName = c.CourtName,
+                    CaseStage = c.CaseStage,
+                    CaseTitle = (c.FirstTitle + " V/S " + c.SecondTitle + " [" +
+                                 (string.IsNullOrEmpty(c.CaseNo)
+                                     ? c.CaseYear.ToString()
+                                     : c.CaseNo + "/" + c.CaseYear.ToString()) +
+                                 "]").ToUpperInvariant(),
+                    NextHearingDate = maxProcDate,
+                    IsProceedingDone = matchingProceeding != null,
+                    ProceedingDate = matchingProceeding?.ProceedingDate ?? default,
+                    IsCaseAssigned = refer == "Self" && ac != null && ac.CaseId == c.Id,
+                    LawyerId = refer == "Self" && ac != null ? ac.LawyerId : Guid.Empty,
+                    HasChild = IsCaseHavingChild(c.Id)
+                };
+            }).ToList();
+
+            // ✅ Step 6: Return as PaginatedResult
+            return PaginatedResult<CaseDetailResponse>.Success(
+                results,
+                totalCount,
+                request.PageNumber,
+                request.PageSize
+            );
+
+            /* Older Code
             try
             {
-
+                
                 //Step 1: Getting all case of logged in user.
-                var userCaseQuery = (from c in _RepoCase.Entites
+                var userCaseQuery = (from c in _RepoCase.Entites.AsNoTracking()
                                      join ac in _assignRepo.Entities on c.Id equals ac.CaseId into caseAssignments
                                      from ac in caseAssignments.DefaultIfEmpty()
                                      where request.LinkedIds.Contains(c.CreatedBy)
@@ -106,8 +218,9 @@ namespace CourtApp.Application.Features.UserCase
                                          ProceedingDate = matchingProceeding != null
                                              ? matchingProceeding.ProceedingDate.Value
                                              : default,
-                                         IsCaseAssigned=isCaseAssigned,
-                                         LawyerId= AssignedLawyerId
+                                         IsCaseAssigned = isCaseAssigned,
+                                         LawyerId = AssignedLawyerId,
+                                         HasChild = IsCaseHavingChild(c.Id)
                                      })
                                     .OrderByDescending(o => o.CaseYear)
                                     .AsQueryable();
@@ -130,7 +243,15 @@ namespace CourtApp.Application.Features.UserCase
             {
                 Console.WriteLine(ex);
                 return null;
-            }
+            }*/
+        }
+
+
+        // ✅ Check whether case has child or not.
+        private bool IsCaseHavingChild(Guid caseId)
+        {
+            var childCase = _RepoCase.Entites.AsNoTracking().Where(c => c.LinkedCaseId == caseId);
+            return childCase.Count()>0?true:false;
         }
     }
 }

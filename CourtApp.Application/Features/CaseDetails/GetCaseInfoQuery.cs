@@ -8,6 +8,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,10 +58,17 @@ namespace CourtApp.Application.Features.CaseDetails
             if (!string.IsNullOrWhiteSpace(request.Search))
             {
                 var search = request.Search.ToLower();
+                DateTime parsedDate;
+                bool isDateSearch = DateTime.TryParseExact(search, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate);
+                int parsedYear;
+                bool isYearSearch = int.TryParse(search, out parsedYear);
                 predicate = predicate.And(c =>                    
                     c.CaseNo.ToLower().Contains(search) ||
                     c.FirstTitle.ToLower().Contains(search) ||
                     c.SecondTitle.ToLower().Contains(search) ||
+                    c.CaseStage.CaseStage.ToLower().Contains(search) ||
+                    (isYearSearch && c.CaseYear == parsedYear) ||
+                    (isDateSearch && c.NextDate.HasValue && c.NextDate.Value.Date == parsedDate.Date) ||
                     c.CaseType.Name_En.ToLower().Contains(search));
             }
 
@@ -117,6 +125,22 @@ namespace CourtApp.Application.Features.CaseDetails
                             baseQuery = request.SortDirection == "asc"
                                 ? baseQuery.OrderBy(x => x.Reference)
                                 : baseQuery.OrderByDescending(x => x.Reference);
+                            break;
+                        case "NextDate":
+                            baseQuery = request.SortDirection == "asc"
+                                ? baseQuery.OrderBy(x => x.NextDate)
+                                : baseQuery.OrderByDescending(x => x.NextDate);
+                            break;
+
+                        case "Stage":
+                            baseQuery = request.SortDirection == "asc"
+                                ? baseQuery.OrderBy(x => x.CaseStage)
+                                : baseQuery.OrderByDescending(x => x.CaseStage);
+                            break;
+                        case "Type":
+                            baseQuery = request.SortDirection == "asc"
+                                ? baseQuery.OrderBy(x => x.CaseType)
+                                : baseQuery.OrderByDescending(x => x.CaseType);
                             break;
 
                         default:

@@ -75,6 +75,20 @@ namespace CourtApp.Application.Constants
                     { "Menu", new() { "AccountingPanel.Menu.canAccessAccountingPanel", "AccountingPanel.Menu.Billing" } },
                     { "Billing", new() { "AccountingPanel.Billing.Create", "AccountingPanel.Billing.View", "AccountingPanel.Billing.Edit", "AccountingPanel.Billing.Delete" } }
                 }
+            },
+            { "Tools", new Dictionary<string, List<string>>
+                {
+                    { "Menu",
+                        new()
+                        {
+                            "Menu.Tools.canAccess",
+                            "Menu.CourtFeeCalculator.canAccess",
+                            "Menu.LimitationCounterCalculator.canAccess",
+                            "Menu.InterestCalculator.canAccess",
+                            "Menu.StampDutyCalculator.canAccess",
+                        }
+                    }
+                }
             }
         };
 
