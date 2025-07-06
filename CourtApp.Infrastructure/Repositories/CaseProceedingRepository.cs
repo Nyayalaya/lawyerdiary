@@ -99,7 +99,7 @@ namespace CourtApp.Infrastructure.Repositories
 
         public async Task<List<CaseProcedingEntity>> GetProceedingByCaseIdAsync(Guid CaseId)
         {
-            var data = await _repository.Entities
+            var data = await _repository.Entities.Where(w=>w.CaseId==CaseId)
                 .Include(w => w.Head)
                 .Include(w => w.SubHead)
                 .Include(w => w.Stage)

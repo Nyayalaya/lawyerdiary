@@ -4,6 +4,7 @@
         <form asp-controller="Hearing" method="post" asp-action="UpdateCaseDate" class="d-inline">
             <div class="row">
                 <div class="col-md-12">
+                    <input type="hidden" asp-for="@Model.HearingDate" />
                     <table id="tblBringToday" class="table table-striped" width="100%" cellspacing="0">
                         <thead>
                             <tr>

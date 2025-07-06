@@ -82,7 +82,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
 
             if (response.Succeeded)
             {
-                
+
                 List<GetCaseInfoViewModel> dataModels = new List<GetCaseInfoViewModel>();
                 foreach (var item in response.Data)
                 {
@@ -143,8 +143,6 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             return null;
         }
 
-        
-
         public async Task<IActionResult> CreateOrUpdateAsync(Guid id, string from)
         {
             _logger.LogInformation("Case create or edit form!");
@@ -164,9 +162,9 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 cam.ACadres = await DdlCadres();
                 cam.AStrengths = DdlStrength();
                 cam.ACaseNatures = await LoadCaseNature();
+                if (from == "repeat") id = Guid.Empty;
                 if (id == Guid.Empty && (from == null || from == ""))
                 {
-                    //caseViewModel.Courts = await DdlCourts();
                     ViewBag.Title = "Add New";
                     caseViewModel.InstitutionDate = DateTime.Now;
                     caseViewModel.States = await LoadStates();
@@ -193,7 +191,6 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 }
                 else
                 {
-                    ViewBag.Title = "Update";
                     var response = await _mediator.Send(new GetUserCaseDetailByIdQuery
                     {
                         CaseId = id,
@@ -202,6 +199,13 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                     if (response.Succeeded)
                     {
                         var CaseDetail = _mapper.Map<CaseUpseartViewModel>(response.Data);
+                        if (from == "cp")
+                        {
+                            ViewBag.Title = "Add New";
+                            CaseDetail.UserCaseId = id;
+                        }
+                        else
+                            ViewBag.Title = "Update";
                         CaseDetail.ClientList = await DdlClient(CurrentUser.Id);
                         CaseDetail.States = await LoadStates();
                         CaseDetail.CourtTypes = await LoadCourtTypes();
@@ -268,7 +272,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                         ViewBag.ShowHighCourt = showHighCourt;
                         ViewBag.AgIsHighCourt = AgIsHighCourt;
                         CaseDetail.Cadres = await DdlCadres();
-                        if (from != "repeat")
+                        if (from != "repeat" && from != "cp")
                         {
                             ViewBag.ActionType = "Update";
                             ViewBag.Id = CaseDetail.Id.ToString();
@@ -624,7 +628,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
 
         [HttpPost]
         [RequestSizeLimit(MaxFileSize)]
-        public async Task<IActionResult> ReplaceDocument(Guid caseId,Guid docId,IFormFile newDocument)
+        public async Task<IActionResult> ReplaceDocument(Guid caseId, Guid docId, IFormFile newDocument)
         {
             if (newDocument == null || newDocument.Length == 0)
             {
@@ -1017,6 +1021,22 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 Console.WriteLine(ex.Message);
                 return null;
             }
+        }
+        #endregion
+
+        #region Copy Case Detail
+        public async Task<IActionResult> CopyCaseDetail()
+        {
+            CopyCaseViewModel model = new CopyCaseViewModel();
+            model.Cases = await UserCaseTitle(Guid.Empty);
+            return new JsonResult(new { isValid = true, html = await _viewRenderer.RenderViewToStringAsync("_CopyCaseInfo", model) });
+        }
+
+        [HttpPost]
+        public IActionResult CopyCaseDetail(CopyCaseViewModel model)
+        {
+            // Redirect to the target action with id and from=cp
+            return RedirectToAction("CreateOrUpdate", new { id = model.CaseId, from = "cp" });
         }
         #endregion
 

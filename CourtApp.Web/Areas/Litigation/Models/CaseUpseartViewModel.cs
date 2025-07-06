@@ -6,6 +6,7 @@ namespace CourtApp.Web.Areas.Litigation.Models
 {
     public class CaseUpseartViewModel
     {
+        public Guid UserCaseId { get; set; }
         public string StatusMessage { get; set; }
         public bool IsHighCourt { get; set; }
         public Guid Id { get; set; }
@@ -65,6 +66,7 @@ namespace CourtApp.Web.Areas.Litigation.Models
         public SelectList States { get; set; }
         public SelectList Strengths { get; set; }
         public SelectList Appearences { get; set; }
+        public SelectList UserCases { get; set; }
 
         #endregion
 

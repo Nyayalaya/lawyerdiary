@@ -11,6 +11,7 @@ namespace CourtApp.Application.Features.CaseDetails
     public class UpdateCaseNextDateCommand : IRequest<Result<Guid>>
     {
         public List<Guid> CaseIds { get; set; }
+        public DateTime NextHearingDate { get; set; }
     }
     public class UpdateCaseNextDateCommandHandler : IRequestHandler<UpdateCaseNextDateCommand, Result<Guid>>
     {
@@ -31,7 +32,7 @@ namespace CourtApp.Application.Features.CaseDetails
                     return Result<Guid>.Fail($"Case is not found.");
                 else
                 {
-                    entity.NextDate = DateTime.Now;
+                    entity.NextDate = request.NextHearingDate;
                     await _Repository.UpdateAsync(entity);
                     Id = entity.Id;
                 }

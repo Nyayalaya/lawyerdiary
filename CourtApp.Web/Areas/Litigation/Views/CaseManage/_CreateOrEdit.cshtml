@@ -332,10 +332,10 @@
     <script src="~/js/litigation/managecase.js"></script>
     <script>
         $(document).ready(function () {
-            debugger;
             var title="@(ViewBag.Title)";
             if(title==="Add New Case Detail")
             {
+                 $("#hypCopy").css("display", "block");
                 $("#hypButton").css("display", "block");
                 $("#hypRepeatButton").css("display", "block");
             }

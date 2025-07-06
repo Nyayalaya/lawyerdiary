@@ -5,5 +5,6 @@ namespace CourtApp.Application.DTOs.Registers
     {       
         public string Reason { get; set; }
         public string DisposalDate { get; set; }
+        
     }
 }

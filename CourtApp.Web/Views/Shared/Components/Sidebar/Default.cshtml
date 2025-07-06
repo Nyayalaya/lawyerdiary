@@ -349,7 +349,7 @@
                             {
                                 <li class="nav-item">
                                     <a is-active-route asp-area="Report" asp-controller="Register" asp-action="InstitionRegister" class="nav-link">
-                                        <i class="fa fa-institution" aria-hidden="true"></i>
+                                        <i class="fa fa-registered" aria-hidden="true"></i>
                                         <p>@localizer["Institution Register"]</p>
                                     </a>
                                 </li>
@@ -367,7 +367,7 @@
                             {
                                 <li class="nav-item">
                                     <a asp-area="Report" asp-controller="Register" asp-action="DisposalRegister" class="nav-link">
-                                        <i class="fa fa-close"></i> <p>@localizer["Disposal Register"]</p>
+                                        <i class="fa fa-check-circle"></i> <i class="fa fa-file-text-o"></i> <p>@localizer["Disposal Register"]</p>
                                     </a>
                                 </li>
                             }
@@ -375,8 +375,8 @@
                             {
                                 <li class="nav-item">
                                     <a is-active-route asp-area="Report" asp-controller="Register" asp-action="OtherRegister" class="nav-link">
-                                        <i class="fa fa-institution" aria-hidden="true"></i>
-                                        <p>@localizer["Other Register"]</p>
+                                        <i class="fa fa-hourglass-half"></i>
+                                        <p>@localizer["Pending Register"]</p>
                                     </a>
                                 </li>
                             }

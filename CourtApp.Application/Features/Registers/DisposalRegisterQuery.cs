@@ -62,7 +62,9 @@ namespace CourtApp.Application.Features.Registers
                                   Year = c.CaseYear.ToString(),
                                   Court = c.CourtBench.CourtBench_En,
                                   CaseType = c.CaseType.Name_En,
-                                  Reason = Proceedings.Select(s => s.SubHead.Name_En).FirstOrDefault() ?? ""
+                                  Reason = Proceedings.Select(s => s.SubHead.Name_En).FirstOrDefault() ?? "",
+                                  Reference= assignedOrSelf,
+                                  InsititutionDate=c.InstitutionDate.ToString("dd/MM/yyyy")
                               };
 
 

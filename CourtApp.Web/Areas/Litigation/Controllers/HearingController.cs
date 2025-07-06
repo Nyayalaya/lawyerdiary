@@ -78,7 +78,13 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             if (response.Succeeded)
             {
                 var viewModel = _mapper.Map<List<GetCaseViewModel>>(response.Data);
-                return new JsonResult(new { isValid = true, html = await _viewRenderer.RenderViewToStringAsync("_BringToday", TodayCaseList(viewModel, DateTime.Now.ToString())) });
+                string SelectedDate = string.Empty;
+                if (TempData["SelectedDate"] != null)
+                {
+                    SelectedDate = TempData["SelectedDate"].ToString();
+                    TempData.Keep();
+                }
+                return new JsonResult(new { isValid = true, html = await _viewRenderer.RenderViewToStringAsync("_BringToday", TodayCaseList(viewModel, SelectedDate)) });
             }
             return null;
         }
@@ -116,7 +122,11 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             if (model.CaseList != null)
             {
                 var CaseIds = model.CaseList.Where(s => s.Selected == true).Select(s => s.Id).ToList();
-                var result = await _mediator.Send(new UpdateCaseNextDateCommand { CaseIds = CaseIds });
+                var result = await _mediator.Send(new UpdateCaseNextDateCommand
+                {
+                    CaseIds = CaseIds,
+                    NextHearingDate = model.HearingDate
+                });
                 if (result.Succeeded) _notify.Information($"Case Next hearing date with ID {result.Data} Updated.");
                 else _notify.Error(result.Message);
             }
