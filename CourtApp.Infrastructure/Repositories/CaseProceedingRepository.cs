@@ -122,5 +122,11 @@ namespace CourtApp.Infrastructure.Repositories
             await _distributedCache.RemoveAsync(AppCacheKeys.ProcHeadKey);
 
         }
+
+        public async Task UpdateRangeAsync(List<CaseProcedingEntity> Entities)
+        {
+            await _repository.UpdateRangeAsync(Entities);
+            await _distributedCache.RemoveAsync(AppCacheKeys.ProcHeadKey);
+        }
     }
 }

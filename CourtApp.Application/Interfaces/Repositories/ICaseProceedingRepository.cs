@@ -16,6 +16,7 @@ namespace CourtApp.Application.Interfaces.Repositories
         Task<Guid> AddAsync(CaseProcedingEntity Entity);
         Task<Guid> AddAsyncRange(List<CaseProcedingEntity> Entity);
         Task UpdateAsync(CaseProcedingEntity Entity);
+        Task UpdateRangeAsync(List<CaseProcedingEntity> Entities);
         Task DeleteAsync(CaseProcedingEntity Entity);
         Task DeleteRangeAsync(List<CaseProcedingEntity> Entities);
     }

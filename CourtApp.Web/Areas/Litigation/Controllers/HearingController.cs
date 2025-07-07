@@ -127,7 +127,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                     CaseIds = CaseIds,
                     NextHearingDate = model.HearingDate
                 });
-                if (result.Succeeded) _notify.Information($"Case Next hearing date with ID {result.Data} Updated.");
+                if (result.Succeeded) _notify.Information($"Updated the selected cases next heaing date successfully.");
                 else _notify.Error(result.Message);
             }
             return RedirectToAction("Index");
@@ -239,6 +239,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 if (model.IsUpdate)
                 {
                     var up = _mapper.Map<UpdateCaseProceedingCommand>(model);
+                    up.UserId = CurrentUser.Id;
                     up.ProceedingDate = Convert.ToDateTime(TempData["SelectedDate"].ToString());
                     bool hasValues = up.ProcWork.GetType().GetProperties()
                                        .Any(prop => prop.GetValue(up.ProcWork) != null);

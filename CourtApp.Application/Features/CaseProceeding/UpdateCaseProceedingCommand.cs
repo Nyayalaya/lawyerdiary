@@ -24,6 +24,7 @@ namespace CourtApp.Application.Features.CaseProceeding
         public string Remark { get; set; }
         public ProceedingWorkDto ProcWork { get; set; }
         public string UserId { get; set; }
+        public List<Guid> MCasIds { get; set; }
     }
     public class UpdateCaseProceedingCommandHandler : IRequestHandler<UpdateCaseProceedingCommand, Result<Guid>>
     {
@@ -47,36 +48,136 @@ namespace CourtApp.Application.Features.CaseProceeding
         }
         public async Task<Result<Guid>> Handle(UpdateCaseProceedingCommand request, CancellationToken cancellationToken)
         {
+            // ✅ Step 1: Fetch Head Details
+            var procDetail = await _ProcRepo.GetByIdAsync(request.HeadId);
+            if (procDetail != null && procDetail.Abbreviation == "DISP")
+            {
+                List<CaseDetailEntity> casesToUpdate = new List<CaseDetailEntity>();
+                if (request.MCasIds != null && request.MCasIds.Any())
+                {
+                    // ✅ Fetch all cases in a single query
+                    casesToUpdate = await _CaseRepo.Entites
+                        .Where(w => request.MCasIds.Contains(w.Id)).ToListAsync();
+                }
+                else
+                {
+                    var cd = await _CaseRepo.GetByIdAsync(request.CaseId);
+                    if (cd != null)
+                    {
+                        casesToUpdate.Add(cd);
+                    }
+                }
+                if (casesToUpdate.Any())
+                {
+                    foreach (var caseDetail in casesToUpdate)
+                    {
+                        caseDetail.DisposalDate = request.ProceedingDate;
+                    }
 
-            var ProcDetail = await _ProcRepo.GetByIdAsync(request.HeadId);
-            if (ProcDetail != null && ProcDetail.Abbreviation == "DISP")
-            {
-                var CaseDetail = await _CaseRepo.GetByIdAsync(request.CaseId);
-                CaseDetail.DisposalDate = request.ProceedingDate;
-                await _CaseRepo.UpdateAsync(CaseDetail);
+                    // ✅ Batch update instead of multiple update calls
+                    await _CaseRepo.UpdateRangeAsync(casesToUpdate);
+                }
             }
+            // ✅ Step 2: Get Proceedings and Work detail
+            var proceedings = request.ProcWork;
+            var procWorks = proceedings.Workdt.Select(s => new ProcWorkEntity
+            {
+                WorkId = s.WorkId,
+                WorkTypeId = s.WorkTypeId
+            }).ToList();
+
+
+            // ✅ Step 3: Create Main Entity
             var entity = await _Repository.GetByIdAsync(request.CaseId, null);
-            //var childCases = await GetAllChildrenAsync(request.CaseId, request.UserId);
-            if (entity != null)
+            entity.NextDate = request.NextDate;
+            entity.ProceedingDate = request.ProceedingDate;
+            entity.HeadId = request.HeadId;
+            entity.SubHeadId = request.SubHeadId;
+            entity.StageId = request.StageId;
+            entity.ProcWork = new ProceedingWorkEntity
             {
-                entity.NextDate = request.NextDate;
-                entity.HeadId = request.HeadId;
-                entity.SubHeadId = request.SubHeadId;
-                entity.StageId = request.StageId;
-                entity.ProceedingDate = request.ProceedingDate;
-                entity.ProcWork = _mapper.Map<ProceedingWorkEntity>(request.ProcWork);
-                await _Repository.UpdateAsync(entity);
-                await _unitOfWork.Commit(cancellationToken);
-                return Result<Guid>.Success(entity.Id);
-            }
-            else
+                LastWorkingDate = proceedings?.WorkingDate,
+                Works = procWorks
+            };
+
+            await _Repository.UpdateAsync(entity);
+            List<CaseProcedingEntity> caseProceedings = new List<CaseProcedingEntity>();
+
+            var childCases = await GetAllChildrenAsync(request.CaseId, request.UserId);
+            if (childCases.Any())
             {
-                var obj = _mapper.Map<CaseProcedingEntity>(request);
-                obj.ProceedingDate = entity.NextDate != null ? entity.NextDate.Value : null;
-                await _Repository.AddAsync(obj);
-                await _unitOfWork.Commit(cancellationToken);
-                return Result<Guid>.Success(obj.Id); ;
+                var childCaseIds = childCases.Select(s => s.Id).ToList();
+
+                // Optional: only needed if you plan to use childProcs later
+                var childProcs = await _Repository
+                    .Entities
+                    .Where(w => childCaseIds.Contains(w.CaseId))
+                    .ToListAsync();
+
+                foreach (var ch in childProcs)
+                {
+                    ch.HeadId = request.HeadId;
+                    ch.SubHeadId = request.SubHeadId;
+                    ch.StageId = request.StageId;
+                    ch.NextDate = request.NextDate;
+                    ch.ProceedingDate = request.ProceedingDate;
+                    ch.ProcWork = new ProceedingWorkEntity()
+                    {
+                        LastWorkingDate = proceedings?.WorkingDate,
+                        Works = procWorks
+                    };
+                    await _Repository.UpdateAsync(ch);
+                }
+
+                //caseProceedings = childProcs.Select(it => new CaseProcedingEntity
+                //{
+                //    CaseId = it.CaseId,
+                //    HeadId = request.HeadId,
+                //    SubHeadId = request.SubHeadId,
+                //    StageId = request.StageId,
+                //    NextDate = request.NextDate,
+                //    ProceedingDate = request.ProceedingDate,
+                //    ProcWork = new ProceedingWorkEntity
+                //    {
+                //        LastWorkingDate = proceedings?.WorkingDate,
+                //        Works = procWorks
+                //    }
+                //}).ToList();
             }
+            //caseProceedings.Add(entity);
+            await _Repository.UpdateRangeAsync(caseProceedings);
+            await _unitOfWork.Commit(cancellationToken);
+            return Result<Guid>.Success(Guid.Empty);
+
+            //var ProcDetail = await _ProcRepo.GetByIdAsync(request.HeadId);
+            //if (ProcDetail != null && ProcDetail.Abbreviation == "DISP")
+            //{
+            //    var CaseDetail = await _CaseRepo.GetByIdAsync(request.CaseId);
+            //    CaseDetail.DisposalDate = request.ProceedingDate;
+            //    await _CaseRepo.UpdateAsync(CaseDetail);
+            //}
+            //var entity = await _Repository.GetByIdAsync(request.CaseId, null);
+            ////var childCases = await GetAllChildrenAsync(request.CaseId, request.UserId);
+            //if (entity != null)
+            //{
+            //    entity.NextDate = request.NextDate;
+            //    entity.HeadId = request.HeadId;
+            //    entity.SubHeadId = request.SubHeadId;
+            //    entity.StageId = request.StageId;
+            //    entity.ProceedingDate = request.ProceedingDate;
+            //    entity.ProcWork = _mapper.Map<ProceedingWorkEntity>(request.ProcWork);
+            //    await _Repository.UpdateAsync(entity);
+            //    await _unitOfWork.Commit(cancellationToken);
+            //    return Result<Guid>.Success(entity.Id);
+            //}
+            //else
+            //{
+            //    var obj = _mapper.Map<CaseProcedingEntity>(request);
+            //    obj.ProceedingDate = entity.NextDate != null ? entity.NextDate.Value : null;
+            //    await _Repository.AddAsync(obj);
+            //    await _unitOfWork.Commit(cancellationToken);
+            //    return Result<Guid>.Success(obj.Id); ;
+            //}
         }
 
         // ✅ Convert to an async method for better performance

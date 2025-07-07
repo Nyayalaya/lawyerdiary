@@ -1,8 +1,11 @@
 ﻿using AspNetCoreHero.Results;
 using CourtApp.Application.Interfaces.Repositories;
+using CourtApp.Domain.Entities.CaseDetails;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,21 +27,23 @@ namespace CourtApp.Application.Features.CaseDetails
         }
         public async Task<Result<Guid>> Handle(UpdateCaseNextDateCommand request, CancellationToken cancellationToken)
         {
-            Guid Id = Guid.Empty;
-            foreach (var item in request.CaseIds)
+            var entities = await _Repository
+                .Entites.AsNoTracking()
+                .Where(w => request.CaseIds.Contains(w.Id))
+                .ToListAsync();
+
+            if (entities.Count != request.CaseIds.Count)
+                return Result<Guid>.Fail("Some cases were not found.");
+
+            foreach (var entity in entities)
             {
-                var entity = await _Repository.GetByIdAsync(item);
-                if (entity == null)
-                    return Result<Guid>.Fail($"Case is not found.");
-                else
-                {
-                    entity.NextDate = request.NextHearingDate;
-                    await _Repository.UpdateAsync(entity);
-                    Id = entity.Id;
-                }
+                entity.NextDate = request.NextHearingDate;
             }
+
+            await _Repository.UpdateRangeAsync(entities);
             await _unitOfWork.Commit(cancellationToken);
-            return Result<Guid>.Success(Id);
+
+            return Result<Guid>.Success(Guid.Empty);
         }
     }
 }
