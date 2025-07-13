@@ -37,19 +37,23 @@ namespace CourtApp.Application.Features.CaseDetails
                         .Select(e => new
                         {
                             Case = e,
-                            LatestNextDate = e.CaseProcEntities
-                                                .OrderByDescending(o => o.NextDate.Value)
-                                                .Select(s => (DateTime?)s.NextDate.Value)
-                                                .FirstOrDefault()
+                            LatestProceeding = e.CaseProcEntities.Where(w => w.NextDate.HasValue)
+                                            .OrderByDescending(o => o.NextDate.Value)
+                                            .Select(s => new
+                                            {
+                                                s.NextDate,
+                                                s.ProceedingDate
+                                            })
+                                            .FirstOrDefault()
                         })
-                        .Where(x => !x.Case.NextDate.HasValue // if next date is not present.
-                                    || (x.Case.NextDate.HasValue
-                                            && x.LatestNextDate.HasValue
-                                            && x.LatestNextDate.Value > x.Case.NextDate.Value
-                                            ? x.LatestNextDate.Value : x.Case.NextDate.Value) < today
-
-                              )
-                        .Select(x => new GetCaseInfoDto
+                        .Where(x => !x.Case.NextDate.HasValue
+                                    || (
+                                x.LatestProceeding != null &&
+                                (x.LatestProceeding.NextDate > x.Case.NextDate
+                                    ? x.LatestProceeding.NextDate
+                                    : x.Case.NextDate) < today
+                                )
+                        ).Select(x => new GetCaseInfoDto
                         {
                             Id = x.Case.Id,
                             No = x.Case.CaseNo,
@@ -59,10 +63,8 @@ namespace CourtApp.Application.Features.CaseDetails
                             CaseStage = x.Case.CaseStage.CaseStage,
                             DisposalDate = x.Case.DisposalDate,
                             CaseDetail = x.Case.FirstTitle + " V/S " + x.Case.SecondTitle,
-                            NextDate = x.LatestNextDate.HasValue
-                                        ? x.LatestNextDate.Value.ToString()
-                                        : (x.Case.NextDate.HasValue ?
-                                            x.Case.NextDate.Value.ToString() : "")
+                            ProceedingDate = x.LatestProceeding != null ? (x.LatestProceeding.ProceedingDate.Value.ToString("dd/MM/yyyy")) : "",
+                            NextDate = x.LatestProceeding != null ? (x.LatestProceeding.NextDate.Value.ToString("yyyy-MM-dd")) : ""
                         })
                         .OrderByDescending(o => o.Year)
                         .ToPaginatedListAsync(request.PageNumber, request.PageSize);

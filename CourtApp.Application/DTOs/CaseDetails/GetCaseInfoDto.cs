@@ -12,6 +12,7 @@ namespace CourtApp.Application.DTOs.CaseDetails
         public string CaseType { get; set; }
         public string CaseStage { get; set; }
         public string NextDate { get; set; }
+        public string ProceedingDate { get; set; }
         public string CaseDetail { get; set; }
         public DateTime? DisposalDate { get; set; }
         public DateTime OrderByKey { get; set; }

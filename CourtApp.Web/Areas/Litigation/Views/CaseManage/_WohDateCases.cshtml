@@ -10,12 +10,13 @@
             <thead>
                 <tr>
                     <th style="width:5%!important">Sno.</th>
-                    <th style="width:15%!important">Court</th>
-                    <th style="width:15%!important">Type</th>
+                    <th style="width:10%!important">Court</th>
+                    <th style="width:10%!important">Type</th>
                     <th style="width:5%!important">No.</th>
                     <th style="width:5%!important">Year</th>
-                    <th style="width:30%!important">Title</th>
+                    <th style="width:25%!important">Title</th>
                     <th style="width:10%!important">Stage</th>
+                    <th style="width:15%!important">Proceeding Date</th>
                     <th style="width:15%!important">Next Date</th>
                 </tr>
             </thead>
@@ -31,10 +32,10 @@
                             @(count = count + 1)
                         </td>
                         <td>
-                            @bt.Court
+                            @bt.Court.ToUpper()
                         </td>
                         <td>
-                            @bt.CaseType
+                            @bt.CaseType.ToUpper()
                         </td>
                         <td>
                             @bt.No
@@ -43,10 +44,14 @@
                             @bt.Year
                         </td>
                         <td>
-                            @bt.CaseDetail
+                            @bt.CaseDetail.ToUpper()
                         </td>
                         <td>
-                            @bt.CaseStage
+                            @bt.CaseStage.ToUpper()
+                        </td>
+                        <td>
+                            @bt.ProceedingDate
+                            <input type="hidden" asp-for="@bt.ProceedingDate" />
                         </td>
                         <td>
                             @{
@@ -58,7 +63,7 @@
                             }
                             <input type="date" value="@(ndt?.ToString("yyyy-MM-dd") ?? "")" class="form-control" />
                             @if (ndt == null)
-                            {                                
+                            {
                                 <span style="color:red">*</span>
                             }
                         </td>
@@ -69,13 +74,12 @@
         @if (Model.Count() > 0)
         {
             <div class="form-group justify-content-between" style="margin-bottom: 0px !important">
-                <input type="button" id="btnUpdate" class="btn btn-success" value="Update"></input>
+                <input type="button" id="btnUpdate" class="btn btn-success" value="Update" />
             </div>
         }
     </div>
 </div>
 @section Scripts
-{
-    <script src="~/js/site.js"></script>
+{   
     <script src="~/js/Litigation/CaseHearingDate.js"></script>
 }

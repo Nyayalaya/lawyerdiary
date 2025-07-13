@@ -14,6 +14,7 @@ using CourtApp.Web.Areas.Litigation.Models;
 using CourtApp.Web.Extensions;
 using CourtApp.Web.Helpers;
 using CourtApp.Web.Models;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -528,10 +529,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
         public async Task<IActionResult> UploadCaseDocs(CaseAttacheDocumentViewModel model)
         {
             if (!ModelState.IsValid)
-            {
                 return Json(new { success = "failed", message = "Invalid request data, uplaoded file size may be > 30MB or some information is missin! " });
-
-            }
 
             List<CaseDocumentModel> ddoc = new List<CaseDocumentModel>();
             if (model.Documents.Count > 0)
@@ -540,17 +538,12 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 {
                     // Step 1: Validate File
                     var fileExtension = Path.GetExtension(f.Document.FileName).ToLower();
-                    if (fileExtension != ".pdf" && fileExtension != ".docx")
-                    {
-                        return new JsonResult(new { isValid = false, message = "Only PDF and DOCX are allowed." });
-                        //return BadRequest($"Invalid file type: {fileExtension}. Only PDF and DOCX are allowed.");
-                    }
+                    if (fileExtension != ".pdf" && fileExtension != ".docx" && fileExtension != ".doc")
+                        return Json(new { success = "failed", message = "Only PDF, doc and DOCX are allowed." });
 
                     if (f.Document.Length > MaxFileSize)
-                    {
                         return Json(new { success = "failed", message = "Uploaded document has exeed size(>30mb), please compress and upload it again " + f.Document.FileName });
-                        //return BadRequest("File size exceeds the 200MB limit.");
-                    }
+
                     try
                     {
                         // Step 2: Generate Unique File Name
@@ -628,44 +621,26 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
 
         [HttpPost]
         [RequestSizeLimit(MaxFileSize)]
-        public async Task<IActionResult> ReplaceDocument(Guid caseId, Guid docId, IFormFile newDocument)
+        public async Task<IActionResult> ReplaceDocument(Guid docId, string fileId, string documentType, IFormFile newDocument)
         {
             if (newDocument == null || newDocument.Length == 0)
-            {
                 return Json(new { success = false, message = "No document provided." });
-            }
 
             var fileExtension = Path.GetExtension(newDocument.FileName).ToLower();
             if (fileExtension != ".pdf" && (fileExtension != ".docx" || fileExtension != ".doc"))
-            {
-                return Json(new { success = false, message = "Only PDF and DOCX are allowed." });
-            }
+                return Json(new { success = false, message = "Only PDF, doc and DOCX are allowed." });
 
             if (newDocument.Length > MaxFileSize)
-            {
                 return Json(new { success = false, message = "File size exceeds 30MB." });
-            }
 
             try
             {
-                // Step 1: Get Existing Document Info
-                //var existingDoc = await _mediator.Send(new GetDocumentByCaseAndDocIdQuery { CaseId=caseId,DocId = docId });
-                //if (existingDoc == null)
-                //{
-                //    return Json(new { success = false, message = "Document not found." });
-                //}
+                //step 1: Delete existing document from cloud
+                var isDeleted = await _documentUploadService.DeleteFileAsync(fileId);
+                if (!isDeleted)
+                    return Json(new { success = false, message = "The file is not exist for replace!" });
 
-                //string oldPath = existingDoc.DocPath;
-                //string documentType = existingDoc.TypeId == 1 ? "Draft" : "Order";
-
-                // Step 2: Delete the old file from blob
-                //bool deleted = await _documentUploadService.DeleteFileAsync(oldPath);
-                //if (!deleted)
-                //{
-                //    return Json(new { success = false, message = "Failed to delete the old document from storage." });
-                //}
-
-                // Step 3: Compress and Upload New File
+                //Step 2: Generate the unique file Id and compressed newly file.
                 string compressedFileName = $"{Path.GetFileNameWithoutExtension(newDocument.FileName)}_{Guid.NewGuid()}.zip";
                 using var docStream = newDocument.OpenReadStream();
                 using var memoryStream = new MemoryStream();
@@ -677,18 +652,17 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 }
                 memoryStream.Seek(0, SeekOrigin.Begin);
 
-                //string newPath = await _documentUploadService.UploadFileAsync(memoryStream, compressedFileName, documentType);
+                //Step 3: Upload the new file 
+                string filePath = await _documentUploadService.UploadFileAsync(memoryStream, compressedFileName, documentType);
 
-                // Step 4: Update document record in database
-                //var updateResult = await _mediator.Send(new ReplaceCaseDocumentCommand
-                //{
-                //    DocId = docId,
-                //    NewDocPath = newPath,
-                //    UpdatedOn = DateTime.UtcNow
-                //});
-
-                //if (updateResult.Succeeded)
-                //    return Json(new { success = true });
+                //Step 4: Update the file path in the database
+                var dbUpdateResponse = await _mediator.Send(new UpdateCaseDocumentCommand
+                {
+                    Id = docId,
+                    DocId = fileId
+                });
+                if (dbUpdateResponse.Succeeded)
+                    return Json(new { success = true, message = "Document replaced successfully." });
 
                 return Json(new { success = false, message = "Failed to update document information." });
             }
@@ -698,9 +672,6 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 return StatusCode(500, "Internal Server Error while replacing the file.");
             }
         }
-
-
-
 
         #endregion
 

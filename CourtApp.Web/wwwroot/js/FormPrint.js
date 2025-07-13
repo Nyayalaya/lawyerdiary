@@ -29,6 +29,19 @@
         }
     });
 
+    $("#reload").click(function () {
+        $('#CaseIds').multiselect('deselectAll', false); 
+        $('#CaseIds').multiselect('updateButtonText');   
+
+        $('#TitleIds').multiselect('deselectAll', false); 
+        $('#TitleIds').multiselect('updateButtonText');
+
+        $('#FormTypeId').val(null).trigger('change');
+
+        $('#viewAll').html("");
+        $("#lblHeader").text("");
+    });
+
     $("#FormTypeId").on("change", function () {
         $("#lblHeader").text($("#FormTypeId :selected").text())
     });
@@ -522,7 +535,6 @@
 
 
     $("#btnSearch").on("click", function () {
-        debugger;
         var t = $("#FormTypeId").val();
         var v = $("#CaseIds").val();
         var title = $("#TitleIds").val();

@@ -31,6 +31,7 @@ using CourtApp.Web.Areas.LawyerDiary.Models.Lawyer;
 using CourtApp.Web.Areas.LawyerDiary.Models.Title;
 using CourtApp.Web.Areas.Litigation.Models;
 using CourtApp.Web.Extensions;
+using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Google.Apis.Drive.v3.Data;
@@ -72,10 +73,10 @@ namespace CourtApp.Web.Abstractions
                     UserName = User.FindFirstValue(ClaimTypes.Name),
                     Email = User.FindFirstValue(ClaimTypes.Email),
                     Role = User.FindFirstValue(ClaimTypes.Role),
-                    FirstName= User?.FindFirst("FirstName")?.Value,
-                    LastName= User?.FindFirst("LastName")?.Value,
-                    Address= User.FindFirstValue(ClaimTypes.StreetAddress),
-                    Mobile= User.FindFirstValue(ClaimTypes.MobilePhone),
+                    FirstName = User?.FindFirst("FirstName")?.Value,
+                    LastName = User?.FindFirst("LastName")?.Value,
+                    Address = User.FindFirstValue(ClaimTypes.StreetAddress),
+                    Mobile = User.FindFirstValue(ClaimTypes.MobilePhone),
                     // Retrieve other claims as needed
                 };
             }
@@ -358,12 +359,22 @@ namespace CourtApp.Web.Abstractions
         }
         public async Task<JsonResult> DdlSubProcHeads(Guid Id)
         {
-            var response = await _mediator.Send(new GetProceedingSubHeadQuery { HeadId = Id });
+            var response = await _mediator.Send(new GetProceedingSubHeadQuery
+            {
+                HeadId = Id,
+                PageNumber = 1,
+                PageSize = 1500,
+            });
             return Json(response);
         }
         public async Task<SelectList> DdlSubProc(Guid Id)
         {
-            var response = await _mediator.Send(new GetProceedingSubHeadQuery { HeadId = Id });
+            var response = await _mediator.Send(new GetProceedingSubHeadQuery
+            {
+                HeadId = Id,
+                PageNumber = 1,
+                PageSize = 1500,
+            });
             if (response.Succeeded)
             {
                 var viewModel = _mapper.Map<List<ProceedingSubHeadViewModel>>(response.Data);

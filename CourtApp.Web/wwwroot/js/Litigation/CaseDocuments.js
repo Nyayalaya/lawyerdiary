@@ -1,6 +1,5 @@
 ﻿$(document).ready(function () {
     BindType('dynamicdata');
-    console.log(typeof ConfirmDelete);
 
     $(document).on("change", ".doctypechange", function () {
         var id = $(this).attr('id').split("_")[1];
@@ -253,6 +252,51 @@ function BindDocument(ddl, v) {
         theme: "bootstrap4",
         escapeMarkup: function (m) {
             return m;
+        }
+    });
+}
+
+
+function ReplaceDocument(id,docType,fileId) {
+    Swal.fire({
+        title: "Are you sure?",
+        text: "Do you want to replace the file: " + fpath + "?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, replace it!"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Replacing...',
+                text: 'Please wait while the file is being replaced.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            fetch("/Litigation/CaseManage/ReplaceDocument?docId=" + id + "&fPath=" + encodeURIComponent(fpath), {
+                method: 'POST'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    Swal.close(); // Close the loader
+
+                    if (data.success) {
+                        Swal.fire("Deleted!", "Your file has been deleted.", "success")
+                            .then(() => {
+                                refreshDocsTable($("#CaseId").val(), $("#Reference").val());
+                            });
+                    } else {
+                        Swal.fire("Error!", "Something went wrong while deleting the file.", "error");
+                    }
+                })
+                .catch(() => {
+                    Swal.close();
+                    Swal.fire("Error!", "A network error occurred while deleting the file.", "error");
+                });
         }
     });
 }

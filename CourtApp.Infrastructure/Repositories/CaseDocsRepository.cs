@@ -31,5 +31,11 @@ namespace CourtApp.Infrastructure.Repositories
             await _repository.AddAsync(entity);
             return entity.Id;
         }
+
+        public async Task<Guid> UpdateAsync(CaseDocsEntity entity)
+        {
+            await _repository.UpdateAsync(entity);
+            return entity.Id;
+        }
     }
 }

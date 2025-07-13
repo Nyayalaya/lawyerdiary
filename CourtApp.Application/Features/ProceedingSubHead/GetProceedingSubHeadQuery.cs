@@ -55,9 +55,9 @@ namespace CourtApp.Application.Features.ProceedingSubHead
             if (!string.IsNullOrWhiteSpace(request.Search))
             {
                 predicate = predicate.And(e =>
-                    e.Name_En.Contains(request.Search) ||
+                    e.Name_En.ToLower().Contains(request.Search.ToLower()) ||
                     e.Name_Hn.Contains(request.Search) ||
-                    e.Head.Name_En.Contains(request.Search));
+                    e.Head.Name_En.ToLower().Contains(request.Search.ToLower()));
             }
 
             try

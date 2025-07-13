@@ -6,5 +6,6 @@ namespace CourtApp.Web.Areas.Litigation.Models
     {
         public Guid CaseId { get; set; }
         public DateTime HearingDt { get; set; }
+        public string ProcDt { get; set; }
     }
 }

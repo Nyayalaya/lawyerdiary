@@ -60,7 +60,10 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 if (!caseDataResult.Succeeded || caseDataResult.Data == null)
                     return BadRequest("Unable to retrieve case details.");
 
-                var caseInfoDetails = _mapper.Map<List<FormPrintData>>(caseDataResult.Data);
+                //if applicant no is selected
+                var casesData = caseDataResult.Data;
+
+                var caseInfoDetails = _mapper.Map<List<FormPrintData>>(casesData);
 
                 if (caseInfoDetails == null || !caseInfoDetails.Any())
                     return BadRequest("No case data available.");
@@ -82,7 +85,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                     if (isAddress)
                     {
                         vwName = isNotice != true ? "_Envalop" : vwName;
-                        foreach (var applicant in caseInfo.Applicants?.Where(a => a != null) ?? Enumerable.Empty<ApplicantDetailViewModel>())
+                        foreach (var applicant in caseInfo.Applicants?.Where(a => a != null && AppNo.Contains(a.ApplicantNo)) ?? Enumerable.Empty<ApplicantDetailViewModel>())
                         {
                             try
                             {

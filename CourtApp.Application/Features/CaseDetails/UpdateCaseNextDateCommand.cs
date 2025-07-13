@@ -19,31 +19,77 @@ namespace CourtApp.Application.Features.CaseDetails
     public class UpdateCaseNextDateCommandHandler : IRequestHandler<UpdateCaseNextDateCommand, Result<Guid>>
     {
         private readonly IUserCaseRepository _Repository;
+        private readonly ICaseProceedingRepository caseProceeding;
         private IUnitOfWork _unitOfWork { get; set; }
-        public UpdateCaseNextDateCommandHandler(IUserCaseRepository _Repository, IUnitOfWork _unitOfWork)
+        public UpdateCaseNextDateCommandHandler(IUserCaseRepository _Repository, IUnitOfWork _unitOfWork, ICaseProceedingRepository caseProceeding)
         {
             this._Repository = _Repository;
             this._unitOfWork = _unitOfWork;
+            this.caseProceeding = caseProceeding;
         }
         public async Task<Result<Guid>> Handle(UpdateCaseNextDateCommand request, CancellationToken cancellationToken)
         {
-            var entities = await _Repository
-                .Entites.AsNoTracking()
-                .Where(w => request.CaseIds.Contains(w.Id))
-                .ToListAsync();
+            // Step 1: Include child cases (linked)
+            var childCases = await _Repository.Entites
+                .Where(w => w.LinkedCaseId.HasValue && request.CaseIds.Contains(w.LinkedCaseId.Value))
+                .ToListAsync(cancellationToken);
 
-            if (entities.Count != request.CaseIds.Count)
-                return Result<Guid>.Fail("Some cases were not found.");
-
-            foreach (var entity in entities)
+            if (childCases?.Any() == true)
             {
-                entity.NextDate = request.NextHearingDate;
+                var existing = new HashSet<Guid>(request.CaseIds);
+                foreach (var child in childCases)
+                {
+                    if (existing.Add(child.Id))
+                        request.CaseIds.Add(child.Id); // Only add if not already there
+                }
             }
 
-            await _Repository.UpdateRangeAsync(entities);
-            await _unitOfWork.Commit(cancellationToken);
+            // Step 2: Get latest proceedings per case
+            var caseProceedings = await caseProceeding.Entities
+                .Where(w => request.CaseIds.Contains(w.CaseId))
+                .GroupBy(w => w.CaseId)
+                .Select(g => g.OrderByDescending(p => p.NextDate.HasValue)
+                             .ThenByDescending(p => p.NextDate)
+                             .FirstOrDefault())
+                .ToListAsync(cancellationToken);
 
-            return Result<Guid>.Success(Guid.Empty);
+            // Step 3: Update NextDate for cases having proceedings
+            var updatedProceedingCaseIds = new HashSet<Guid>();
+            if (caseProceedings.Any())
+            {
+                foreach (var proceeding in caseProceedings)
+                {
+                    proceeding.NextDate = request.NextHearingDate;
+                    updatedProceedingCaseIds.Add(proceeding.CaseId);
+                }
+
+                await caseProceeding.UpdateRangeAsync(caseProceedings);
+            }
+
+            // Step 4: Find remaining cases without proceedings and update their NextDate
+            var missingCaseIds = request.CaseIds.Except(updatedProceedingCaseIds).ToList();
+
+            if (missingCaseIds.Any())
+            {
+                var entities = await _Repository.Entites
+                    .Where(w => missingCaseIds.Contains(w.Id))
+                    .ToListAsync(cancellationToken);
+
+                if (entities.Count != missingCaseIds.Count)
+                    return await Result<Guid>.FailAsync("Some cases were not found.");
+
+                foreach (var entity in entities)
+                {
+                    entity.NextDate = request.NextHearingDate;
+                }
+
+                await _Repository.UpdateRangeAsync(entities);
+            }
+
+            // Step 5: Commit once
+            await _unitOfWork.Commit(cancellationToken);
+            return await Result<Guid>.SuccessAsync(Guid.Empty);
+
         }
     }
 }
