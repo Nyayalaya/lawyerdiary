@@ -19,5 +19,6 @@ namespace CourtApp.Web.Areas.Litigation.Models
         public bool IsCaseAssigned { get; set; }
         public Guid LawyerId { get; set; }
         public string ActionHtml { get; set; }
+        public bool IsCaseHavingChild { get; set; }
     }
 }

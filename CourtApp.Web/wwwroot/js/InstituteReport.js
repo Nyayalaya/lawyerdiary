@@ -94,7 +94,7 @@
     // Function to populate dropdown
     function populateDropdown(selector, options) {
         options.forEach(function (item) {
-            $(selector).append(new Option(item.Name, item.Id));
+            $(selector).append(new Option(item.Name.toUpperCase(), item.Id));
         });
     }
 

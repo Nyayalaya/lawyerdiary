@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace CourtApp.Application.DTOs.CaseProceedings
 {
-    public class CaseProceedingDto : CaseDetailDto
+    public class CaseProceedingDto : CaseBasicInfoDto
     {
         public Guid CaseId { get; set; }
         public List<Guid> ParentChildCaseIds { get; set; }

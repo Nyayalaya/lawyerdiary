@@ -857,6 +857,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
         {
             var response = await _mediator.Send(new UpdateCaseHearingDatesCommand()
             {
+                UserId=CurrentUser.Id,
                 CasesHearingDt = _mapper.Map<List<CaseHearingDto>>(casedts)
             });
             return Json(response);

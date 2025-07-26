@@ -77,7 +77,10 @@
                                     </td>
                                     <td>
                                         <div class="form-check m-1">
-                                            <input asp-for="@Model.CaseList[i].Selected" class="form-check-input" />
+                                            @if (!Model.CaseList[i].HasChild)
+                                            {
+                                                <input asp-for="@Model.CaseList[i].Selected" class="form-check-input" />
+                                            }
                                         </div>
                                     </td>
                                     <td class="text-right">

@@ -7,6 +7,7 @@ using CourtApp.Application.Interfaces.Repositories.FormBuilder;
 using CourtApp.Infrastructure.CacheRepositories;
 using CourtApp.Infrastructure.DbContexts;
 using CourtApp.Infrastructure.Repositories;
+using CourtApp.Infrastructure.Shared.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -135,6 +136,7 @@ namespace CourtApp.Infrastructure.Extensions
             services.AddTransient<ICaseDraftingRepository, CaseDraftingRepository>();
 
             services.AddTransient<ICaseAssignedRepository, CaseAssignedRepository>();
+            services.AddScoped<ICaseHelperRepository, CaseHelperRepository>();
             #endregion
 
             #region Language & Court Form Print

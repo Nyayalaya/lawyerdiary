@@ -16,21 +16,38 @@
             { orderable: false } // Next Date (with input box)
         ]
     });
+
 });
+
+
 $("#btnUpdate").on("click", function (e) {
-    e.preventDefault();   
+    e.preventDefault(); 
     var caseDataList = [];
+
     $('#tblCaseWohd tbody tr').each(function () {
-        var caseId = $(this).find('input[type="hidden"]').val();
-        var nextDate = $(this).find('input[type="date"]').val();
-        var procDate = $(this).find('input[name="bt.ProceedingDate"]').val();
-        if (nextDate !== "")
+        var $row = $(this);
+
+        var caseId = $row.find('input[name="CaseId"]').val();
+
+        var nextDateInput = $row.find('input[type="date"]');
+        var currentNextDate = nextDateInput.val();
+        var originalNextDate = nextDateInput.data('original-next');
+
+        // ProceedingDate stays same, just retrieve it
+        var procDate = $row.find('input[name="ProceedingDate"]').val();
+        var isPrnt = $row.find('input[name="IsParent"]').val();
+
+        // Only add to list if NextHearingDate is changed
+        if (currentNextDate !== originalNextDate) {
             caseDataList.push({
                 CaseId: caseId,
-                HearingDt: nextDate,
-                ProcDt: procDate
+                HearingDt: currentNextDate,
+                ProcDt: procDate,
+                IsParent: isPrnt
             });
+        }
     });
+    
     if (caseDataList.length > 0) {
         $.ajax({
             url: "/Litigation/casemanage/UpdateHearingDate",

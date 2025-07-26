@@ -20,5 +20,6 @@ namespace CourtApp.Application.DTOs.CaseDetails
         public string Year { get; set; }
         public bool IsCaseAssigned { get; set; }
         public Guid LawyerId { get; set; }
+        public bool IsCaseHavingChild { get; set; }
     }
 }

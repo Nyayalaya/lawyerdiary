@@ -224,15 +224,15 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 {
                     InstituteModel rd = new InstituteModel();
                     rd.IsCaseAssigned = d.IsCaseAssigned;
-                    rd.Reference = d.Reference;
+                    rd.Reference = d.Reference.ToUpper();
                     rd.LawyerId = d.LawyerId;
                     rd.Id = d.Id;
-                    rd.Court = d.Court;
-                    rd.CaseType = d.CaseType;
+                    rd.Court = d.Court.ToUpper();
+                    rd.CaseType = d.CaseType.ToUpper();
                     rd.Year = d.Year == "0" ? "" : d.Year;
                     rd.No = d.No;
-                    rd.FirstTitle = d.FirstTitle;
-                    rd.SecondTitle = d.SecondTitle;
+                    rd.FirstTitle = d.FirstTitle.ToUpper();
+                    rd.SecondTitle = d.SecondTitle.ToUpper();
                     rd.InsititutionDate = d.InsititutionDate;
                     inmd.Add(rd);
                 }
