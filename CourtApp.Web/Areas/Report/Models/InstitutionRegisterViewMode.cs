@@ -9,7 +9,7 @@ namespace CourtApp.Web.Areas.Report.Models
     }
     public class InstituteModel : CaseDetailViewModel
     {
-        public string Reference { get; set; }
+        
         public bool IsCaseAssigned { get; set; }
         public Guid LawyerId { get; set; }
     }

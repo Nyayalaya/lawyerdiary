@@ -18,7 +18,8 @@ namespace CourtApp.Infrastructure.Extensions
     {
         public static void AddPersistenceContexts(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddAutoMapper(Assembly.GetExecutingAssembly());
+            
+            services.AddAutoMapper(cfg => { }, Assembly.GetExecutingAssembly());
             services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
         }
 

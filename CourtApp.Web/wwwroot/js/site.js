@@ -190,3 +190,60 @@
 
 });
 
+
+// ---Debounced Session Expiry Check on Interaction ---
+
+function checkSession() {
+    fetch('/Litigation/CaseManage/IsSessionActive', { cache: 'no-store' })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.isActive) {
+                alert("Session expired. Redirecting to login.");
+                window.location.href = "/Identity/Account/Login";
+            }
+        })
+        .catch(error => {
+            console.error("Session check failed:", error);
+        });
+}
+
+// Debounce function to prevent too many requests
+function debounce(func, delay) {
+    let timeout;
+    return function () {
+        clearTimeout(timeout);
+        timeout = setTimeout(func, delay);
+    };
+}
+
+// Use debounced version
+const checkSessionDebounced = debounce(checkSession, 2000);
+
+// Attach to user interaction events
+document.addEventListener("keydown", checkSessionDebounced);
+document.addEventListener("mousedown", checkSessionDebounced);
+
+
+
+$(document).ready(function () {
+    $(document).on('submit', 'form', function (e) {
+   
+       // Prevent double submit
+        if ($(this).data("submitted") === true) {
+            e.preventDefault();
+            return false;
+        }
+
+        // Mark as submitted
+        $(this).data("submitted", true);
+
+        // Disable all submit buttons inside this form
+        $(this).find('button[type="submit"]').prop('disabled', true);
+
+        // Show loader
+        $('#loader-wrapper').show();
+    });
+});
+
+
+

@@ -80,7 +80,7 @@ namespace CourtApp.Web
                 // Example: Setting the timeout for connections
                 options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(2);
             });
-            services.AddAutoMapper(Assembly.GetExecutingAssembly());
+            services.AddAutoMapper(cfg => { }, Assembly.GetExecutingAssembly());
             services.AddDistributedMemoryCache();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddTransient<IActionContextAccessor, ActionContextAccessor>();
@@ -91,6 +91,7 @@ namespace CourtApp.Web
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
             });
+
             services.ConfigureApplicationCookie(options =>
             {
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(20);

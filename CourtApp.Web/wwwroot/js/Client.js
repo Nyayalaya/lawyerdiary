@@ -91,12 +91,12 @@ $(document).ready(function () {
     }
 
     // Initially check the selected value of ClientType and update RegNo label
-    addAsterisk();
+   // addAsterisk();
 
     // Event listener for changes to the ClientType dropdown
-    $('#ClientType').change(function () {       
-        addAsterisk(); // Call the function to update the label when the value changes
-    });
+    //$('#ClientType').change(function () {       
+    //    addAsterisk(); // Call the function to update the label when the value changes
+    //});
 });
 
 function restrictInput(event) {

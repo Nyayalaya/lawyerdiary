@@ -95,6 +95,14 @@ namespace CourtApp.Web.Abstractions
         protected IMapper _mapper => _mapperInstance ??= HttpContext.RequestServices.GetService<IMapper>();
 
 
+        [HttpGet]
+        public IActionResult IsSessionActive()
+        {
+            bool isAuthenticated = User.Identity.IsAuthenticated;
+            return Json(new { isActive = isAuthenticated });
+        }
+
+
         protected async Task<JsonResult> RenderForm<TModel>(TModel model, bool isValid, string viewName)
         {
             var html = await _viewRenderer.RenderViewToStringAsync(viewName, model);

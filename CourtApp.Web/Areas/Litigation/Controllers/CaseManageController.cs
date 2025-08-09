@@ -347,6 +347,11 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                         _notify.Information($"Case information with ID {result.Data} Updated.");
                         return RedirectToAction("getcasedetail", new { id = Id, reft = TempData["referenceType"] });
                     }
+                    else
+                    {
+                        _notify.Information(result.Message);
+                        //return RedirectToAction("CreateOrUpdateAsync(Guid id, string from)", new { id = Id, reft = TempData["referenceType"] });
+                    }
                 }
             }
 
@@ -857,7 +862,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
         {
             var response = await _mediator.Send(new UpdateCaseHearingDatesCommand()
             {
-                UserId=CurrentUser.Id,
+                UserId = CurrentUser.Id,
                 CasesHearingDt = _mapper.Map<List<CaseHearingDto>>(casedts)
             });
             return Json(response);
