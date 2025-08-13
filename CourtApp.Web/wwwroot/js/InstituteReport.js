@@ -2,7 +2,11 @@
     var table = $("#tblRegister").DataTable({
         "language": {
             "emptyTable": "Record is not there!"
-        }
+        },
+        columnDefs: [
+            { orderable: false, targets: [0, 1, 2, 3, 4, 6, 8] }
+            
+        ]
     });
 
     var lengthDiv = $("#tblRegister_wrapper .dataTables_length");

@@ -6,15 +6,15 @@
                 <table id="tblRegisterDisp" class="table table-striped" width="100%" cellspacing="0">
                     <thead>
                         <tr>
-                            <th>Sno.</th>
-                            <th>Court.</th>
-                            <th>Type</th>
-                            <th>No</th>
-                            <th>Year</th>
-                            <th>Title</th>
-                            <th>Dis. Date</th>
-                            <th>Remark</th>
-                            <th></th>
+                            <th style="width:5%">Sno.</th>
+                            <th style="width:10%">Court.</th>
+                            <th style="width:10%">Type</th>
+                            <th style="width:10%">No</th>
+                            <th style="width:10%">Year</th>
+                            <th style="width:20%">Title</th>
+                            <th style="width:20%">Dis. Date</th>
+                            <th style="width:10%">Remark</th>
+                            <th style="width:5%"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -28,9 +28,9 @@
                                 <td> @bt.Court</td>
                                 <td> @bt.CaseType</td>
                                 <td> @bt.No</td>
-                                <td> @bt.Year</td>
+                                <td data-order="@(string.IsNullOrWhiteSpace(bt.Year) ? 0 : Convert.ToInt32(bt.Year))"> @bt.Year</td>
                                 <td>@(bt.FirstTitle + " Vs " + bt.SecondTitle)</td>
-                                <td>@bt.DisposalDate</td>
+                                <td data-order="@DateTime.ParseExact(bt.DisposalDate, "dd-MM-yyyy", null).ToString("yyyy-MM-dd")">@bt.DisposalDate</td>
                                 <td>@bt.Reason</td>                                
                                 <td>
                                     <a onclick="jQueryModalGet('/Litigation/casemanage/OnGetCaseHistory?CaseId=@bt.Id', 'See History')" class="fa fa-history" title="See History"></a>

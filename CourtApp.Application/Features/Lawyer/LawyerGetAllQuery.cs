@@ -37,7 +37,7 @@ namespace CourtApp.Application.Features.Lawyer
                 EnrollNumber = e.EnrollNumber,
                 FirstName = e.FirstName,
                 LastName = e.LastName,
-                Dob = e.Dob,
+                Dob = e.Dob!=null?e.Dob.Value:default,
                 Address = e.Address,
                 Mobile = e.Mobile,
                 ProfileImgPath = e.ProfileImgPath

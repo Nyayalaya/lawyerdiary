@@ -11,14 +11,14 @@
 			<td> @Model.dtmodel[i].Court </td>
 			<td>@Model.dtmodel[i].CaseType</td>
 			<td>@Model.dtmodel[i].No</td>
-			<td>@Model.dtmodel[i].Year</td>
+			<td data-order="@(string.IsNullOrWhiteSpace(Model.dtmodel[i].Year) ? 0 : Convert.ToInt32(Model.dtmodel[i].Year))">@Model.dtmodel[i].Year</td>
 			<td>
 				@{
 					string Title = Model.dtmodel[i].FirstTitle + " Vs " + Model.dtmodel[i].SecondTitle;
 				}
 				@Title
 			</td>
-			<td> @Model.dtmodel[i].InsititutionDate </td>
+			<td data-order="@DateTime.ParseExact(Model.dtmodel[i].InsititutionDate, "dd/MM/yyyy", null).ToString("yyyy-MM-dd")"> @Model.dtmodel[i].InsititutionDate </td>
 			<td class="text-right">
 				@{
 					var actionModel = new CaseActionViewModel();

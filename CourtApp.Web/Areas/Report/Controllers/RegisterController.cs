@@ -212,7 +212,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             {
                 PageNumber = 1,
                 PageSize = 10000,
-                FromDt = Convert.ToDateTime("2024-05-01"),
+                FromDt = Convert.ToDateTime("2000-01-01"),
                 ToDt = DateTime.Now,
                 LinkedIds = User.GetUserLinkedIds()
             });
