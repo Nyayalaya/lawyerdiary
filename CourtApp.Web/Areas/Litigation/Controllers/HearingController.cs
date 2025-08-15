@@ -117,20 +117,20 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
 
         #region Add the case in today's hearing register select and save.
 
-        public async Task<IActionResult> UpdateCaseDate(BringTodayCaseViewModel model)
+        public async Task<IActionResult> UpdateCaseDate(BringTodayCaseViewModel model, List<Guid> SelectedCaseIds)
         {
             if (model.CaseList != null)
             {
-                var CaseIds = model.CaseList.Where(s => s.Selected == true).Select(s => s.Id).ToList();
+                //var CaseIds = model.CaseList.Where(s => s.Selected == true).Select(s => s.Id).ToList();
                 var result = await _mediator.Send(new UpdateCaseNextDateCommand
                 {
-                    CaseIds = CaseIds,
+                    CaseIds = SelectedCaseIds,
                     NextHearingDate = model.HearingDate
                 });
                 if (result.Succeeded) _notify.Information($"Updated the selected cases next heaing date successfully.");
                 else _notify.Error(result.Message);
             }
-            return RedirectToAction("Index");
+            return RedirectToAction("Index", new { SelectedDate = model.HearingDate }); ;
         }
         #endregion
 

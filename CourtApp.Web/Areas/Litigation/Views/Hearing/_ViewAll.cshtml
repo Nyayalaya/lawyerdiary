@@ -101,4 +101,92 @@
         </form>
     </div>
 </div>
-<script src="~/js/Litigation/BringToday.js"></script>
+<script>
+        $(document).ready(function () {
+
+        var table = $('#tblTHearingCaseDetail').DataTable({
+            paging: true,
+            searching: true,
+            ordering: false,
+            pageLength: 10,
+            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+            language: {
+                emptyTable: "No cases found.",
+                lengthMenu: "Show _MENU_ entries",
+                search: "Search:"
+            }
+        });
+
+        // ✅ Persistent storage for selected IDs
+        var selectedCaseIds = new Set();
+
+        // 🔹 Checkbox change event — works for all pages via event delegation
+        $('#tblTHearingCaseDetail').on('change', 'input[type="checkbox"]', function () {
+            var caseId = $(this).closest("tr").find("input[type='hidden'][name*='.Id']").val();
+            if ($(this).is(':checked')) {
+                selectedCaseIds.add(caseId);
+            } else {
+                selectedCaseIds.delete(caseId);
+            }
+        });
+
+        // 🔹 Restore checked state when table redraws (pagination/search)
+        table.on('draw', function () {
+            $('#tblTHearingCaseDetail input[type="checkbox"]').each(function () {
+                var caseId = $(this).closest("tr").find("input[type='hidden'][name*='.Id']").val();
+                $(this).prop('checked', selectedCaseIds.has(caseId));
+            });
+        });
+
+        // ✅ Function to get all selected IDs
+        function getSelectedCaseIds() {
+            return Array.from(selectedCaseIds);
+        }
+
+        // 🔹 Buttons
+        var bringTodatBtn = $('<button class="btn btn-sm btn-success mr-2"><i class="fa fa-calendar"></i> Bring Today</button>');
+        var exportBtn = $('<button class="btn btn-sm btn-outline-success mr-2">Export to Excel</button>');
+        var updateBtn = $('<button class="btn btn-sm btn-outline-primary">Update Common Proceeding</button>');
+
+        bringTodatBtn.on('click', function (event) {
+            event.preventDefault();
+            jQueryModalGet('/Litigation/hearing/GetCaseHearing', 'Bring Today');
+        });
+
+        exportBtn.on('click', function (event) {
+            event.preventDefault();
+            table.button('.buttons-excel').trigger();
+        });
+
+        updateBtn.on('click', function (event) {
+            event.preventDefault();
+            var ids = getSelectedCaseIds();
+            if (ids.length === 0) {
+                Swal.fire("Error!", "Please select at least one case.", "error");
+                return;
+            }
+            jQueryModalGet('/Litigation/hearing/BulkProceeding?CaseIds=' + ids.join(','), 'Case Proceedings');
+        });
+
+        $('#customTableActions').append(bringTodatBtn, exportBtn, updateBtn);
+
+        new $.fn.dataTable.Buttons(table, {
+            buttons: [
+                {
+                    extend: 'excelHtml5',
+                    title: 'Today Case Hearing',
+                    filename: 'Today_Case_Hearing_' + new Date().toISOString().split('T')[0],
+                    className: 'd-none',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4, 5, 6]
+                    }
+                }
+            ]
+        });
+
+        table.buttons(0, null).container().appendTo(document.body);
+    });
+
+
+</script>
+@* <script src="~/js/Litigation/BringToday.js"></script> *@

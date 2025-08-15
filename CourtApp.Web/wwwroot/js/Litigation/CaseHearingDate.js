@@ -4,6 +4,7 @@
         serverSide: false, // Client-side processing since data is rendered already
         searching: true,
         processing: false,
+        orderable: false,
         columns: [
             { orderable: false }, // Sno
             null, // Court

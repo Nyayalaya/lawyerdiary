@@ -1,4 +1,4 @@
-﻿  @model BringTodayCaseViewModel
+﻿@model BringTodayCaseViewModel
 <div class="card">
     <div id="viewAll" class="card-body table-responsive">
         <form asp-controller="Hearing" method="post" asp-action="UpdateCaseDate" class="d-inline">
@@ -50,13 +50,42 @@
 </div>
 <script>
     $(document).ready(function () {
-        $("#tblBringToday").DataTable(
-            {
-                paging: false,
-                "language": {
-                    "emptyTable": "No case available for bringing!"
-                }
+
+        var selectedIds = new Set();
+
+        var table = $("#tblBringToday").DataTable({
+            paging: true,
+            searching: true,
+            "language": { "emptyTable": "No case available for bringing!" }
+        });
+
+        // On checkbox change
+        $('#tblBringToday').on('change', 'input[type="checkbox"]', function () {
+            var id = $(this).closest('tr').find('input[type="hidden"][name*=".Id"]').val();
+            if ($(this).is(':checked')) {
+                selectedIds.add(id);
+            } else {
+                selectedIds.delete(id);
             }
-        );
-    });
+        });
+
+        // Restore checkbox state after pagination/search
+        table.on('draw', function () {
+            $('#tblBringToday input[type="checkbox"]').each(function () {
+                var id = $(this).closest('tr').find('input[type="hidden"][name*=".Id"]').val();
+                $(this).prop('checked', selectedIds.has(id));
+            });
+        });
+
+        // On form submit, inject hidden inputs
+        $('form').on('submit', function () {
+            selectedIds.forEach(function (id) {
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: 'SelectedCaseIds',
+                    value: id
+                }).appendTo('form');
+            });
+        });
+        });
 </script>
