@@ -20,6 +20,7 @@ namespace CourtApp.Application.Features.CourtForm
         public int StateId { get; set; }
         public Guid CourtTypeId { get; set; }
         public Guid CaseCategoryId { get; set; }
+        public Guid CaseTypeId { get; set; }
     }
 
     public class CourtFormSearchQueryHandler : IRequestHandler<CourtFormSearchQuery, Result<List<CourtFormDto>>>
@@ -42,7 +43,14 @@ namespace CourtApp.Application.Features.CourtForm
                 predicate = predicate.And(s => s.CourtTypeId == request.CourtTypeId);
 
             if (request.CaseCategoryId != Guid.Empty)
-                predicate = predicate.And(s => s.CaseCategoryId == request.CaseCategoryId);
+            {
+                predicate = predicate.And(s =>
+                    s.CaseCategoryId == request.CaseCategoryId ||
+                    s.CaseCategoryId== null);  // include "All" always
+            }
+
+            if (request.CaseTypeId != Guid.Empty)
+                predicate = predicate.And(s => s.CaseTypeId == request.CaseTypeId);
 
             var forms = await repository
                 .Entities
@@ -53,7 +61,7 @@ namespace CourtApp.Application.Features.CourtForm
                     FormName = s.FormName,
                     StateName = s.State.Name_En,
                     FormTemplate = s.FormTemplate,
-                }).ToListAsync(cancellationToken);
+                }).OrderBy(o=>o.FormName).ToListAsync(cancellationToken);
 
             if (!forms.Any())
                 return await Result<List<CourtFormDto>>.FailAsync("Form is not avaiable for the selected criteria");

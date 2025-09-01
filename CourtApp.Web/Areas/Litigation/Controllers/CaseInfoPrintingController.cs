@@ -1,5 +1,8 @@
-﻿using CourtApp.Application.Features.CourtForm;
+﻿using CourtApp.Application.Enums;
+using CourtApp.Application.Features.CaseDetails;
+using CourtApp.Application.Features.CourtForm;
 using CourtApp.Application.Features.FormPrint;
+using CourtApp.Application.Features.Queries.Districts;
 using CourtApp.Web.Abstractions;
 using CourtApp.Web.Areas.Litigation.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -84,8 +87,20 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
 
                     if (isAddress)
                     {
-                        vwName = isNotice != true ? "_Envalop" : vwName;
-                        foreach (var applicant in caseInfo.Applicants?.Where(a => a != null && AppNo.Contains(a.ApplicantNo)) ?? Enumerable.Empty<ApplicantDetailViewModel>())
+                        // If not a notice, override the view name
+                        if (!isNotice)
+                            vwName = "_Envalop";
+
+                        // Ensure AppNo is not null
+                        var selectedAppNos = AppNo ?? new List<string>();
+
+                        // Pick applicants based on selection logic
+                        var applicants = caseInfo.Applicants?
+                            .Where(a => a != null &&
+                                        (selectedAppNos.Count == 0 || selectedAppNos.Contains(a.ApplicantNo)))
+                            ?? Enumerable.Empty<ApplicantDetailViewModel>();
+
+                        foreach (var applicant in applicants)
                         {
                             try
                             {
@@ -94,7 +109,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                             }
                             catch (Exception innerEx)
                             {
-                                Console.WriteLine($"Error generating form for Applicant {applicant.ApplicantNo}: {innerEx.Message}");
+                                Console.WriteLine($"Error generating form for Applicant {applicant?.ApplicantNo}: {innerEx.Message}");
                                 // Optionally log
                             }
                         }
@@ -103,7 +118,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                     {
                         try
                         {
-                            var html = ReplaceFormPlaceholders(formTemplate, caseInfo, null, againstDetail); ;
+                            var html = ReplaceFormPlaceholders(formTemplate, caseInfo, null, againstDetail);
                             formHtmlList.Add(HttpUtility.HtmlDecode(html));
                         }
                         catch (Exception innerEx)
@@ -113,6 +128,42 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                         }
                     }
                 }
+
+                //foreach (var caseInfo in caseInfoDetails)
+                //{
+                //    var againstDetail = caseInfo.AgainstCourtDetail;
+
+                //    if (isAddress)
+                //    {
+                //        vwName = isNotice != true ? "_Envalop" : vwName;
+                //        foreach (var applicant in caseInfo.Applicants?.Where(a => a != null || AppNo.Contains(a.ApplicantNo)) ?? Enumerable.Empty<ApplicantDetailViewModel>())
+                //        {
+                //            try
+                //            {
+                //                var html = ReplaceFormPlaceholders(formTemplate, caseInfo, applicant, againstDetail);
+                //                formHtmlList.Add(HttpUtility.HtmlDecode(html));
+                //            }
+                //            catch (Exception innerEx)
+                //            {
+                //                Console.WriteLine($"Error generating form for Applicant {applicant.ApplicantNo}: {innerEx.Message}");
+                //                // Optionally log
+                //            }
+                //        }
+                //    }
+                //    else
+                //    {
+                //        try
+                //        {
+                //            var html = ReplaceFormPlaceholders(formTemplate, caseInfo, null, againstDetail); ;
+                //            formHtmlList.Add(HttpUtility.HtmlDecode(html));
+                //        }
+                //        catch (Exception innerEx)
+                //        {
+                //            Console.WriteLine("Error generating non-applicant form: " + innerEx.Message);
+                //            // Optionally log
+                //        }
+                //    }
+                //}
 
                 return PartialView(vwName, formHtmlList);
             }
@@ -287,6 +338,42 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
 
             }
             return null;
+        }
+
+
+        public async Task<JsonResult> GetFormsByCaseType(Guid CaseId)
+        {
+
+            Guid caseCategoryId = Guid.Empty;
+
+            // Only call GetCaseDataTypeQuery if a valid CaseId is provided
+            if (CaseId != Guid.Empty)
+            {
+                var typeResult = await _mediator.Send(new GetCaseDataTypeQuery(CaseId, CaseDataType.CaseCategory));
+                if (!typeResult.Succeeded)
+                    return Json(new object[0]); // Return empty array instead of null
+
+                caseCategoryId = typeResult.Data;
+            }
+
+            // Fetch forms using either the retrieved CaseCategoryId or Guid.Empty
+            var formsResponse = await _mediator.Send(new CourtFormSearchQuery
+            {
+                StateId = 1,
+                CaseCategoryId = caseCategoryId
+            });
+
+            if (!formsResponse.Succeeded)
+                return Json(new object[0]);
+
+            var formsData = formsResponse.Data.Select(s => new
+            {
+                s.Id,
+                FormName = s.FormName.ToUpper()
+            });
+
+            return Json(formsData);
+
         }
     }
 }

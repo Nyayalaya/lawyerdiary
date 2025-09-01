@@ -6,8 +6,72 @@
         filterPlaceholder: 'Search Cases',
         buttonWidth: '100%',
         dropUp: false, // force dropdown to open downward
-        maxHeight: 300
+        maxHeight: 300,
+        onChange: function (option, checked) {
+            // Ignore "select all" pseudo-option
+            if ($(option).val() === 'multiselect-all') return;
+
+            const values = $('#CaseIds').val() || [];
+
+            if (values.length === 1) {
+                callBackend(values[0]); // send single CaseId
+            } else {
+                callBackend(null);      // send null for multiple or none
+            }
+        },
+
+        onSelectAll: function () {
+            callBackend(null); // explicitly pass null
+        },
+
+        onDeselectAll: function () {
+            callBackend(null); // no selection → null
+        }
     });
+    function callBackend(caseId) {
+        $.ajax({
+            url: '/Litigation/CaseInfoPrinting/GetFormsByCaseType',
+            type: 'GET',
+            data: { CaseId: caseId },
+            success: function (data) {
+                updateFormDropdown(data);
+            }
+        });
+    }
+
+
+    function updateFormDropdown(data) {
+        let $formSelect = $('#FormTypeId');
+
+        // Clear old options
+        $formSelect.empty().append('<option value="">-- Select --</option>');
+
+        // Add new options
+        $.each(data, function (i, item) {
+            $formSelect.append(
+                $('<option>', {
+                    value: item.Id,
+                    text: item.FormName
+                })
+            );
+        });
+
+        // Reinitialize or refresh Select2
+        if ($formSelect.hasClass('select2-hidden-accessible')) {
+            $formSelect.trigger('change'); // refresh UI
+        } else {
+            $formSelect.select2({
+                theme: 'bootstrap4',
+                width: '100%'
+            });
+        }
+    }
+
+
+
+    function clearFormDropdown() {
+        $('#formSelect').empty().append('<option value="">-- Select --</option>');
+    }
 
     $("#TitleIds").multiselect({
         includeSelectAllOption: true,
@@ -30,10 +94,10 @@
     });
 
     $("#reload").click(function () {
-        $('#CaseIds').multiselect('deselectAll', false); 
-        $('#CaseIds').multiselect('updateButtonText');   
+        $('#CaseIds').multiselect('deselectAll', false);
+        $('#CaseIds').multiselect('updateButtonText');
 
-        $('#TitleIds').multiselect('deselectAll', false); 
+        $('#TitleIds').multiselect('deselectAll', false);
         $('#TitleIds').multiselect('updateButtonText');
 
         $('#FormTypeId').val(null).trigger('change');
