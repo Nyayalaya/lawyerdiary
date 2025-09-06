@@ -140,7 +140,9 @@ namespace CourtApp.Web.Areas.LawyerDiary.Controllers
 
             return new JsonResult(new { isValid = true, html, message = "Record deleted successfully." });
         }
-
-
+        public IActionResult ViewTag()
+        {
+            return View("_tags");
+        }
     }
 }

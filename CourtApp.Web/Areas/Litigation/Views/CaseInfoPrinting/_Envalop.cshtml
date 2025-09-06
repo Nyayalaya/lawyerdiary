@@ -1,57 +1,78 @@
 ﻿@model List<string>
 
 <style>
-    /* DL Envelope Layout */
+    /* Envelope Layout (Portrait) */
     .envelope {
-        width: 220mm;
-        height: 110mm;
-        margin: 0 auto;
-        padding: 15mm 10mm;
-        box-sizing: border-box;
-        background: white;
-        border: 1px dashed #ccc;
+        width: 110mm; /* Envelope width */
+        height: 220mm; /* Envelope height */
+        margin: 10px auto;
         position: relative;
-        overflow: hidden;
+        box-sizing: border-box;
+        border: 1px dashed #ccc; /* Screen preview */
         page-break-after: always;
     }
 
-    .address-block {
+        .envelope:last-child {
+            page-break-after: auto;
+        }
+
+    .case-header {
         font-size: 14pt;
-        line-height: 1.5;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-        max-width: 100%;
+        font-weight: bold;
         position: absolute;
-        top: 35mm; /* Center vertically */
-        left: 65mm; /* Center horizontally for landscape */
-        width: 90mm;
-        text-align: center;
+        top: 15mm;
+        left: 15mm;
     }
 
+    .recipient {
+        font-size: 12pt;
+        line-height: 1.6;
+        position: absolute;
+        top: 80mm;
+        left: 20mm;
+        width: 75mm;
+        text-align: left;
+    }
+
+    .sender {
+        font-size: 10pt;
+        line-height: 1.4;
+        position: absolute;
+        bottom: 15mm;
+        left: 15mm;
+        width: 80mm;
+    }
+
+    /* Razor requires @@ */
     @@media print {
         body, html {
             margin: 0;
             padding: 0;
+            font-family: 'Times New Roman', serif;
         }
 
         .envelope {
-            border: none;
-            page-break-after: always;
+            border: none; /* Remove preview border for printing */
         }
 
         .no-print {
             display: none;
         }
+
+        @@page {
+            size: 110mm 220mm; /* Portrait envelope */
+            margin: 0;
+        }
     }
 </style>
 
+<!-- Envelope Area -->
 <div id="printableArea">
     @for (int i = 0; i < Model.Count; i++)
     {
         <div class="envelope">
-            <div class="address-block">
-                @Html.Raw(Model[i])
-            </div>
+            <!-- Dynamic content inside -->
+            @Html.Raw(Model[i])
         </div>
     }
 </div>

@@ -75,9 +75,9 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 var formHtmlList = new List<string>();
                 var formNames = new List<string>();
                 formNames.Add("Notice");
-                formNames.Add("Envalop");
+                formNames.Add("Envelop");
                 bool isAddress = !string.IsNullOrWhiteSpace(formName) &&
-                 formNames.Any(x => formName.StartsWith(x, StringComparison.OrdinalIgnoreCase));
+                 formNames.Any(x => formName.Contains(x, StringComparison.OrdinalIgnoreCase));
                 bool isNotice = formName.Contains("Notice");
 
                 var vwName = "_GlobalFormPrintPartial";
@@ -89,13 +89,13 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                     {
                         // If not a notice, override the view name
                         if (!isNotice)
-                            vwName = "_Envalop";
+                            vwName = "_Envelop";
 
                         // Ensure AppNo is not null
                         var selectedAppNos = AppNo ?? new List<string>();
 
                         // Pick applicants based on selection logic
-                        var applicants = caseInfo.Applicants?
+                        var applicants = caseInfo.SecondPartyDetails?
                             .Where(a => a != null &&
                                         (selectedAppNos.Count == 0 || selectedAppNos.Contains(a.ApplicantNo)))
                             ?? Enumerable.Empty<ApplicantDetailViewModel>();
@@ -128,44 +128,10 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                         }
                     }
                 }
-
-                //foreach (var caseInfo in caseInfoDetails)
-                //{
-                //    var againstDetail = caseInfo.AgainstCourtDetail;
-
-                //    if (isAddress)
-                //    {
-                //        vwName = isNotice != true ? "_Envalop" : vwName;
-                //        foreach (var applicant in caseInfo.Applicants?.Where(a => a != null || AppNo.Contains(a.ApplicantNo)) ?? Enumerable.Empty<ApplicantDetailViewModel>())
-                //        {
-                //            try
-                //            {
-                //                var html = ReplaceFormPlaceholders(formTemplate, caseInfo, applicant, againstDetail);
-                //                formHtmlList.Add(HttpUtility.HtmlDecode(html));
-                //            }
-                //            catch (Exception innerEx)
-                //            {
-                //                Console.WriteLine($"Error generating form for Applicant {applicant.ApplicantNo}: {innerEx.Message}");
-                //                // Optionally log
-                //            }
-                //        }
-                //    }
-                //    else
-                //    {
-                //        try
-                //        {
-                //            var html = ReplaceFormPlaceholders(formTemplate, caseInfo, null, againstDetail); ;
-                //            formHtmlList.Add(HttpUtility.HtmlDecode(html));
-                //        }
-                //        catch (Exception innerEx)
-                //        {
-                //            Console.WriteLine("Error generating non-applicant form: " + innerEx.Message);
-                //            // Optionally log
-                //        }
-                //    }
-                //}
-
-                return PartialView(vwName, formHtmlList);
+                if (vwName != "_Envelop")
+                    return PartialView(vwName, formHtmlList);
+                else
+                    return PartialView("_Envalop", formHtmlList);
             }
             catch (Exception ex)
             {
@@ -184,7 +150,6 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 ["#CourtType#"] = caseInfo.CourtType.ToUpper() ?? "",
                 ["#CourtDistrict#"] = caseInfo.CourtDistrict ?? "",
                 ["#CourtComplex#"] = caseInfo.CourtComplex ?? "",
-                ["#Bench#"] = caseInfo.Court.ToUpper() ?? "",
                 ["#Court#"] = caseInfo.Court.ToUpper() ?? "",
                 ["#Strength#"] = caseInfo.Strength.ToUpper() ?? "",
                 ["#CaseNoYear#"] = caseInfo.CaseNoYear ?? "",

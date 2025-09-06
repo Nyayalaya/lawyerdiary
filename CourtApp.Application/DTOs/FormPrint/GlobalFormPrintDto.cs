@@ -31,6 +31,7 @@ namespace CourtApp.Application.DTOs.FormPrint
         public string CnrNo { get; set; }
         public string Strength { get; set; }
         public AgainstCaseDetail AgainstCourtDetail { get; set; }
-        public List<ApplicantDetailDto> Applicants { get; set; }
+        public List<ApplicantDetailDto> FirstPartyDetails { get; set; }
+        public List<ApplicantDetailDto> SecondPartyDetails { get; set; }
     }
 }

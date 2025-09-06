@@ -8,6 +8,7 @@ namespace CourtApp.Application.DTOs.CaseDetails
 {
     public class AgainstCaseDetail
     {
+        public Guid Id { get; set; }
         public string ImpugedOrder { get; set; }        
         public string State { get; set; }
         public bool IsHighCourt { get; set; }

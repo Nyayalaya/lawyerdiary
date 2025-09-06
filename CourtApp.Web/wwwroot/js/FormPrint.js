@@ -126,90 +126,96 @@
     });
 
     $("#btnPrint").click(function () {
+        debugger;
         var frmType = $("#FormTypeId :selected").text();
-        if (frmType === "Envalop")
+        if (frmType === "ENVELOP")
             printEnvalop();
-        printData();
+        else
+            printData();
     });
+
     function printEnvalop() {
-        var divToPrint = document.getElementById("printableArea");
-        var newWin = window.open("", "_blank");
+        var divToPrint = document.getElementById("printableArea").innerHTML;
+        var originalContents = document.body.innerHTML;
 
-        newWin.document.write('<html><head><title>Print Envelope</title>');
-
-        newWin.document.write(`
-    <style>
-    @media print {
-        @page {
-            size: 110mm 220mm; /* DL envelope in landscape */
+        // Replace body with only envelope content
+        document.body.innerHTML = `
+        <style>
+            @media print {
+                @page {
+                size: 220mm 110mm; /* DL Envelope in landscape */
             margin: 0;
-        }
+    }
 
-        body {
-            margin: 0;
+            body {
+                margin: 0;
             padding: 0;
             font-family: 'Times New Roman', serif;
-            font-size: 14pt;
-        }
+            font-size: 12pt;
+    }
 
-        .envelope-size {
-            width: 220mm;
+            .envelope {
+                width: 220mm;
             height: 110mm;
+            margin: 0 auto;
+            position: relative;
+            page-break-after: always;
+            box-sizing: border-box;
+    }
+
+            .envelope:last-child {
+                page -break-after: auto;
+    }
+
+            .case-header {
+                font - size: 14pt;
+            font-weight: bold;
+            position: absolute;
+            top: 15mm;
+            left: 20mm;
+            width: 180mm;
+    }
+
+            .recipient {
+                font - size: 12pt;
+            line-height: 1.6;
+            position: absolute;
+            top: 35mm;   /* shifted down */
+            left: 20mm;  /* align under header */
+            width: 90mm;
+            text-align: left;
+    }
+
+            .sender {
+                font - size: 10pt;
+            line-height: 1.4;
+            position: absolute;
+            bottom: 15mm;
+            left: 20mm;
+            width: 80mm;
+    }
+}
+
+            /* Screen preview */
+            .envelope {
+                width: 220mm;
+            height: 110mm;
+            border: 1px dashed #ccc; /* Preview only */
+            margin: 10px auto;
             position: relative;
             box-sizing: border-box;
-        }
+}
+        </style>
+        ${divToPrint}
+`;
 
-        .address-box {
-            width: 90mm;
-            position: absolute;
-            top: 40mm;
-            left: 60mm;
-            text-align: center;
-            line-height: 1.5;
-        }
+        // Open print dialog
+        window.print();
+
+        // Restore page
+        document.body.innerHTML = originalContents;
     }
 
-    /* Optional screen preview styles */
-    body {
-        margin: 0;
-        font-family: 'Times New Roman', serif;
-    }
-
-    .envelope-size {
-        width: 220mm;
-        height: 110mm;
-        border: 1px dashed #ccc;
-        position: relative;
-    }
-
-    .address-box {
-        width: 90mm;
-        position: absolute;
-        top: 40mm;
-        left: 60mm;
-        text-align: center;
-        font-size: 14pt;
-        line-height: 1.5;
-    }
-</style>
-
-`);
-
-        newWin.document.write('</head><body>');
-        newWin.document.write('<div class="envelope-size">');
-        newWin.document.write(divToPrint.innerHTML);
-        newWin.document.write('</div>');
-        newWin.document.write('</body></html>');
-
-        newWin.document.close();
-        newWin.focus();
-
-        newWin.onload = function () {
-            newWin.print();
-            newWin.close();
-        };
-
-    }
 
     function printData1() {
         var divToPrint = document.getElementById("printableArea");

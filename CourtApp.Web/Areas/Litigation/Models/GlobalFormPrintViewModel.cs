@@ -30,6 +30,7 @@ namespace CourtApp.Web.Areas.Litigation.Models
         public string NextDate { get; set; }
         public string DisposalDate { get; set; }
         public AgainstCaseDecisionViewModel AgainstCourtDetail { get; set; }
-        public List<ApplicantDetailViewModel> Applicants { get; set; }
+        public List<ApplicantDetailViewModel> SecondPartyDetails { get; set; }
+        public List<ApplicantDetailViewModel> FirstPartyDetails { get; set; }
     }
 }
