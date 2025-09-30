@@ -1,0 +1,11 @@
+﻿@{
+    ViewData["Title"] = localizer["Court Form Tags"];
+}
+<div class="card shadow">
+    <div class="card-header">
+        <h5 class="mb-0 text-primary">@localizer["Form Builder Tags Detail"]</h5>
+    </div>
+    <div class="card-body pt-3">
+        @await Html.PartialAsync("_tags")
+    </div>
+</div>

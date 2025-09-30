@@ -17,7 +17,7 @@ namespace CourtApp.Infrastructure.Migrations.App
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.2")
+                .HasAnnotation("ProductVersion", "9.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -58,7 +58,7 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                     b.HasKey("Id");
 
-                    b.ToTable("AuditLogs");
+                    b.ToTable("AuditLogs", (string)null);
                 });
 
             modelBuilder.Entity("CourtApp.Domain.Entities.Account.BillingDetailEntity", b =>
@@ -389,7 +389,7 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                     b.HasIndex("ActID");
 
-                    b.ToTable("ad.m_repealed_rule");
+                    b.ToTable("ad.m_repealed_rule", (string)null);
                 });
 
             modelBuilder.Entity("CourtApp.Domain.Entities.Advocate.ActTypeEntity", b =>
@@ -881,7 +881,7 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                     b.HasIndex("DistrictId");
 
-                    b.ToTable("m_block");
+                    b.ToTable("m_block", (string)null);
                 });
 
             modelBuilder.Entity("CourtApp.Domain.Entities.Common.CityEntity", b =>
@@ -905,7 +905,7 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                     b.HasIndex("DistrictId");
 
-                    b.ToTable("m_city");
+                    b.ToTable("m_city", (string)null);
                 });
 
             modelBuilder.Entity("CourtApp.Domain.Entities.Common.LanguageEntity", b =>
@@ -932,7 +932,7 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                     b.HasKey("Id");
 
-                    b.ToTable("m_state_court_language");
+                    b.ToTable("m_state_court_language", (string)null);
                 });
 
             modelBuilder.Entity("CourtApp.Domain.Entities.Common.SubjectEntity", b =>
@@ -989,7 +989,7 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                     b.HasIndex("CityId");
 
-                    b.ToTable("m_ward");
+                    b.ToTable("m_ward", (string)null);
                 });
 
             modelBuilder.Entity("CourtApp.Domain.Entities.FormBuilder.CourtFormTypeEntity", b =>
@@ -1042,7 +1042,7 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                     b.HasIndex("StateId");
 
-                    b.ToTable("m_court_case_template");
+                    b.ToTable("m_court_case_template", (string)null);
                 });
 
             modelBuilder.Entity("CourtApp.Domain.Entities.FormBuilder.DraftingDetailEntity", b =>
@@ -1081,7 +1081,7 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                     b.HasIndex("TemplateId");
 
-                    b.ToTable("case_petition_detail");
+                    b.ToTable("case_petition_detail", (string)null);
                 });
 
             modelBuilder.Entity("CourtApp.Domain.Entities.FormBuilder.FormBuilderEntity", b =>
@@ -1109,7 +1109,7 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                     b.HasKey("Id");
 
-                    b.ToTable("m_frm_types");
+                    b.ToTable("m_frm_types", (string)null);
                 });
 
             modelBuilder.Entity("CourtApp.Domain.Entities.FormBuilder.FormTemplateMappingEntity", b =>
@@ -1139,7 +1139,7 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                     b.HasKey("Id");
 
-                    b.ToTable("m_temp_frm_mapping");
+                    b.ToTable("m_temp_frm_mapping", (string)null);
                 });
 
             modelBuilder.Entity("CourtApp.Domain.Entities.FormBuilder.TemplateInfoEntity", b =>
@@ -1172,7 +1172,7 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                     b.HasKey("Id");
 
-                    b.ToTable("m_template_info");
+                    b.ToTable("m_template_info", (string)null);
                 });
 
             modelBuilder.Entity("CourtApp.Domain.Entities.LawyerDiary.BookTypeEntity", b =>
@@ -2085,7 +2085,7 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                     b.HasIndex("StateId");
 
-                    b.ToTable("m_district");
+                    b.ToTable("m_district", (string)null);
                 });
 
             modelBuilder.Entity("CourtApp.Entities.Common.StateEntity", b =>
@@ -2104,7 +2104,7 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                     b.HasKey("Id");
 
-                    b.ToTable("m_state");
+                    b.ToTable("m_state", (string)null);
                 });
 
             modelBuilder.Entity("CourtApp.Domain.Entities.Account.CourtFeeEntity", b =>
@@ -2562,7 +2562,7 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                             b1.HasKey("LanguageEntityId", "__synthesizedOrdinal");
 
-                            b1.ToTable("m_state_court_language");
+                            b1.ToTable("m_state_court_language", (string)null);
 
                             b1.ToJson("Languages");
 
@@ -2652,7 +2652,7 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                             b1.HasKey("DraftingDetailEntityId", "__synthesizedOrdinal");
 
-                            b1.ToTable("case_petition_detail");
+                            b1.ToTable("case_petition_detail", (string)null);
 
                             b1.ToJson("FieldDetails");
 
@@ -2678,7 +2678,7 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                             b1.HasKey("FormBuilderEntityId");
 
-                            b1.ToTable("m_frm_types");
+                            b1.ToTable("m_frm_types", (string)null);
 
                             b1.ToJson("FieldsDetails");
 
@@ -2717,7 +2717,7 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                                     b2.HasKey("FormFieldsEntityFormBuilderEntityId", "__synthesizedOrdinal");
 
-                                    b2.ToTable("m_frm_types");
+                                    b2.ToTable("m_frm_types", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("FormFieldsEntityFormBuilderEntityId");
@@ -2744,7 +2744,7 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                                             b3.HasKey("FieldDetailsEntityFormFieldsEntityFormBuilderEntityId", "FieldDetailsEntity__synthesizedOrdinal");
 
-                                            b3.ToTable("m_frm_types");
+                                            b3.ToTable("m_frm_types", (string)null);
 
                                             b3.WithOwner()
                                                 .HasForeignKey("FieldDetailsEntityFormFieldsEntityFormBuilderEntityId", "FieldDetailsEntity__synthesizedOrdinal");
@@ -2778,7 +2778,7 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                             b1.HasKey("FormTemplateMappingEntityId", "__synthesizedOrdinal");
 
-                            b1.ToTable("m_temp_frm_mapping");
+                            b1.ToTable("m_temp_frm_mapping", (string)null);
 
                             b1.ToJson("FieldsMapping");
 
@@ -2805,7 +2805,7 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                             b1.HasKey("TemplateInfoEntityId", "__synthesizedOrdinal");
 
-                            b1.ToTable("m_template_info");
+                            b1.ToTable("m_template_info", (string)null);
 
                             b1.ToJson("Tags");
 

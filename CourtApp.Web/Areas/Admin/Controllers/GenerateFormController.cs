@@ -1,11 +1,12 @@
-﻿using CourtApp.Web.Abstractions;
+﻿using CourtApp.Application.DTOs.FormBuilder;
+using CourtApp.Application.Features.FormBuilder;
+using CourtApp.Web.Abstractions;
+using CourtApp.Web.Areas.Admin.Models;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Threading.Tasks;
 using System.Collections.Generic;
-using CourtApp.Web.Areas.Admin.Models;
-using CourtApp.Application.Features.FormBuilder;
-using CourtApp.Application.DTOs.FormBuilder;
+using System.Linq;
+using System.Threading.Tasks;
 namespace CourtApp.Web.Areas.Admin.Controllers
 {
     [Area("Admin")]
@@ -50,61 +51,66 @@ namespace CourtApp.Web.Areas.Admin.Controllers
         [HttpPost]
         public async Task<JsonResult> OnPostCreateOrEdit(Guid id, GenerateFormViewModel ViewModel)
         {
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    if (id == Guid.Empty)
-                    {
-                        var Command = _mapper.Map<CreateFormBuilderCommand>(ViewModel);
-                        List<FieldDetailsDto> ff = new List<FieldDetailsDto>();
-                        foreach (var f in ViewModel.Form.Fields)
-                        {
-                            FieldDetailsDto fdd = new FieldDetailsDto();
-                            fdd.Key = Guid.NewGuid();
-                            fdd.Name = f.Name;
-                            fdd.Type = f.Type;
-                            fdd.DefaultVal = f.DefaultVal;
-                            ff.Add(fdd);
-                        }
-                        FormFieldsDto formFieldsDto = new FormFieldsDto();
-                        formFieldsDto.Fields = ff;
-                        Command.Form = formFieldsDto;
-                        var result = await _mediator.Send(Command);
-                        if (result.Succeeded)
-                            _notify.Success($"Template data fields saved successfully!");
-                        else _notify.Error(result.Message);
-                    }
-                    else
-                    {
-                        var court = _mapper.Map<UpdateFormBuilderCommand>(ViewModel);
-                        var result = await _mediator.Send(court);
-                        if (result.Succeeded)
-                            _notify.Information($"Template Attribute updated successfully.");
-                    }
-                    var response = await _mediator.Send(new GetFormBuilderCachedQuery());
-                    if (response.Succeeded)
-                    {
-                        var viewModel = _mapper.Map<List<GenFormAttrViewModel>>(response.Data);
-                        var html = await _viewRenderer.RenderViewToStringAsync("_ViewAll", viewModel);
-                        return new JsonResult(new { isValid = true, html = html });
-                    }
-                    else
-                    {
-                        _notify.Error(response.Message);
-                        return null;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.ToString());
-                    return null;
-                }
-            }
-            else
+            if (!ModelState.IsValid)
             {
                 var html = await _viewRenderer.RenderViewToStringAsync("_CreateOrEdit", ViewModel);
                 return new JsonResult(new { isValid = false, html });
+            }
+
+            try
+            {
+                if (id == Guid.Empty)
+                {
+                    var command = _mapper.Map<CreateFormBuilderCommand>(ViewModel);
+
+                    command.Form = new FormFieldsDto
+                    {
+                        Fields = ViewModel.Form.Fields.Select(f => new FieldDetailsDto
+                        {
+                            Key = Guid.NewGuid(),
+                            Name = f.Name,
+                            Type = f.Type,
+                            DefaultVal = f.DefaultVal,
+                            Tag = f.Tag
+                        }).ToList()
+                    };
+
+                    var result = await _mediator.Send(command);
+
+                    if (result.Succeeded)
+                        _notify.Success("Template data fields saved successfully!");
+                    else
+                        _notify.Error(result.Message);
+                }
+                else
+                {
+                    var command = _mapper.Map<UpdateFormBuilderCommand>(ViewModel);
+                    var result = await _mediator.Send(command);
+
+                    if (result.Succeeded)
+                        _notify.Information("Template Attribute updated successfully.");
+                    else
+                        _notify.Error(result.Message);
+                }
+
+                var response = await _mediator.Send(new GetFormBuilderCachedQuery());
+
+                if (!response.Succeeded)
+                {
+                    _notify.Error(response.Message);
+                    return null;
+                }
+
+                var viewModel = _mapper.Map<List<GenFormAttrViewModel>>(response.Data);
+                var html = await _viewRenderer.RenderViewToStringAsync("_ViewAll", viewModel);
+
+                return new JsonResult(new { isValid = true, html });
+            }
+            catch (Exception ex)
+            {
+                // Prefer logging over console in production scenarios
+                Console.WriteLine(ex);
+                return null;
             }
         }
 

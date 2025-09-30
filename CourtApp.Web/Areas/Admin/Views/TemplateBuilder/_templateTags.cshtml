@@ -1,0 +1,70 @@
+﻿@{
+    ViewData["Title"] = localizer["Template Form Tags"];
+}
+
+<style>
+    fieldset.scheduler-border {
+        border: 1px groove #ddd !important;
+        padding: 1em !important;
+        margin-bottom: 1.5em !important;
+        box-shadow: none;
+        width: 100%;
+    }
+
+    legend.scheduler-border {
+        font-size: 1.2em !important;
+        font-weight: bold !important;
+        text-align: left;
+        width: auto;
+        padding: 0 10px;
+        border-bottom: none;
+    }
+
+    table#tblTags {
+        width: 100% !important;
+        border-collapse: collapse;
+    }
+
+        table#tblTags th,
+        table#tblTags td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+</style>
+
+<div class="card shadow">
+    <div class="card-header">
+        <h5 class="mb-0 text-primary">@localizer["Template Form Tags Detail"]</h5>
+    </div>
+    <div class="card-body pt-3">
+        <div class="row">
+            <!-- Left Column: Form Tags -->
+            <div class="col-md-6">
+                <fieldset class="scheduler-border">
+                    <legend class="scheduler-border">@localizer["Form Tags"]</legend>
+                    <table id="tblTags">
+                        <thead>
+                            <tr>
+                                <th>@localizer["Field Name"]</th>
+                                <th>@localizer["Tag"]</th>
+                                <th>@localizer["Field Name"]</th>
+                                <th>@localizer["Tag"]</th>
+                            </tr>
+                        </thead>
+                        <tbody class="data-repeater">
+                            <!-- Dynamic rows can be added via JS -->
+                        </tbody>
+                    </table>
+                </fieldset>
+            </div>
+
+            <!-- Right Column: Database Fields (partial is correctly inside this div now) -->
+            <div class="col-md-6">
+                <fieldset class="scheduler-border">
+                    <legend class="scheduler-border">@localizer["Database Fields"]</legend>
+                    @await Html.PartialAsync("_tags") <!-- ✅ Now correctly placed -->
+                </fieldset>
+            </div>
+        </div>
+    </div>
+</div>

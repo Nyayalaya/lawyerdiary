@@ -5,8 +5,8 @@ using CourtApp.Application.Interfaces.Repositories;
 using CourtApp.Application.Interfaces.Repositories.FormBuilder;
 using CourtApp.Domain.Entities.FormBuilder;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,22 +32,21 @@ namespace CourtApp.Application.Features.FormBuilder
         }
         public async Task<Result<Guid>> Handle(CreateFormBuilderCommand request, CancellationToken cancellationToken)
         {
-            if (request.FormName != null)
-            {
-                var FormEntity = repository.Entities
-                    .Where(w => w.FormName.ToLower().Equals(request.FormName.Trim().ToLower()));
+            if (string.IsNullOrWhiteSpace(request.FormName))
+                return await Result<Guid>.FailAsync("form name should not be empty!");
 
-                if (FormEntity.Any())
-                    return Result<Guid>.Fail($"{request.FormName} is already exists.");
-                else
-                {
-                    var _map = _mapper.Map<FormBuilderEntity>(request);
-                    await repository.InsertAsync(_map);
-                    await _UoW.Commit(cancellationToken);
-                    return Result<Guid>.Success(_map.Id);
-                }
-            }
-            return null;
+            bool formExists = await repository.Entities
+                .AnyAsync(w => w.FormName.Trim().ToLower().Equals(request.FormName.Trim().ToLower()), cancellationToken);
+
+            if (formExists)
+                return await Result<Guid>.FailAsync($"{request.FormName} already exists.");
+
+            var entity = _mapper.Map<FormBuilderEntity>(request);
+            await repository.InsertAsync(entity);
+            await _UoW.Commit(cancellationToken);
+
+            return await Result<Guid>.SuccessAsync(entity.Id);
+
         }
     }
 }

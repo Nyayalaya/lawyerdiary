@@ -142,7 +142,7 @@ namespace CourtApp.Web.Areas.LawyerDiary.Controllers
         }
         public IActionResult ViewTag()
         {
-            return View("_tags");
+            return View("_CaseTags");
         }
     }
 }

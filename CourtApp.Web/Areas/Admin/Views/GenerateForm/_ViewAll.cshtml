@@ -36,7 +36,7 @@
 							<div class="dropdown-menu shadow animated--grow-in">
 								@* @if ((AuthorizationService.AuthorizeAsync(User, Permissions.FormBuilder.Edit)).Result.Succeeded)
 								{ *@
-									<a onclick="jQueryModalGet('/admin/generateform/OnGetCreateOrEdit?id=@bt.Id','Edit Book Master')" class="dropdown-item"><i class="fas fa-pencil-alt"></i>  Edit</a>
+									<a onclick="jQueryModalGet('/admin/generateform/OnGetCreateOrEdit?id=@bt.Id','Update Form Builder Information')" class="dropdown-item"><i class="fas fa-pencil-alt"></i>  Edit</a>
 								@* }
 								@if ((AuthorizationService.AuthorizeAsync(User, Permissions.FormBuilder.Delete)).Result.Succeeded)
 								{ *@
