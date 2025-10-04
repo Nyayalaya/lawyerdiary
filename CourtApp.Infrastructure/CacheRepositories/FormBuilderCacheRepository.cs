@@ -28,7 +28,7 @@ namespace CourtApp.Infrastructure.CacheRepositories
             if (brand == null)
             {
                 brand = await _repository.GetByIdAsync(Id);
-                Throw.Exception.IfNull(brand, "BookMaster", "No Book Master Found");
+                Throw.Exception.IfNull(brand, "TemplateInfo", "No no template info found");
                 await _distributedCache.SetAsync(cacheKey, brand);
             }
             return brand;

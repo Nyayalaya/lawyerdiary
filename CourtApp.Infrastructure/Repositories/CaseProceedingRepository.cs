@@ -55,6 +55,7 @@ namespace CourtApp.Infrastructure.Repositories
             {
                 var data = await _repository
                     .Entities
+                    .Include(c=>c.Case)
                     .Include(t => t.ProcWork)
                     .ThenInclude(s => s.Works)
                     .Where(w => w.CaseId == CaseId && w.ProceedingDate.Value.Date == SelDate.Value.Date)
@@ -65,6 +66,7 @@ namespace CourtApp.Infrastructure.Repositories
             {
                 var data = await _repository
                         .Entities
+                        .Include(c => c.Case)
                         .Include(t => t.ProcWork)
                         .ThenInclude(s => s.Works)
                         .Where(w => w.CaseId == CaseId)

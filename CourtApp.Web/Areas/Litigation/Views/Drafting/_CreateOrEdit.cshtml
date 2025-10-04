@@ -27,7 +27,7 @@
     @* <partial name="_StatusMessage" model="Model.StatusMessage" /> *@
     <div class="row">
         <div class="col-md-12">
-            <div class="form-group row">
+           @*  <div class="form-group row">
                 <label class="col-md-2 col-form-label">@localizer["Drafting Form"]</label>
                 <div class="col-md-4">
                     <div class="input-group" id="Template">
@@ -47,7 +47,7 @@
                     <span asp-validation-for="TemplateId" class="text-danger"></span>
                 </div>
                 
-            </div>
+            </div> *@
 
             <div class="form-group row">
                 <label class="col-md-2 col-form-label">@localizer["Case Title"]</label>
@@ -56,6 +56,14 @@
                         <select asp-for="CaseId" asp-items="@Model.Cases" class="form-control select2bs4"><option></option></select>
                     </div>
                     <span asp-validation-for="CaseId" class="text-danger"></span>
+                </div>
+
+                <label class="col-md-2 col-form-label">@localizer["Drafting Type"]</label>
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <select asp-for="TemplateId" asp-items="@Model.Templates" class="form-control select2bs4"><option></option></select>
+                    </div>
+                    <span asp-validation-for="TemplateId" class="text-danger"></span>
                 </div>
 
             </div>
@@ -110,7 +118,11 @@
                 }
             });
 
-            $("#DraftingFormId").on("change", function () {
+            // $("#DraftingFormId").on("change", function () {
+            //     RenderFormElement();
+            // });
+
+            $("#TemplateId").on("change", function () {
                 RenderFormElement();
             });
 
@@ -135,9 +147,9 @@
         });
         function RenderFormElement() {
             var input = {
-                TemplateId: $("#DraftingFormId").val(),
+                TemplateId: $("#TemplateId").val(),
                 ViewModel: {
-                    TemplateId: $("#DraftingFormId").val(),
+                    TemplateId: $("#TemplateId").val(),
                     CaseId: $("#CaseId").val()
                 }
             };
@@ -146,7 +158,6 @@
                 url: '@Url.Action("GetTemplateFields", "Drafting")',
                 data: input,
                 success: function (response) {   
-                    debugger;
                     $('#FieldDetails').html(response);                    
                 }
             });

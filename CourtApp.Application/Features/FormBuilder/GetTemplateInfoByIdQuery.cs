@@ -28,6 +28,7 @@ namespace CourtApp.Application.Features.FormBuilder
             if (Details != null)
             {
                 var dt = new GetTemplateInfoByIdDto();
+                dt.FormId = Details.FormId;
                 dt.TemplatePath=Details.TemplatePath;
                 dt.TemplateName=Details.TemplateName;
                 dt.TemplateBody = Details.TemplateBody;

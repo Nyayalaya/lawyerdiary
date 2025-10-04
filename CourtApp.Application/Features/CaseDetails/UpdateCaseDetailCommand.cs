@@ -69,6 +69,14 @@ namespace CourtApp.Application.Features.CaseDetails
             if (detail == null)
                 return Result<Guid>.Fail("Case detail not found.");
 
+            // 🔁 if proceeding already done, next date of the case should be non editable. 
+            // if after proceeding next date updated, and user want to change the next date from the case entry update section
+            // next date of the case always be greated than the first time entered next date.
+            var isProceeding = detail.CaseProcEntities.Count() > 0 ? true : false;
+            if (isProceeding)
+                return await Result<Guid>.FailAsync("Proceeding already done for this case, so next date cannot be edit from here!");
+
+
             // 🔁 Check for existing case with same CaseNo and CaseYear (but different ID)
             var duplicateCase = await _repository.Entites
                 .Where(x => x.CaseNo == request.CaseNo

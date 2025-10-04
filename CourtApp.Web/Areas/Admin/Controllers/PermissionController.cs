@@ -89,11 +89,11 @@ namespace CourtApp.Web.Areas.Admin.Controllers
         {
             var role = await _roleManager.FindByIdAsync(model.RoleId);
             //Remove all Claims First
-            //var claims = await _roleManager.GetClaimsAsync(role);
-            //foreach (var claim in claims)
-            //{
-            //    await _roleManager.RemoveClaimAsync(role, claim);
-            //}
+            var claims = await _roleManager.GetClaimsAsync(role);
+            foreach (var claim in claims)
+            {
+                await _roleManager.RemoveClaimAsync(role, claim);
+            }
             var selectedClaims = model.RoleClaims.Where(a => a.Selected).ToList();
             foreach (var claim in selectedClaims)
             {

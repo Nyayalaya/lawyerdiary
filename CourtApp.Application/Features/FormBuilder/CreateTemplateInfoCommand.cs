@@ -15,6 +15,7 @@ namespace CourtApp.Application.Features.FormBuilder
 {
     public class CreateTemplateInfoCommand : IRequest<Result<Guid>>
     {
+        public Guid FormId { get; set; }
         public string TemplateName { get; set; }
         public string TemplatePath { get; set; }
         public string TemplateBody { get; set; }
@@ -53,6 +54,7 @@ namespace CourtApp.Application.Features.FormBuilder
                 TemplateName = request.TemplateName,
                 TemplatePath = request.TemplatePath,
                 TemplateBody = request.TemplateBody,
+                FormId = request.FormId,
                 Tags = request.Tags?.Select(tag => new TemplateTagsEntity
                 {
                     Tag = tag.Tag

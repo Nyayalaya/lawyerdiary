@@ -85,7 +85,7 @@
                                         <td><input type="text" asp-for="@Model.Form.Fields[i].Name" width="300px" placeholder="Enter label name" class="form-control" title="Please enter field label name!" /></td>
                                         <td><select asp-for="@Model.Form.Fields[i].Type" asp-items="Html.GetEnumSelectList<FieldType>()" class="form-control" title="Please enter type name!"><option>--Select--</option></select></td>
                                         <td><input type="text" asp-for="Form.Fields[i].DefaultVal" width="300px" placeholder="Enter Default value (In case of Dropdown provide comma seprated values)" class="form-control" title="Enter Default value (In case of Dropdown provide comma seprated values)" /></td>
-                                        <td><input type="text" asp-for="Form.Fields[0].Tag" readonly /></td>
+                                        <td><input type="text" asp-for="Form.Fields[i].Tag" readonly /></td>
                                         @if (i == 0)
                                         {
                                             <td class="btn-repeater">

@@ -1,7 +1,7 @@
 ﻿@{
     ViewData["Title"] = localizer["Template Form Tags"];
 }
-
+@model Dictionary<string, string>
 <style>
     fieldset.scheduler-border {
         border: 1px groove #ddd !important;
@@ -47,12 +47,23 @@
                             <tr>
                                 <th>@localizer["Field Name"]</th>
                                 <th>@localizer["Tag"]</th>
-                                <th>@localizer["Field Name"]</th>
-                                <th>@localizer["Tag"]</th>
                             </tr>
                         </thead>
                         <tbody class="data-repeater">
-                            <!-- Dynamic rows can be added via JS -->
+                            @if (Model != null && Model.Any())
+                            {
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>@item.Key</td>
+                                        <td>@item.Value</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr><td colspan="2">There are no tags available for the selected form</td></tr>
+                            }
                         </tbody>
                     </table>
                 </fieldset>

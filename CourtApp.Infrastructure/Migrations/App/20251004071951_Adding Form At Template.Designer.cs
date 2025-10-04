@@ -3,6 +3,7 @@ using System;
 using CourtApp.Infrastructure.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CourtApp.Infrastructure.Migrations.App
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251004071951_Adding Form At Template")]
+    partial class AddingFormAtTemplate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1061,7 +1064,7 @@ namespace CourtApp.Infrastructure.Migrations.App
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<Guid>("FormId")
+                    b.Property<Guid>("DraftingFormId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("LastModifiedBy")
@@ -1077,7 +1080,7 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                     b.HasIndex("CaseId");
 
-                    b.HasIndex("FormId");
+                    b.HasIndex("DraftingFormId");
 
                     b.HasIndex("TemplateId");
 
@@ -2658,9 +2661,9 @@ namespace CourtApp.Infrastructure.Migrations.App
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("CourtApp.Domain.Entities.FormBuilder.FormBuilderEntity", "Form")
+                    b.HasOne("CourtApp.Domain.Entities.FormBuilder.FormBuilderEntity", "DraftingForm")
                         .WithMany()
-                        .HasForeignKey("FormId")
+                        .HasForeignKey("DraftingFormId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -2679,8 +2682,8 @@ namespace CourtApp.Infrastructure.Migrations.App
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("integer");
 
-                            b1.Property<string>("Tag")
-                                .HasColumnType("text");
+                            b1.Property<Guid>("Key")
+                                .HasColumnType("uuid");
 
                             b1.Property<string>("Value")
                                 .HasColumnType("text");
@@ -2697,9 +2700,9 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                     b.Navigation("Case");
 
-                    b.Navigation("FieldDetails");
+                    b.Navigation("DraftingForm");
 
-                    b.Navigation("Form");
+                    b.Navigation("FieldDetails");
 
                     b.Navigation("Template");
                 });

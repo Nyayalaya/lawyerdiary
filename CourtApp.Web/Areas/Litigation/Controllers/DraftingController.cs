@@ -1,14 +1,17 @@
 ﻿using CourtApp.Application.Features.FormBuilder;
+using CourtApp.Application.Features.FormPrint;
 using CourtApp.Web.Abstractions;
 using CourtApp.Web.Areas.Litigation.Models;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
+using HtmlAgilityPack;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Wordprocessing;
-using HtmlAgilityPack;
+using static CourtApp.Application.Constants.Permissions;
 
 
 namespace CourtApp.Web.Areas.Litigation.Controllers
@@ -38,7 +41,8 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
         {
             var response = await _mediator.Send(new GetFormBuilderCachedByIdQuery()
             {
-                Id = TemplateId
+                Id = TemplateId,
+                AccessFrom = "DRFT"
             });
             if (response.Succeeded)
             {
@@ -140,37 +144,91 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 if (response.Succeeded)
                 {
                     var dt = response.Data;
-                    //var Content = ReadTemplate(dt.TemplatePath, dt.TemplateName);
+                    var Cases = new List<Guid> { dt.CaseId };
+                    // 2. Fetch Case Data
+                    var caseDataResult = await _mediator.Send(new GetFormPrintDataQuery { CaseIds = Cases });
+
+                    if (!caseDataResult.Succeeded || caseDataResult.Data == null)
+                        return BadRequest("Unable to retrieve case details.");
+
+                    //if applicant no is selected
+                    var casesData = caseDataResult.Data;
+
+                    var caseInfoDetails = _mapper.Map<List<FormPrintData>>(casesData);
+
+                    if (caseInfoDetails == null || !caseInfoDetails.Any())
+                        return BadRequest("No case data available.");
+
                     string FinalContent = string.Empty;
                     var Content = dt.TemplateBody;
                     foreach (var tg in dt.TagValues)
                     {
-                        FinalContent = Content.Replace(tg.Key.Trim(), tg.Value.Trim());
+                        FinalContent = Content.Replace(tg.Tag.Trim(), tg.Value.Trim());
                         Content = FinalContent;
                     }
-                    byte[] wordFile =ConvertHtmlToWord(Content);
-                    return File(wordFile, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "Document.docx");
-                    // Create a memory stream to hold the document
-                    //using (var stream = new MemoryStream())
-                    //{
-                    //    // Create a Wordprocessing document
-                    //    using (var document = WordprocessingDocument.Create(stream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document, true))
-                    //    {
-                    //        // Add a main document part
-                    //        var mainPart = document.AddMainDocumentPart();
-                    //        mainPart.Document = new Document();
-                    //        var body = mainPart.Document.AppendChild(new Body());
 
-                    //        //ConvertHtmlToOpenXml(body, Content);
-                    //        mainPart.Document.Save();
-                    //    }
-                    //    // Return the document as a file
-                    //    return File(stream.ToArray(), "application/vnd.ms-word", "GeneratedDocument.doc");
-                    //}
+                    var html = ReplaceFormPlaceholders(Content, caseInfoDetails.FirstOrDefault(), null, null);
+
+                    byte[] wordFile = ConvertHtmlToWord(Content);
+                    return File(wordFile, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "Document.docx");
+
                 }
 
             }
             return null;
         }
+
+        private string ReplaceFormPlaceholders(string template, FormPrintData caseInfo, ApplicantDetailViewModel applicant, AgainstCaseDecisionViewModel agDetail)
+        {
+            var replacements = new Dictionary<string, string>
+            {
+                ["#InstitutionDate#"] = caseInfo.InstitutionDate ?? "",
+                ["#StateName#"] = caseInfo.State.ToUpper() ?? "",
+                ["#CourtType#"] = caseInfo.CourtType.ToUpper() ?? "",
+                ["#CourtDistrict#"] = caseInfo.CourtDistrict ?? "",
+                ["#CourtComplex#"] = caseInfo.CourtComplex ?? "",
+                ["#Court#"] = caseInfo.Court.ToUpper() ?? "",
+                ["#Strength#"] = caseInfo.Strength.ToUpper() ?? "",
+                ["#CaseNoYear#"] = caseInfo.CaseNoYear ?? "",
+                ["#CaseCategory#"] = caseInfo.CaseCategory.ToUpper() ?? "",
+                ["#CaseType#"] = caseInfo.CaseType.ToUpper() ?? "",
+                ["#CisNoYear#"] = caseInfo.CisNoYear ?? "",
+                ["#PetitionerAppearance#"] = caseInfo.PetitionerAppearance.ToUpper() ?? "",
+                ["#Petitioner#"] = caseInfo.Petitioner.ToUpper() ?? "",
+                ["#RespondantAppearance#"] = caseInfo.RespondantAppearance.ToUpper() ?? "",
+                ["#Respondant#"] = caseInfo.Respondent.ToUpper() ?? "",
+                ["#NextDate#"] = caseInfo.NextDate ?? "",
+                ["#CaseStage#"] = caseInfo.CaseStage.ToUpper() ?? "",
+                ["#DisposalDate#"] = caseInfo.DisposalDate ?? "",
+                ["#CnrNo#"] = caseInfo.CnrNo ?? "",
+                ["#CurrentDate#"] = DateTime.Now.ToString("dd/MM/yyyy"),
+                //["#ApplicantNo#"] = applicant != null ? applicant.ApplicantNo?.ToString() : "",
+                //["#ApplicantDetail#"] = applicant != null ? applicant.Applicant.ToUpper() : "",
+                //["#ImpugedOrder#"] = agDetail?.ImpugedOrder ?? "",
+                //["#AgState#"] = agDetail?.State ?? "",
+                //["#AgCourtType#"] = agDetail?.CourtType ?? "",
+                //["#AgCourtDistrict#"] = agDetail?.CourtDistrict ?? "",
+                //["#AgCourtComplex#"] = agDetail?.CourtComplex ?? "",
+                //["#AgCourtBench#"] = agDetail?.CourtBench ?? "",
+                //["#AgCaseNoYear#"] = $"{agDetail?.CaseNo ?? ""}/{agDetail?.CaseYear ?? ""}",
+                //["#AgCaseType#"] = agDetail?.CaseType ?? "",
+                //["#AgCnrNo#"] = agDetail?.CnrNo ?? "",
+                //["#Cadre#"] = agDetail?.Cadre ?? "",
+                //["#OfficerName#"] = agDetail?.OfficerName ?? "",
+                //["#AgCaseCategory#"] = agDetail?.CaseCategory ?? "",
+                ["#DecisionDate#"] = caseInfo.DisposalDate ?? caseInfo.NextDate ?? "",
+                ["#LawyerName#"] = CurrentUser.FirstName + " " + CurrentUser.LastName,
+                ["#LawyerMobile#"] = CurrentUser.Mobile,
+                ["#LawyerAddress#"] = CurrentUser.Address
+            };
+
+            foreach (var (key, value) in replacements)
+            {
+                template = template.Replace(key, value);
+            }
+
+            return template;
+        }
+
     }
 }

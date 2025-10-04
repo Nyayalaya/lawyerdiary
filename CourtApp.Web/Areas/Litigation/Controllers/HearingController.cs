@@ -248,6 +248,8 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                     var result = await _mediator.Send(up);
                     if (result.Succeeded)
                         _notify.Success($"Case proceeding updated successfull!");
+                    else
+                        _notify.Warning(result.Message);
                 }
                 else
                 {
@@ -261,6 +263,8 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                     var result = await _mediator.Send(cmd);
                     if (result.Succeeded)
                         _notify.Success($"Case proceeding done successfull!");
+                    else
+                        _notify.Warning(result.Message);
                 }
             }
             return RedirectToAction("Index", new { SelectedDate = TempData["SelectedDate"].ToString() });

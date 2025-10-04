@@ -30,20 +30,7 @@ $("#HeadId").on("change", function () {
         });
     });
 });
-//$("#ProcWork_Workdt_0__WorkTypeId").select2({
-//    placeholder: "Select a work type",
-//    theme: "bootstrap4",
-//    escapeMarkup: function (m) {
-//        return m;
-//    }
-//});
-//$("#ProcWork_Workdt_0__WorkId").select2({
-//    placeholder: "Select a work",
-//    theme: "bootstrap4",
-//    escapeMarkup: function (m) {
-//        return m;
-//    }
-//});
+
 
 $("#ProcWork_Workdt_0__WorkTypeId").on("change", function () {
     $("#ProcWork_Workdt_0__WorkId").empty();

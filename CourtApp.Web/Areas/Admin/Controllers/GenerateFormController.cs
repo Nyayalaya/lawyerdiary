@@ -35,7 +35,7 @@ namespace CourtApp.Web.Areas.Admin.Controllers
             }
             else
             {
-                var result = await _mediator.Send(new GetFormBuilderCachedByIdQuery() { Id = id });
+                var result = await _mediator.Send(new GetFormBuilderCachedByIdQuery() { Id = id,AccessFrom="MST" });
                 if (result.Succeeded)
                 {
                     var ViewModel = _mapper.Map<GenerateFormViewModel>(result.Data);

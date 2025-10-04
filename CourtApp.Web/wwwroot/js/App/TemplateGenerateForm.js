@@ -1,4 +1,21 @@
 ﻿$(document).ready(function () {
+    $("#FormId").select2({
+        placeholder: "Select a form name",
+        theme: "bootstrap4",
+        allowClear: true,
+        escapeMarkup: function (m) {
+            return m;
+        }
+    });
+
+    $("#FormId").on("change", function () {
+        var selectedText = $("#FormId option:selected").text();
+        if ($("#TemplateName").val() == "")
+            $("#TemplateName").val(selectedText + "-");
+    });
+});
+
+$(document).ready(function () {
     tinymce.init({
         selector: '#TemplateBody',
         height: 500,
@@ -34,4 +51,20 @@
             'tableinsertcolbefore tableinsertcolafter tabledeletecol',
         branding: false
     });
+});
+
+document.getElementById('viewTagsBtn').addEventListener('click', function (e) {
+    e.preventDefault(); // prevent default anchor behavior
+
+    const selectedFormId = document.getElementById('FormId').value;
+
+    if (!selectedFormId) {
+        alert("Please select a form first.");
+        return;
+    }
+
+    const url = `/admin/templatebuilder/ViewTag?formId=${encodeURIComponent(selectedFormId)}`;
+
+    // Open the link in a new tab
+    window.open(url, '_blank');
 });

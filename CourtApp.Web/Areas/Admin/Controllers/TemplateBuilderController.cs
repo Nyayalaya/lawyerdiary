@@ -2,6 +2,7 @@
 using CourtApp.Application.Features.FormBuilder;
 using CourtApp.Web.Abstractions;
 using CourtApp.Web.Areas.Admin.Models;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -21,7 +22,7 @@ namespace CourtApp.Web.Areas.Admin.Controllers
 
         public async Task<IActionResult> LoadAll()
         {
-            var response = await _mediator.Send(new GetTemplateInfoQuery() {PageNumber=1,PageSize=500 });
+            var response = await _mediator.Send(new GetTemplateInfoQuery() { PageNumber = 1, PageSize = 500 });
             if (response.Succeeded)
             {
                 var viewModel = _mapper.Map<List<TemplateDlViewModel>>(response.Data);
@@ -32,7 +33,7 @@ namespace CourtApp.Web.Areas.Admin.Controllers
 
         public async Task<IActionResult> OnGetCreateOrEdit(Guid id, TemplateViewModel ViewModel)
         {
-            
+
             if (id == Guid.Empty)
             {
                 ViewBag.BtText = "Save";
@@ -50,6 +51,7 @@ namespace CourtApp.Web.Areas.Admin.Controllers
             {
                 Id = id,
                 Forms = await GetForms(),
+                FormId=data.FormId,
                 TemplateName = data.TemplateName,
                 TemplateBody = data.TemplateBody
             };
@@ -72,6 +74,7 @@ namespace CourtApp.Web.Areas.Admin.Controllers
             {
                 var command = new CreateTemplateInfoCommand
                 {
+                    FormId=ViewModel.FormId,
                     TemplateName = ViewModel.TemplateName,
                     Tags = templateTags,
                     TemplateBody = ViewModel.TemplateBody
@@ -85,6 +88,7 @@ namespace CourtApp.Web.Areas.Admin.Controllers
                 var command = new UpdateTemplateInfoCommand
                 {
                     Id = id,
+                    FormId=ViewModel.FormId,
                     TemplateName = ViewModel.TemplateName,
                     Tags = templateTags,
                     TemplateBody = ViewModel.TemplateBody
@@ -98,16 +102,7 @@ namespace CourtApp.Web.Areas.Admin.Controllers
                 successMessage = result.Message;
 
             _notify.Success(successMessage);
-            var response = await _mediator.Send(new GetTemplateInfoQuery() { PageNumber = 1, PageSize = 500 });
-            if (!response.Succeeded)
-            {
-                _notify.Error(response.Message);
-                return Json(new { isValid = false });
-            }
-            var viewModel = _mapper.Map<List<TemplateDlViewModel>>(response.Data);
-            var html = await _viewRenderer.RenderViewToStringAsync("_ViewAll", viewModel);
-            return Json(new { isValid = true, html });
-
+            return RedirectToAction("index");
         }
 
         [HttpPost]
@@ -252,9 +247,17 @@ namespace CourtApp.Web.Areas.Admin.Controllers
         #endregion
 
 
-        public IActionResult ViewTag(Guid formId)
+        public async Task<IActionResult> ViewTagAsync(Guid formId)
         {
-            return View("_templateTags");
+            var tagsDataResult = await _mediator.Send(new GetFormBuilderCachedByIdQuery() { Id = formId,AccessFrom="MST" });
+
+            if (tagsDataResult.Failed)
+                return View("_templateTags",null); 
+           
+            Dictionary<string, string> dic = tagsDataResult.Data.FieldDetails
+                .ToDictionary(s => s.Name, s => s.Tag);
+            
+            return View("_templateTags", dic);
         }
     }
 }

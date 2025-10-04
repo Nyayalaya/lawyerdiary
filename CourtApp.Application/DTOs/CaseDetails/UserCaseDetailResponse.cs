@@ -21,6 +21,7 @@ namespace CourtApp.Application.DTOs.CaseDetails
         public string CisNumber { get; set; }
         public int CisYear { get; set; }
         public string CnrNumber { get; set; }
+        public bool IsProceeding { get; set; }
         public DateTime? NextDate { get; set; }
         public Guid? CaseStageId { get; set; }
         public Guid? LinkedCaseId { get; set; }
