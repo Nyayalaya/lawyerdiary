@@ -163,13 +163,13 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                     var Content = dt.TemplateBody;
                     foreach (var tg in dt.TagValues)
                     {
-                        FinalContent = Content.Replace(tg.Tag.Trim(), tg.Value.Trim());
+                        FinalContent = Content.Replace(tg.Tag.Trim(), tg.Value?.Trim() ?? "");
                         Content = FinalContent;
                     }
 
                     var html = ReplaceFormPlaceholders(Content, caseInfoDetails.FirstOrDefault(), null, null);
 
-                    byte[] wordFile = ConvertHtmlToWord(Content);
+                    byte[] wordFile = ConvertHtmlToWord(html);
                     return File(wordFile, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "Document.docx");
 
                 }
@@ -202,20 +202,20 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 ["#DisposalDate#"] = caseInfo.DisposalDate ?? "",
                 ["#CnrNo#"] = caseInfo.CnrNo ?? "",
                 ["#CurrentDate#"] = DateTime.Now.ToString("dd/MM/yyyy"),
-                //["#ApplicantNo#"] = applicant != null ? applicant.ApplicantNo?.ToString() : "",
-                //["#ApplicantDetail#"] = applicant != null ? applicant.Applicant.ToUpper() : "",
-                //["#ImpugedOrder#"] = agDetail?.ImpugedOrder ?? "",
-                //["#AgState#"] = agDetail?.State ?? "",
-                //["#AgCourtType#"] = agDetail?.CourtType ?? "",
-                //["#AgCourtDistrict#"] = agDetail?.CourtDistrict ?? "",
-                //["#AgCourtComplex#"] = agDetail?.CourtComplex ?? "",
-                //["#AgCourtBench#"] = agDetail?.CourtBench ?? "",
-                //["#AgCaseNoYear#"] = $"{agDetail?.CaseNo ?? ""}/{agDetail?.CaseYear ?? ""}",
-                //["#AgCaseType#"] = agDetail?.CaseType ?? "",
-                //["#AgCnrNo#"] = agDetail?.CnrNo ?? "",
-                //["#Cadre#"] = agDetail?.Cadre ?? "",
-                //["#OfficerName#"] = agDetail?.OfficerName ?? "",
-                //["#AgCaseCategory#"] = agDetail?.CaseCategory ?? "",
+                ["#ApplicantNo#"] = applicant != null ? applicant.ApplicantNo?.ToString() : "",
+                ["#ApplicantDetail#"] = applicant != null ? applicant.Applicant.ToUpper() : "",
+                ["#ImpugedOrder#"] = agDetail?.ImpugedOrder ?? "",
+                ["#AgState#"] = agDetail?.State ?? "",
+                ["#AgCourtType#"] = agDetail?.CourtType ?? "",
+                ["#AgCourtDistrict#"] = agDetail?.CourtDistrict ?? "",
+                ["#AgCourtComplex#"] = agDetail?.CourtComplex ?? "",
+                ["#AgCourtBench#"] = agDetail?.CourtBench ?? "",
+                ["#AgCaseNoYear#"] = $"{agDetail?.CaseNo ?? ""}/{agDetail?.CaseYear ?? ""}",
+                ["#AgCaseType#"] = agDetail?.CaseType ?? "",
+                ["#AgCnrNo#"] = agDetail?.CnrNo ?? "",
+                ["#Cadre#"] = agDetail?.Cadre ?? "",
+                ["#OfficerName#"] = agDetail?.OfficerName ?? "",
+                ["#AgCaseCategory#"] = agDetail?.CaseCategory ?? "",
                 ["#DecisionDate#"] = caseInfo.DisposalDate ?? caseInfo.NextDate ?? "",
                 ["#LawyerName#"] = CurrentUser.FirstName + " " + CurrentUser.LastName,
                 ["#LawyerMobile#"] = CurrentUser.Mobile,
