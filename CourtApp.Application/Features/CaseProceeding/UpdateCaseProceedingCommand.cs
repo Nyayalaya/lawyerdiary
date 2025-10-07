@@ -91,9 +91,9 @@ namespace CourtApp.Application.Features.CaseProceeding
             var entity = await _Repository.GetByIdAsync(request.CaseId, null);
             if (entity.Case != null)
             {
-                var nextDate = entity.Case.NextDate;
+                var nextDate = entity.NextDate;
                 if (request.NextDate < nextDate)
-                    return await Result<Guid>.FailAsync("Next proceeding date must be greater than the first next date!");
+                    return await Result<Guid>.FailAsync("Next hearing date must be greater than or equals to last proceeding date!");
             }
 
             entity.NextDate = request.NextDate;

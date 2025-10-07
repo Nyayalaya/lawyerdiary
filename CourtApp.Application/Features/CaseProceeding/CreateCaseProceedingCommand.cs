@@ -81,7 +81,7 @@ namespace CourtApp.Application.Features.CaseProceeding
 
             // ✅ Step 3: Create Main Entity
             var caseProcDetail = await _Repository.GetByIdAsync(request.CaseId, null);
-            if (caseProcDetail.Case != null)
+            if (caseProcDetail?.Case != null)
             {
                 var nextDate = caseProcDetail.Case.NextDate;
                 if (request.NextDate < nextDate)
@@ -141,8 +141,6 @@ namespace CourtApp.Application.Features.CaseProceeding
             }
 
             // ✅ Step 5: Insert All Entities Efficiently
-            //if (request.CaseId != Guid.Empty)
-              //  caseProceedings.Add(entity); // Always insert the main entity
 
             if (caseProceedings.Any())
             {

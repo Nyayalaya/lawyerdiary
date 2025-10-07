@@ -25,6 +25,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -858,14 +859,61 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             return null;
         }
         [HttpPost]
-        public async Task<JsonResult> UpdateHearingDate(List<UpdateHearingDtViewModel> casedts)
+        public JsonResult UpdateHearingDate(List<UpdateHearingDtViewModel> casedts)
         {
-            var response = await _mediator.Send(new UpdateCaseHearingDatesCommand()
+            var format = "dd/MM/yyyy";
+            var culture = CultureInfo.InvariantCulture;
+
+            var splitCases = casedts
+                .Select(x =>
+                {
+                    // Blank ProcDt → valid
+                    if (string.IsNullOrWhiteSpace(x.ProcDt))
+                    {
+                        return new
+                        {
+                            Case = x,
+                            IsValid = true,
+                            Reason = ""
+                        };
+                    }
+
+                    // Try parsing ProcDt (assumed valid format)
+                    DateTime.TryParseExact(x.ProcDt, format, culture, DateTimeStyles.None, out var procDate);
+
+                    bool isValid = x.HearingDt >= procDate;
+
+                    return new
+                    {
+                        Case = x,
+                        IsValid = isValid,
+                        Reason = isValid ? "" : "Hearing date is earlier than proceeding date"
+                    };
+                })
+                .ToList();
+
+            var invalidCases = splitCases.Where(x => !x.IsValid).Select(x => x.Case).ToList();
+            var validCases = splitCases.Where(x => x.IsValid).Select(x => x.Case).ToList();
+
+            if (invalidCases.Any())
+            {
+                return Json(new
+                {
+                    Success = false,
+                    Message = "Next hearing date must be equal to or greater than the last proceeding date.",
+                    InvalidCaseNos = invalidCases.Select(x => x.CaseNoYear),
+                    ValidCases = validCases
+                });
+            }
+
+            // All valid, proceed with update
+            _ = _mediator.Send(new UpdateCaseHearingDatesCommand
             {
                 UserId = CurrentUser.Id,
                 CasesHearingDt = _mapper.Map<List<CaseHearingDto>>(casedts)
             });
-            return Json(response);
+
+            return Json(new { Success = true });
         }
         #endregion
 

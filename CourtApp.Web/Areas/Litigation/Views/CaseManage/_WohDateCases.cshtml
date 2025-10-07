@@ -72,6 +72,8 @@
                                    data-original-next="@ndt?.ToString("yyyy-MM-dd")" />
                             <input type="hidden" name="ProceedingDate" value="@bt.ProceedingDate" />
                             <input type="hidden" name="CaseId" value="@bt.Id" />
+                            <input type="hidden" name="CaseNo" value="@bt.No" />
+                            <input type="hidden" name="CaseYear" value="@bt.Year" />
                             <input type="hidden" name="IsParent" value="@bt.IsCaseHavingChild.ToString()" />
                             @if (ndt == null || ndt==DateTime.MinValue)
                             {

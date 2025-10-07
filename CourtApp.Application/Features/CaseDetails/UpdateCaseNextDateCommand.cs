@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace CourtApp.Application.Features.CaseDetails
 {
@@ -46,18 +47,33 @@ namespace CourtApp.Application.Features.CaseDetails
 
             // Step 2: Get latest proceedings per case
             var caseProceedings = await caseProceeding.Entities
-                .Where(w => request.CaseIds.Contains(w.CaseId))
-                .GroupBy(w => w.CaseId)
-                .Select(g => g.OrderByDescending(p => p.NextDate.HasValue)
-                             .ThenByDescending(p => p.NextDate)
-                             .FirstOrDefault())
-                .ToListAsync(cancellationToken);
+               .Where(w => request.CaseIds.Contains(w.CaseId))
+               .GroupBy(w => w.CaseId)
+               .Select(g => g
+                           .OrderByDescending(p => p.ProceedingDate)
+                           .FirstOrDefault())
+               .ToListAsync(cancellationToken);
+
+            var updatedProceedingCaseIds = new HashSet<Guid>();
 
             // Step 3: Update NextDate for cases having proceedings
-            var updatedProceedingCaseIds = new HashSet<Guid>();
             if (caseProceedings.Any())
             {
-                foreach (var proceeding in caseProceedings)
+                // Filter out valid proceedings (those that meet the date condition)
+                var validProceedings = caseProceedings
+                    .Where(p => request.NextHearingDate >= p.ProceedingDate)
+                    .ToList();
+
+                // Collect invalid ones (optional — if you want to log or return them)
+                var invalidProceedings = caseProceedings
+                    .Where(p => request.NextHearingDate < p.ProceedingDate)
+                    .ToList();
+
+                if (!validProceedings.Any())
+                    return await Result<Guid>.FailAsync("Next hearing date must be greater than or equal to the last proceeding date for all cases.");
+
+                // Update only valid proceedings
+                foreach (var proceeding in validProceedings)
                 {
                     proceeding.NextDate = request.NextHearingDate;
                     updatedProceedingCaseIds.Add(proceeding.CaseId);
