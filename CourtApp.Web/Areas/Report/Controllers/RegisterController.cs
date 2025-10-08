@@ -154,7 +154,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             {
                 PageNumber = 1,
                 PageSize = 10000,
-                FromDt = Convert.ToDateTime("2024-05-01"),
+                FromDt = Convert.ToDateTime("2023-05-01"),
                 ToDt = DateTime.Now,
                 SearchType = s,
                 LinkedIds = User.GetUserLinkedIds(),
@@ -196,7 +196,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                     {
                         var result = await _mediator.Send(new UpdateCopyingStatusCommand
                         { CaseId = CopyingCaseId, Status = 2 });
-                        if (result.Succeeded) _notify.Information($"Case copying receive status update successfull!");
+                        if (result.Succeeded) _notify.Information(result.Message);
                         else _notify.Error(result.Message);
                     }
                 }

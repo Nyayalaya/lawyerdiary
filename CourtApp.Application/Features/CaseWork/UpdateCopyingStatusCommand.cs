@@ -3,6 +3,7 @@ using CourtApp.Application.Interfaces.Repositories;
 using CourtApp.Domain.Entities.CaseDetails;
 using CourtApp.Domain.Entities.LawyerDiary;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,40 +32,33 @@ namespace CourtApp.Application.Features.CaseWork
         }
         public async Task<Result<Guid>> Handle(UpdateCopyingStatusCommand request, CancellationToken cancellationToken)
         {
-            //var cdEntityt = new CaseWorkEntity() { CreatedBy = "" };
-            //foreach (var item in request.CaseId)
-            //{
-            //    cdEntityt = _Repository.Entities.Where(c => c.CaseId == item).FirstOrDefault();
-            //    if (cdEntityt == null)
-            //        return Result<Guid>.Fail($"Case Work Id is not found.");
-            //    else
-            //    {
-            //        cdEntityt.Status = request.Status;
-            //        cdEntityt.ReceivedOn = DateTime.Now;
-            //        await _Repository.UpdateAsync(cdEntityt);
-            //    }
-            //}
-            //await _unitOfWork.Commit(cancellationToken);
-            //return Result<Guid>.Success(cdEntityt.Id);
-            foreach (var it in request.CaseId)
+            var caseIds = request.CaseId.Distinct().ToList();
+            // Get latest entities in a single query (instead of per ID)
+            var latestEntities = await _ProcRepo.Entities
+                .Where(e => caseIds.Contains(e.CaseId))
+                .GroupBy(e => e.CaseId)
+                .Select(g => g
+                    .OrderByDescending(e => e.ProceedingDate)
+                    .FirstOrDefault())
+                .ToListAsync(cancellationToken);
+
+            if(latestEntities.Count==0)
+                return await Result<Guid>.FailAsync($"The proceedings of cases is not found!");
+
+            foreach (var entity in latestEntities)
             {
-                var entity = await _ProcRepo.GetByIdAsync(it,null);
-                if (entity != null)
+                if (entity?.ProcWork?.Works == null)
+                    continue;
+
+                foreach (var workEntity in entity.ProcWork.Works)
                 {
-                    List<ProcWorkEntity> w = new List<ProcWorkEntity>();
-                    var work = entity.ProcWork.Works;
-                    foreach (var workEntity in work)
-                    {
-                        workEntity.ReceivedOn = DateTime.Now;
-                        workEntity.Status = request.Status;
-                        w.Add(workEntity);
-                    }
-                    entity.ProcWork.Works = w;
-                    await _ProcRepo.UpdateAsync(entity);
+                    workEntity.ReceivedOn = DateTime.Now;
+                    workEntity.Status = request.Status;
                 }
+                await _ProcRepo.UpdateAsync(entity);
             }
             await _unitOfWork.Commit(cancellationToken);
-            return Result<Guid>.Success();
+            return await Result<Guid>.SuccessAsync($"Case copying receive status update successfull!");
         }
     }
 }
