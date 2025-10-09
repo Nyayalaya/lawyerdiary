@@ -22,13 +22,16 @@ namespace CourtApp.Application.Features.CaseWork
     {
         private readonly ICaseWorkRepository _Repository;
         private readonly ICaseProceedingRepository _ProcRepo;
+        private readonly IWorkMasterRepository _WorkMasterRepo;
         private IUnitOfWork _unitOfWork { get; set; }
         public UpdateCopyingStatusCommandHandler(ICaseWorkRepository _Repository,
-            IUnitOfWork _unitOfWork, ICaseProceedingRepository _ProcRepo)
+            IUnitOfWork _unitOfWork, ICaseProceedingRepository _ProcRepo,
+            IWorkMasterRepository _WorkMasterRepo)
         {
             this._Repository = _Repository;
             this._unitOfWork = _unitOfWork;
             this._ProcRepo = _ProcRepo;
+            this._WorkMasterRepo = _WorkMasterRepo;
         }
         public async Task<Result<Guid>> Handle(UpdateCopyingStatusCommand request, CancellationToken cancellationToken)
         {
@@ -50,10 +53,25 @@ namespace CourtApp.Application.Features.CaseWork
                 if (entity?.ProcWork?.Works == null)
                     continue;
 
-                foreach (var workEntity in entity.ProcWork.Works)
+                // Get the IDs of the WorkTypes applied to the entity
+                var appliedWorkTypeIds = entity.ProcWork.Works
+                    .Select(w => w.WorkTypeId)
+                    .ToHashSet(); // Use HashSet for faster lookup
+
+                // Get the ID of the "copying" work type, case-insensitive match
+                var copyingWorkTypeId = _WorkMasterRepo.Entities
+                    .Where(w => appliedWorkTypeIds.Contains(w.Id) && w.Work_En.ToLower()== "coping")
+                    .Select(w => w.Id)
+                    .FirstOrDefault();
+
+                // If a matching "copying" work type was found, update relevant work entities
+                if (copyingWorkTypeId != Guid.Empty)
                 {
-                    workEntity.ReceivedOn = DateTime.Now;
-                    workEntity.Status = request.Status;
+                    foreach (var work in entity.ProcWork.Works.Where(w => w.WorkTypeId == copyingWorkTypeId))
+                    {
+                        work.ReceivedOn = DateTime.Now;
+                        work.Status = request.Status;
+                    }
                 }
                 await _ProcRepo.UpdateAsync(entity);
             }

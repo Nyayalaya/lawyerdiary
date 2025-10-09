@@ -47,9 +47,11 @@ namespace CourtApp.Web.Areas.Litigation.Models
     }
     public class CaseWork
     {
+
         public string WorkType { get; set; }
         public string Work { get; set; }
         public string Status { get; set; }
         public string Date { get; set; }
+        public string AppliedOn { get; set; }
     }
 }
