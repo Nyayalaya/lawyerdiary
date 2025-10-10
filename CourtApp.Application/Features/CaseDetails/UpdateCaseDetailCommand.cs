@@ -72,9 +72,9 @@ namespace CourtApp.Application.Features.CaseDetails
             // 🔁 if proceeding already done, next date of the case should be non editable. 
             // if after proceeding next date updated, and user want to change the next date from the case entry update section
             // next date of the case always be greated than the first time entered next date.
-            var isProceeding = detail.CaseProcEntities.Count() > 0 ? true : false;
-            if (isProceeding)
-                return await Result<Guid>.FailAsync("Proceeding already done for this case, so next date cannot be edit from here!");
+            //var isProceeding = detail.CaseProcEntities.Count() > 0 ? true : false;
+            //if (isProceeding)
+            //    return await Result<Guid>.FailAsync("Proceeding already done for this case, so next date cannot be edit from here!");
 
 
             // 🔁 Check for existing case with same CaseNo and CaseYear (but different ID)
@@ -101,7 +101,8 @@ namespace CourtApp.Application.Features.CaseDetails
             detail.CaseCategoryId = request.CaseCategoryId;
             detail.CaseStageId = request.CaseStageId ?? null;
             detail.CaseYear = request.CaseYear ?? 0;
-            detail.NextDate = request.NextDate ?? DateTime.MinValue;
+            if (request.NextDate != null)
+                detail.NextDate = request.NextDate ?? DateTime.MinValue;
             detail.CnrNumber = request.CnrNumber;
             detail.CisNumber = request.CisNumber;
             detail.CisYear = request.CisYear;
