@@ -283,7 +283,9 @@
             </dt>
             <dd class="col-sm-4">
                 @{
-                    string lcisno = (Model.LinkCaseInfo.CisNo + "/" + Model.LinkCaseInfo.CisYear);
+                    string lcisno = Model.LinkCaseInfo?.CisYear == "0"
+                    ? ""
+                    : $"{Model.LinkCaseInfo?.CisNo}/{Model.LinkCaseInfo?.CisYear}";
                 }
                 @lcisno
             </dd>
