@@ -23,11 +23,11 @@
 
 $("#btnUpdate").on("click", function (e) {
     debugger;
-    e.preventDefault(); 
+    e.preventDefault();
     var caseDataList = [];
 
     $('#tblCaseWohd tbody tr').each(function () {
-       
+
         var $row = $(this);
 
         var caseId = $row.find('input[name="CaseId"]').val();
@@ -68,37 +68,46 @@ $("#btnUpdate").on("click", function (e) {
                         title: "Hearing date updated for the selected cases!",
                         icon: "success"
                     });
-                } else if (response.InvalidCaseNos) {
-                    // Build invalid case message
-                    let invalidCases = response.InvalidCaseNos.join(", ");
-                    Swal.fire({
-                        title: "Validation Error!",
-                        text: `These cases have invalid hearing dates: ${invalidCases}. Proceed with valid cases?`,
-                        icon: "warning",
-                        showCancelButton: true,
-                        confirmButtonText: "Yes, update valid cases",
-                        cancelButtonText: "No, cancel"
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            // Send valid cases only
-                            $.ajax({
-                                url: "/Litigation/casemanage/UpdateHearingDate",
-                                type: "POST",
-                                data: { casedts: response.ValidCases },
-                                success: function (res) {
-                                    if (res.Success) {
-                                        Swal.fire({
-                                            title: "Valid cases updated successfully!",
-                                            icon: "success"
-                                        });
+                }
+                else {
+                    if (response.InvalidCaseNos) {
+                        // Build invalid case message
+                        let invalidCases = response.InvalidCaseNos.join(", ");
+                        Swal.fire({
+                            title: "Validation Error!",
+                            text: response.Message + ":" + invalidCases,
+                            icon: "warning",
+                            showCancelButton: true,
+                            confirmButtonText: "Yes, update valid cases",
+                            cancelButtonText: "No, cancel"
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Send valid cases only
+                                $.ajax({
+                                    url: "/Litigation/casemanage/UpdateHearingDate",
+                                    type: "POST",
+                                    data: { casedts: response.ValidCases },
+                                    success: function (res) {
+                                        if (res.Success) {
+                                            Swal.fire({
+                                                title: "Valid cases updated successfully!",
+                                                icon: "success"
+                                            });
+                                        }
+                                        else {
+                                            Swal.fire({
+                                                title: res.Message,
+                                                icon: "warning"
+                                            });
+                                        }
+                                    },
+                                    error: function (xhr) {
+                                        console.error('An error occurred:', xhr.responseText);
                                     }
-                                },
-                                error: function (xhr) {
-                                    console.error('An error occurred:', xhr.responseText);
-                                }
-                            });
-                        }
-                    });
+                                });
+                            }
+                        });
+                    }
                 }
             },
             error: function (xhr) {

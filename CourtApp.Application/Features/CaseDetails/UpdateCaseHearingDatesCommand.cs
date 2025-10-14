@@ -36,197 +36,88 @@ namespace CourtApp.Application.Features.CaseDetails
         }
         public async Task<Result<Guid>> Handle(UpdateCaseHearingDatesCommand request, CancellationToken cancellationToken)
         {
-            // Step 1: Create HashSet of case IDs (for fast lookup)
-            var casesToUpdate = request.CasesHearingDt
-                .Select(s => s.CaseId)
-                .ToHashSet();
+            // Step 1: Prepare case IDs (including child cases)
+            var caseIdsToUpdate = new HashSet<Guid>(request.CasesHearingDt.Select(x => x.CaseId));
 
-            // Step 2: Fetch all child cases linked to these case IDs
-            var childCases = await _Repository.Entites
-                .Where(w => w.LinkedCaseId.HasValue && casesToUpdate.Contains(w.LinkedCaseId.Value))
-                .Select(w => w.Id)
-                .ToListAsync(cancellationToken);
+            foreach (var item in request.CasesHearingDt.Where(x => x.IsParent))
+            {
+                var childIds = _Repository.Entites
+                    .Where(w => w.LinkedCaseId == item.CaseId)
+                    .Select(w => w.Id)
+                    .ToList();
 
-            //  Add child case IDs to the update list
-            foreach (var childId in childCases)
-                casesToUpdate.Add(childId); // HashSet avoids duplicates
+                foreach (var childId in childIds)
+                    caseIdsToUpdate.Add(childId);
+            }
 
-            // Step 3: Build a dictionary for quick hearing date lookup (parent case ID → Hearing Date)
+            // Step 2: Build hearing date lookup dictionary (Parent CaseId => Hearing Date)
             var hearingDateMap = request.CasesHearingDt
                 .ToDictionary(x => x.CaseId, x => x.HearingDt);
 
-            // Step 4: Fetch all proceedings for the given case IDs (once)
-            var updatedCaseIds = new HashSet<Guid>();
-            try
-            {
+            // Step 3: Fetch all proceedings for these cases
+            var allProceedings = _procRepo.Entities
+                .Where(w => caseIdsToUpdate.Contains(w.CaseId))
+                .ToList();
 
-                var allProceedings = await _procRepo.Entities
-                    .Where(w => casesToUpdate.Contains(w.CaseId))
-                    .ToListAsync(cancellationToken);
-                // Step 4.1: If no proceedings, skip to next step
-                if (allProceedings.Any())
+            // Step 4: Get latest proceeding per case (safe from null issues)
+            var latestProceedingsByCase = allProceedings
+                .GroupBy(p => p.CaseId)
+                .Select(g => g.OrderByDescending(p => p.ProceedingDate).FirstOrDefault())
+                .Where(p => p != null)
+                .ToList();
+
+            // Step 5: Update proceedings with hearing dates
+            if (latestProceedingsByCase.Any())
+            {
+                foreach (var proceeding in latestProceedingsByCase)
                 {
-                    // Step 4.2: Group by CaseId and pick latest proceeding (by date or next hearing date)
-                    var caseProceedings = await _procRepo.Entities
-                            .Where(w => casesToUpdate.Contains(w.CaseId))
-                            .GroupBy(w => w.CaseId)
-                            .Select(g => g
-                                .OrderByDescending(p => p.ProceedingDate)
-                                .FirstOrDefault())
-                            .ToListAsync(cancellationToken);
+                    // Get parent case ID if any, otherwise self
+                    var parentId = _Repository.Entites
+                        .Where(e => e.Id == proceeding.CaseId)
+                        .Select(e => e.LinkedCaseId ?? e.Id)
+                        .FirstOrDefault();
 
-                    // Step 4.3:Track which case IDs were updated through proceedings
-                    foreach (var proceeding in caseProceedings)
+                    // Apply hearing date if matched
+                    if (hearingDateMap.TryGetValue(parentId, out var hearingDate))
                     {
-                        if (proceeding != null)
-                        {
-                            // Get parent case ID
-                            var parentId = await _Repository.Entites
-                                .Where(e => e.Id == proceeding.CaseId)
-                                .Select(e => e.LinkedCaseId ?? e.Id)
-                                .FirstOrDefaultAsync(cancellationToken);
+                        proceeding.NextDate = hearingDate;
 
-                            // Set NextDate if available
-                            if (hearingDateMap.TryGetValue(parentId, out var nextDate))
-                            {
-                                proceeding.NextDate = nextDate;
-                                proceeding.LastModifiedOn = DateTime.Now;
-                                proceeding.LastModifiedBy = request.UserId;
-                                updatedCaseIds.Add(proceeding.CaseId);
-                            }
-                        }
                     }
-                    // Step 4.4: Save updated proceedings
-                    if (caseProceedings.Any())
-                        await _procRepo.UpdateRangeAsync(caseProceedings);
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
+
+                await _procRepo.UpdateRangeAsync(latestProceedingsByCase);
             }
 
-            // Step 5: Update `NextDate` in case table for cases not updated in proceedings
-            var missingCaseIds = casesToUpdate.Except(updatedCaseIds).ToList();
+            // Step 6: Handle cases without any proceedings
+            var updatedIds = latestProceedingsByCase.Select(p => p.CaseId).ToHashSet();
+            var missingCaseIds = caseIdsToUpdate.Except(updatedIds).ToList();
+
             if (missingCaseIds.Any())
             {
-                var entities = await _Repository.Entites
-                    .Where(w => missingCaseIds.Contains(w.Id))
-                    .ToListAsync(cancellationToken);
+                var casesToUpdateNextDate = _Repository.Entites
+                    .Where(c => missingCaseIds.Contains(c.Id))
+                    .ToList();
 
-                if (entities.Count != missingCaseIds.Count)
-                    return await Result<Guid>.FailAsync("Some cases were not found.");
-
-                foreach (var entity in entities)
+                foreach (var caseEntity in casesToUpdateNextDate)
                 {
-                    var parentId = entity.LinkedCaseId ?? entity.Id;
+                    var parentId = caseEntity.LinkedCaseId ?? caseEntity.Id;
 
-                    if (hearingDateMap.TryGetValue(parentId, out var nextDate))
-                        entity.NextDate = nextDate;
+                    if (hearingDateMap.TryGetValue(parentId, out var hearingDate))
+                    {
+                        caseEntity.NextDate = hearingDate;
+                    }
                 }
 
-                await _Repository.UpdateRangeAsync(entities);
+                await _Repository.UpdateRangeAsync(casesToUpdateNextDate);
             }
 
-            // Step 6: Save changes
-            await _unitOfWork.Commit(cancellationToken);
-            return Result<Guid>.Success(Guid.Empty);
+            // Step 7: Save all changes
+            int result = await _unitOfWork.Commit(cancellationToken);
+            if (result == -1)
+                return await Result<Guid>.FailAsync("There are issues to updated the selected record!");
+            return await Result<Guid>.SuccessAsync("Selected records updated successfully!");
+
         }
 
-
-        //public async Task<Result<Guid>> Handle(UpdateCaseHearingDatesCommand request, CancellationToken cancellationToken)
-        //{
-        //    // Step 1: Create HashSet of case IDs (for fast lookup)
-        //    var casesToUpdate = request.CasesHearingDt
-        //        .Select(s => s.CaseId)
-        //        .ToHashSet();
-
-        //    // Step 2: Fetch all child cases linked to these case IDs
-        //    var childCases = await _Repository.Entites
-        //        .Where(w => w.LinkedCaseId.HasValue && casesToUpdate.Contains(w.LinkedCaseId.Value))
-        //        .Select(w => w.Id)
-        //        .ToListAsync(cancellationToken);
-
-        //    // Add child case IDs to the update list
-        //    foreach (var childId in childCases)
-        //        casesToUpdate.Add(childId); // HashSet avoids duplicates
-
-        //    // Step 3: Build a dictionary for quick hearing date lookup (parent case ID → Hearing Date)
-        //    var hearingDateMap = request.CasesHearingDt
-        //        .ToDictionary(x => x.CaseId, x => x.HearingDt);
-
-        //    // Step 4: Get latest proceedings for all cases
-        //    var proceedings = await _procRepo.Entities
-        //        .Where(w => casesToUpdate.Contains(w.CaseId))
-        //        .ToListAsync(cancellationToken);
-
-        //    if (!proceedings.Any())
-        //    {
-
-        //    }
-
-
-        //        var caseProceedings = await _procRepo.Entities
-        //            .Where(w => casesToUpdate.Contains(w.CaseId))
-        //            .GroupBy(w => w.CaseId)
-        //            .Select(g => g
-        //                .OrderByDescending(p => p.ProceedingDate)
-        //                .FirstOrDefault())
-        //            .ToListAsync(cancellationToken);
-
-        //    // Track which case IDs were updated through proceedings
-        //    var updatedCaseIds = new HashSet<Guid>();
-
-        //    foreach (var proceeding in caseProceedings)
-        //    {
-        //        if (proceeding != null)
-        //        {
-        //            // Get parent case ID
-        //            var parentId = await _Repository.Entites
-        //                .Where(e => e.Id == proceeding.CaseId)
-        //                .Select(e => e.LinkedCaseId ?? e.Id)
-        //                .FirstOrDefaultAsync(cancellationToken);
-
-        //            // Set NextDate if available
-        //            if (hearingDateMap.TryGetValue(parentId, out var nextDate))
-        //            {
-        //                proceeding.NextDate = nextDate;
-        //                proceeding.LastModifiedOn = DateTime.Now;
-        //                proceeding.LastModifiedBy = request.UserId;
-        //                updatedCaseIds.Add(proceeding.CaseId);
-        //            }
-        //        }
-        //    }
-
-        //    if (caseProceedings.Any())
-        //        await _procRepo.UpdateRangeAsync(caseProceedings);
-
-        //    // Step 5: Update `NextDate` in case table for cases without proceedings
-        //    var missingCaseIds = casesToUpdate.Except(updatedCaseIds).ToList();
-
-        //    if (missingCaseIds.Any())
-        //    {
-        //        var entities = await _Repository.Entites
-        //            .Where(w => missingCaseIds.Contains(w.Id))
-        //            .ToListAsync(cancellationToken);
-
-        //        if (entities.Count != missingCaseIds.Count)
-        //            return await Result<Guid>.FailAsync("Some cases were not found.");
-
-        //        foreach (var entity in entities)
-        //        {
-        //            var parentId = entity.LinkedCaseId ?? entity.Id;
-
-        //            if (hearingDateMap.TryGetValue(parentId, out var nextDate))
-        //                entity.NextDate = nextDate;
-        //        }
-
-        //        await _Repository.UpdateRangeAsync(entities);
-        //    }
-
-        //    // Step 6: Save changes
-        //    await _unitOfWork.Commit(cancellationToken);
-        //    return Result<Guid>.Success(Guid.Empty);
-        //}
     }
 }

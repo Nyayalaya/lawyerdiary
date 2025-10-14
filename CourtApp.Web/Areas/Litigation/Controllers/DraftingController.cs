@@ -180,6 +180,16 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
 
         private string ReplaceFormPlaceholders(string template, FormPrintData caseInfo, ApplicantDetailViewModel applicant, AgainstCaseDecisionViewModel agDetail)
         {
+            var formatted1stApplicants = caseInfo.FirstPartyDetails != null && caseInfo.FirstPartyDetails.Any()
+            ? string.Join("<br/>",
+                caseInfo.FirstPartyDetails.Select(s => $"{s.ApplicantNo}. {s.Applicant}")
+            ): string.Empty;
+
+            var formatted2stApplicants = caseInfo.FirstPartyDetails != null && caseInfo.FirstPartyDetails.Any()
+            ? string.Join("<br/>",
+                caseInfo.FirstPartyDetails.Select(s => $"{s.ApplicantNo}. {s.Applicant}")
+            ) : string.Empty;
+
             var replacements = new Dictionary<string, string>
             {
                 ["#InstitutionDate#"] = caseInfo.InstitutionDate ?? "",
@@ -203,7 +213,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 ["#CnrNo#"] = caseInfo.CnrNo ?? "",
                 ["#CurrentDate#"] = DateTime.Now.ToString("dd/MM/yyyy"),
                 ["#ApplicantNo#"] = applicant != null ? applicant.ApplicantNo?.ToString() : "",
-                ["#ApplicantDetail#"] = applicant != null ? applicant.Applicant.ToUpper() : "",
+                ["#ApplicantDetail#"] = formatted2stApplicants,
                 ["#ImpugedOrder#"] = agDetail?.ImpugedOrder ?? "",
                 ["#AgState#"] = agDetail?.State ?? "",
                 ["#AgCourtType#"] = agDetail?.CourtType ?? "",
@@ -219,7 +229,8 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 ["#DecisionDate#"] = caseInfo.DisposalDate ?? caseInfo.NextDate ?? "",
                 ["#LawyerName#"] = CurrentUser.FirstName + " " + CurrentUser.LastName,
                 ["#LawyerMobile#"] = CurrentUser.Mobile,
-                ["#LawyerAddress#"] = CurrentUser.Address
+                ["#LawyerAddress#"] = CurrentUser.Address,
+                ["#FirstPartyDetail#"] =formatted1stApplicants
             };
 
             foreach (var (key, value) in replacements)

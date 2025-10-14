@@ -74,11 +74,11 @@ namespace CourtApp.Domain.Entities.CaseDetails
         public virtual CourtComplexEntity Complex { get; set; }
         public virtual CaseStageEntity CaseStage { get; set; }
         public virtual CaseDetailEntity LinkedCase { get; set; }
-        public ICollection<CaseDetailAgainstEntity> CaseAgainstEntities { get; set; } = new List<CaseDetailAgainstEntity>();
-        public ICollection<CaseProcedingEntity> CaseProcEntities { get; set; }
-        public ICollection<CaseTitleEntity> Titles { get; set; }
+        public virtual ICollection<CaseDetailAgainstEntity> CaseAgainstEntities { get; set; } = new List<CaseDetailAgainstEntity>();
+        public virtual ICollection<CaseProcedingEntity> CaseProcEntities { get; set; }
+        public virtual ICollection<CaseTitleEntity> Titles { get; set; }
         public virtual ICollection<CaseDetailEntity> LinkedCases { get; set; } = new List<CaseDetailEntity>();
-        public ClientEntity Client { get; set; }
+        public virtual ClientEntity Client { get; set; }
         public virtual FSTitleEntity Appearence { get; set; }
 
         #endregion

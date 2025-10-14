@@ -43,6 +43,28 @@ namespace CourtApp.Application.Features.UserCase
             var mappedData = _mapper.Map<UserCaseDetailResponse>(detail);
             mappedData.IsProceeding = detail.CaseProcEntities?.Any() == true;
 
+            if (mappedData.IsProceeding)
+            {
+                var lastProc = detail.CaseProcEntities
+                .OrderByDescending(d => d.ProceedingDate)
+                .Select(d => new { d.ProceedingDate, d.NextDate })
+                .FirstOrDefault();
+
+                DateTime? latestNextDate = null;
+
+                if (lastProc is not null)
+                {
+                    if (lastProc.NextDate is not null && lastProc.NextDate >= lastProc.ProceedingDate)
+                        latestNextDate = lastProc.NextDate;
+                    else if (lastProc.NextDate is null && lastProc.ProceedingDate != null)
+                        latestNextDate = lastProc.ProceedingDate;
+                }
+
+                var caseFirstDate = detail.NextDate;
+                var caseLatestNextDate = latestNextDate ?? caseFirstDate;
+                mappedData.NextDate = caseLatestNextDate;
+            }
+
             bool isHighCourt = detail.CourtType?.Abbreviation == "HICT";
             mappedData.IsHighCourt = isHighCourt;
 
