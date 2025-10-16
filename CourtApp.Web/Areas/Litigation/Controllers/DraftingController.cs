@@ -2,18 +2,11 @@
 using CourtApp.Application.Features.FormPrint;
 using CourtApp.Web.Abstractions;
 using CourtApp.Web.Areas.Litigation.Models;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Wordprocessing;
-using HtmlAgilityPack;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using static CourtApp.Application.Constants.Permissions;
-
-
 namespace CourtApp.Web.Areas.Litigation.Controllers
 {
     [Area("Litigation")]
@@ -167,7 +160,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                         Content = FinalContent;
                     }
 
-                    var html = ReplaceFormPlaceholders(Content, caseInfoDetails.FirstOrDefault(), null, null);
+                    var html = ReplaceFormPlaceholders(Content, caseInfoDetails.FirstOrDefault());
 
                     byte[] wordFile = ConvertHtmlToWord(html);
                     return File(wordFile, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "Document.docx");
@@ -178,7 +171,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             return null;
         }
 
-        private string ReplaceFormPlaceholders(string template, FormPrintData caseInfo, ApplicantDetailViewModel applicant, AgainstCaseDecisionViewModel agDetail)
+        private string ReplaceFormPlaceholders(string template, FormPrintData caseInfo)
         {
             var formatted1stApplicants = caseInfo.FirstPartyDetails != null && caseInfo.FirstPartyDetails.Any()
             ? string.Join("<br/>",
@@ -189,6 +182,8 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             ? string.Join("<br/>",
                 caseInfo.FirstPartyDetails.Select(s => $"{s.ApplicantNo}. {s.Applicant}")
             ) : string.Empty;
+            var agDetail = caseInfo?.AgainstCourtDetail;
+            var applicant = caseInfo?.SecondPartyDetails.Select(s => s.ApplicantNo).FirstOrDefault();
 
             var replacements = new Dictionary<string, string>
             {
@@ -212,7 +207,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 ["#DisposalDate#"] = caseInfo.DisposalDate ?? "",
                 ["#CnrNo#"] = caseInfo.CnrNo ?? "",
                 ["#CurrentDate#"] = DateTime.Now.ToString("dd/MM/yyyy"),
-                ["#ApplicantNo#"] = applicant != null ? applicant.ApplicantNo?.ToString() : "",
+                ["#ApplicantNo#"] = applicant != null ? applicant.ToString() : "",
                 ["#ApplicantDetail#"] = formatted2stApplicants,
                 ["#ImpugedOrder#"] = agDetail?.ImpugedOrder ?? "",
                 ["#AgState#"] = agDetail?.State ?? "",

@@ -21,7 +21,6 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
         public IActionResult Index(string SelectedDate)
         {
             var model = new BringTodayCaseViewModel();
-            //var SelectedDate = TempData["SelectedDate"] != null ? TempData["SelectedDate"].ToString() : "";
             model.HearingDate = SelectedDate != null ? Convert.ToDateTime(SelectedDate) : DateTime.Now;
             return View(model);
         }

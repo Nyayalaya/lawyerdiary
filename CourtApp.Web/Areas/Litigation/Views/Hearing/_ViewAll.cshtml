@@ -77,7 +77,7 @@
                                     </td>
                                     <td>
                                         <div class="form-check m-1">
-                                            @if (!Model.CaseList[i].HasChild)
+                                            @if (!Model.CaseList[i].IsProceedingDone && !Model.CaseList[i].HasChild)
                                             {
                                                 <input asp-for="@Model.CaseList[i].Selected" class="form-check-input" />
                                             }
