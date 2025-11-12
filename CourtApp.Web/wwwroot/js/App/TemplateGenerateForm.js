@@ -24,8 +24,15 @@ $(document).ready(function () {
             'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview', 'anchor',
             'searchreplace', 'visualblocks', 'visualchars', 'code', 'fullscreen',
             'insertdatetime', 'media', 'table', 'help', 'wordcount',
-            'print', 'hr', 'pagebreak', 'nonbreaking', 'autosave'
+            'print', 'hr', 'pagebreak', 'nonbreaking', 'autosave','paste'
         ],
+        paste_as_text: false,
+        paste_enable_default_filters: false,
+        paste_retain_style_properties: 'all', // preserve inline formatting
+        valid_elements: '*[*]',               // allow all tags and attributes
+        valid_styles: { '*': 'color,font-size,font-family,background,font-weight,font-style,text-decoration' },
+        paste_data_images: true, 
+
         toolbar: 'undo redo | formatselect | fontselect fontsizeselect | ' +
             'bold italic underline strikethrough forecolor backcolor | ' +
             'alignleft aligncenter alignright alignjustify | ' +

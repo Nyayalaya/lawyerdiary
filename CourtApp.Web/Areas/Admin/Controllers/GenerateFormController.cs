@@ -26,7 +26,7 @@ namespace CourtApp.Web.Areas.Admin.Controllers
             }
             return null;
         }
-        public async Task<JsonResult> OnGetCreateOrEdit(Guid id)
+        public async Task<JsonResult> OnGetCreateOrEdit(Guid id,string ntd)
         {
             if (id == Guid.Empty)
             {
@@ -42,6 +42,7 @@ namespace CourtApp.Web.Areas.Admin.Controllers
                     FormViewModel fm = new FormViewModel();
                     fm.Fields = _mapper.Map<List<FormFields>>(result.Data.FieldDetails);
                     ViewModel.Form = fm;
+                    ViewModel.Mode = ntd;
                     return new JsonResult(new { isValid = true, html = await _viewRenderer.RenderViewToStringAsync("_CreateOrEdit", ViewModel) });
                 }
             }
@@ -49,7 +50,7 @@ namespace CourtApp.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public async Task<JsonResult> OnPostCreateOrEdit(Guid id, GenerateFormViewModel ViewModel)
+        public async Task<JsonResult> OnPostCreateOrEdit(Guid id,GenerateFormViewModel ViewModel)
         {
             if (!ModelState.IsValid)
             {
@@ -59,10 +60,10 @@ namespace CourtApp.Web.Areas.Admin.Controllers
 
             try
             {
-                if (id == Guid.Empty)
+                if (id == Guid.Empty || ViewModel.Mode== "nwfd")
                 {
                     var command = _mapper.Map<CreateFormBuilderCommand>(ViewModel);
-
+                    command.Id = Guid.Empty;
                     command.Form = new FormFieldsDto
                     {
                         Fields = ViewModel.Form.Fields.Select(f => new FieldDetailsDto

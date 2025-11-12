@@ -7,6 +7,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -76,8 +77,23 @@ namespace CourtApp.Application.Features.CaseDetails
                             .OrderByDescending(o => o.Year)
                             .AsQueryable();
 
+            //this query gives the CaseIds next date greater than current date.
+            var casesIdsGrtToday = baseQuery
+                                    .AsEnumerable()
+                                    .Where(np =>
+                                        !string.IsNullOrEmpty(np.NextDate) &&
+                                        DateTime.TryParseExact(np.NextDate, "dd/MM/yyyy",
+                                                               CultureInfo.InvariantCulture,
+                                                               DateTimeStyles.None, out var parsedDate) &&
+                                        parsedDate > DateTime.Now)
+                                    .Select(s => s.Id)
+                                    .ToList();
+
+            //Exclude those case which has next date today.
+            var finalResult = baseQuery.Where(w => !casesIdsGrtToday.Contains(w.Id));
+
             int pageSize = request.PageSize == -1 ? baseQuery.Count() : request.PageSize;
-            var pagedResult = await baseQuery.ToPaginatedListAsync(request.PageNumber, pageSize);
+            var pagedResult = await finalResult.ToPaginatedListAsync(request.PageNumber, pageSize);
             // Step 4: Return updated paged result
             return pagedResult;
         }

@@ -31,6 +31,7 @@ using CourtApp.Web.Areas.LawyerDiary.Models.Lawyer;
 using CourtApp.Web.Areas.LawyerDiary.Models.Title;
 using CourtApp.Web.Areas.Litigation.Models;
 using CourtApp.Web.Extensions;
+using CourtApp.Web.Models;
 using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
@@ -67,16 +68,30 @@ namespace CourtApp.Web.Abstractions
 
             if (User.Identity.IsAuthenticated)
             {
+                //CurrentUser = new UserViewModel
+                //{
+                //    Id = User.FindFirstValue(ClaimTypes.NameIdentifier),
+                //    UserName = User.FindFirstValue(ClaimTypes.Name),
+                //    Email = User.FindFirstValue(ClaimTypes.Email),
+                //    Role = User.FindFirstValue(ClaimTypes.Role),
+                //    FirstName = User?.FindFirst("FirstName")?.Value,
+                //    LastName = User?.FindFirst("LastName")?.Value,
+                //    Address = User.FindFirstValue(ClaimTypes.StreetAddress),
+                //    Mobile = User.FindFirstValue(ClaimTypes.MobilePhone),
+                //    EnrollmentNo= User?.FindFirst("EnrollmentNo")?.Value,
+                //    // Retrieve other claims as needed
+                //};
                 CurrentUser = new UserViewModel
                 {
-                    Id = User.FindFirstValue(ClaimTypes.NameIdentifier),
-                    UserName = User.FindFirstValue(ClaimTypes.Name),
-                    Email = User.FindFirstValue(ClaimTypes.Email),
-                    Role = User.FindFirstValue(ClaimTypes.Role),
-                    FirstName = User?.FindFirst("FirstName")?.Value,
-                    LastName = User?.FindFirst("LastName")?.Value,
-                    Address = User.FindFirstValue(ClaimTypes.StreetAddress),
-                    Mobile = User.FindFirstValue(ClaimTypes.MobilePhone),
+                    Id = User.FindFirstValue(AppClaimType.NameIdentifier),
+                    UserName = User.FindFirstValue(AppClaimType.Name),
+                    Email = User.FindFirstValue(AppClaimType.Email),
+                    Role = User.FindFirstValue(AppClaimType.Role),
+                    FirstName = User.FindFirstValue(AppClaimType.GivenName),
+                    LastName = User.FindFirstValue(AppClaimType.Surname),
+                    Address = User.FindFirstValue(AppClaimType.StreetAddress),
+                    Mobile = User.FindFirstValue(AppClaimType.MobilePhone),
+                    EnrollmentNo = User.FindFirstValue(AppClaimType.EnrollmentNo),
                     // Retrieve other claims as needed
                 };
             }

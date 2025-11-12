@@ -30,7 +30,8 @@
 @model GenerateFormViewModel
 <form id="create-form" method="post" asp-controller="GenerateForm" asp-action="OnPostCreateOrEdit"
       asp-route-id="@Model.Id" onsubmit="return jQueryModalPost(this);" enctype="multipart/form-data">
-    <div class="row" >
+    <div class="row">
+        <input type="hidden" asp-for="Mode" />
         <div class="col-md-12">
             <div class="form-group row">
                 <label class="col-md-3 col-form-label">@localizer["Form Name"]</label>
@@ -45,8 +46,8 @@
             <div class="form-group row" style="height:400px!important;overflow-y:auto">
                 <fieldset class="scheduler-border">
                     <legend class="scheduler-border">Template Data Fields </legend>
-                    <table id="tblFormFields" border="1" 
-                        style="width:100%!important;">
+                    <table id="tblFormFields" border="1"
+                           style="width:100%!important;">
                         <thead>
                             <tr>
                                 <th width="20%" rowspan="2">Label</th>
@@ -68,7 +69,7 @@
                                         </td>
                                         <td><select asp-for="Form.Fields[0].Type" asp-items="Html.GetEnumSelectList<FieldType>()" class="form-control" title="Please enter type name!"><option>--Select--</option></select></td>
                                         <td><input type="text" asp-for="Form.Fields[0].DefaultVal" width="300px" placeholder="Enter Default value (In case of Dropdown provide comma seprated values)" class="form-control" title="Enter Default value (In case of Dropdown provide comma seprated values)" /></td>
-                                        <td><input type="text" asp-for="Form.Fields[0].Tag" readonly  /></td>
+                                        <td><input type="text" asp-for="Form.Fields[0].Tag" readonly /></td>
                                         <td class="btn-repeater">
                                             <button class="add-btn-repeat btn btn-success" onclick="addElement($(this))" type="button"><i class="fa fa-plus" aria-hidden="true"></i></button>
                                         </td>

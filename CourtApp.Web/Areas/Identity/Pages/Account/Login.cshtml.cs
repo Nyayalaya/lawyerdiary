@@ -2,6 +2,7 @@
 using CourtApp.Infrastructure.DbContexts;
 using CourtApp.Infrastructure.Identity.Models;
 using CourtApp.Web.Abstractions;
+using CourtApp.Web.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -159,20 +160,35 @@ namespace CourtApp.Web.Areas.Identity.Pages.Account
                 // Build new claims list
                 var newClaims = new List<Claim>
                                 {
-                                    new Claim(ClaimTypes.NameIdentifier, user.Id),
-                                    new Claim(ClaimTypes.Name, user.UserName),
-                                    new Claim("LinkedIds", lawyerIdsCsv),
-                                    new Claim(ClaimTypes.MobilePhone,user.Mobile),
-                                    new Claim(ClaimTypes.StreetAddress,user.AddressInfo!=null?user.AddressInfo.StreetAddress:""),
-                                    new Claim("OfficeAddress",user.WorkLocInfo!=null?user.WorkLocInfo.Address:""),
-                                    new Claim("FirstName",user.FirstName),
-                                    new Claim("LastName",user.LastName)                                   
+                                    new Claim(AppClaimType.NameIdentifier, user.Id),
+                                    new Claim(AppClaimType.Name, user.UserName),
+                                    new Claim(AppClaimType.GivenName, user.FirstName),
+                                    new Claim(AppClaimType.Surname, user.LastName),
+                                    new Claim(AppClaimType.Email,user.Email),
+                                    new Claim(AppClaimType.MobilePhone,user.Mobile),
+                                    new Claim(AppClaimType.StreetAddress,user.AddressInfo!=null?user.AddressInfo.StreetAddress:""),
+                                    new Claim(AppClaimType.OfficeAddress,user.WorkLocInfo!=null?user.WorkLocInfo.Address:""),
+                                    new Claim(AppClaimType.EnrollmentNo,user.ProfessionalInfo.EnrollmentNo),
+                                    new Claim(AppClaimType.LinkedIds, lawyerIdsCsv),
                                 };
+                //var newClaims = new List<Claim>
+                //                {
+                //                    new Claim(ClaimTypes.NameIdentifier, user.Id),
+                //                    new Claim(ClaimTypes.Name, user.UserName),
+                //                    new Claim(ClaimTypes.Email,user.Email),
+                //                    new Claim(ClaimTypes.MobilePhone,user.Mobile),
+                //                    new Claim(ClaimTypes.StreetAddress,user.AddressInfo!=null?user.AddressInfo.StreetAddress:""),
+                //                    new Claim("OfficeAddress",user.WorkLocInfo!=null?user.WorkLocInfo.Address:""),
+                //                    new Claim("FirstName",user.FirstName),
+                //                    new Claim("LastName",user.LastName),
+                //                    new Claim("Enrollment",user.ProfessionalInfo.EnrollmentNo),
+                //                    new Claim("LinkedIds", lawyerIdsCsv),
+                //                };
 
                 // Add role claims (one per role)
                 foreach (var role in userRoleNames.Distinct())
                 {
-                    newClaims.Add(new Claim(ClaimTypes.Role, role));
+                    newClaims.Add(new Claim(AppClaimType.Role, role));
                 }
 
                 // Merge with existing (non-role) claims

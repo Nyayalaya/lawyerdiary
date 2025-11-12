@@ -1,59 +1,53 @@
 ﻿@model IEnumerable<GenFormAttrViewModel>
 <table id="tblFormData" class="table table-striped" width="100%" cellspacing="0">
-	<thead>
-		<tr>
-			<th style="width:5%;">Sr.</th>
-			<th style="width:20%;">Form Name</th>
-			<th style="width:70%;">Fields</th>
-			<th style="width:5%;">Actions</th>
+    <thead>
+        <tr>
+            <th style="width:5%;">Sr.</th>
+            <th style="width:20%;">Form Name</th>
+            <th style="width:70%;">Fields</th>
+            <th style="width:5%;">Actions</th>
 
-		</tr>
-	</thead>
-	<tbody>
-		@{
-			int count = 0;
-		}
-		@foreach (var bt in Model)
-		{
-			<tr>
-				<td>
-					@(++count)
-				</td>
-				<td>
-					@bt.FormName
-				</td>
-				<td>
-					@bt.Fields
-				</td>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            int count = 0;
+        }
+        @foreach (var bt in Model)
+        {
+            <tr>
+                <td>
+                    @(++count)
+                </td>
+                <td>
+                    @bt.FormName
+                </td>
+                <td>
+                    @bt.Fields
+                </td>
+                <td text-right">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Action
+                        </button>
+                        <div class="dropdown-menu shadow animated--grow-in">
+                            <a onclick="jQueryModalGet('/admin/generateform/OnGetCreateOrEdit?id=@bt.Id&&ntd=edfd','Update Form Builder Information')" class="dropdown-item"><i class="fas fa-pencil-alt"></i>  Edit</a>
+                            <a onclick="jQueryModalGet('/admin/generateform/OnGetCreateOrEdit?id=@bt.Id&&ntd=nwfd','Add Form Builder Information')" class="dropdown-item"><i class="fas fa-pencil-alt"></i>  Copy for new Form </a>
 
-				@* @if ((AuthorizationService.AuthorizeAsync(User, Permissions.FormBuilder.Delete)).Result.Succeeded || (AuthorizationService.AuthorizeAsync(User, Permissions.FormBuilder.Edit)).Result.Succeeded)
-				{ *@
-					<td text-right">
-						<div class="btn-group">
-							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-								Action
-							</button>
-							<div class="dropdown-menu shadow animated--grow-in">
-								@* @if ((AuthorizationService.AuthorizeAsync(User, Permissions.FormBuilder.Edit)).Result.Succeeded)
-								{ *@
-									<a onclick="jQueryModalGet('/admin/generateform/OnGetCreateOrEdit?id=@bt.Id','Update Form Builder Information')" class="dropdown-item"><i class="fas fa-pencil-alt"></i>  Edit</a>
-								@* }
-								@if ((AuthorizationService.AuthorizeAsync(User, Permissions.FormBuilder.Delete)).Result.Succeeded)
-								{ *@
-									<form id="form_delete_@bt.Id" asp-area="admin" asp-controller="generateform" method="post" asp-action="OnPostDelete" asp-route-id="@bt.Id" onsubmit="return jQueryModalDelete(this)">
-										<a href="javascript:$('#form_delete_@bt.Id').submit();" class="dropdown-item"><i class="fas fa-trash-alt"></i>  Delete</a>
-									</form>
-								@* } *@
-							</div>
-						</div>
-					</td>
-				@* } *@
-			</tr>
-		}
-	</tbody>
+                            <form id="form_delete_@bt.Id" asp-area="admin" asp-controller="generateform" method="post" asp-action="OnPostDelete" asp-route-id="@bt.Id" onsubmit="return jQueryModalDelete(this)">
+                                <a href="javascript:$('#form_delete_@bt.Id').submit();" class="dropdown-item"><i class="fas fa-trash-alt"></i>  Delete</a>
+                            </form>
+
+                        </div>
+                    </div>
+                </td>
+                @* } *@
+            </tr>
+        }
+    </tbody>
 </table>
 <script>
-	$(document).ready(function () {
-		$("#tblFormData").DataTable();
-	});
+    $(document).ready(function () {
+        $("#tblFormData").DataTable();
+    });
 </script>

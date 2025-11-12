@@ -178,7 +178,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 caseInfo.FirstPartyDetails.Select(s => $"{s.ApplicantNo}. {s.Applicant}")
             ): string.Empty;
 
-            var formatted2stApplicants = caseInfo.FirstPartyDetails != null && caseInfo.FirstPartyDetails.Any()
+            var formatted2stApplicants = caseInfo.SecondPartyDetails != null && caseInfo.SecondPartyDetails.Any()
             ? string.Join("<br/>",
                 caseInfo.FirstPartyDetails.Select(s => $"{s.ApplicantNo}. {s.Applicant}")
             ) : string.Empty;
@@ -218,6 +218,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 ["#AgCaseNoYear#"] = $"{agDetail?.CaseNo ?? ""}/{agDetail?.CaseYear ?? ""}",
                 ["#AgCaseType#"] = agDetail?.CaseType ?? "",
                 ["#AgCnrNo#"] = agDetail?.CnrNo ?? "",
+                ["#AgCisNo#"] = agDetail?.CisNo ?? "",
                 ["#Cadre#"] = agDetail?.Cadre ?? "",
                 ["#OfficerName#"] = agDetail?.OfficerName ?? "",
                 ["#AgCaseCategory#"] = agDetail?.CaseCategory ?? "",
@@ -225,6 +226,8 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 ["#LawyerName#"] = CurrentUser.FirstName + " " + CurrentUser.LastName,
                 ["#LawyerMobile#"] = CurrentUser.Mobile,
                 ["#LawyerAddress#"] = CurrentUser.Address,
+                ["#LawyerEmail#"] = CurrentUser.Email,
+                ["#LawyerEnrollment#"] = CurrentUser.EnrollmentNo,
                 ["#FirstPartyDetail#"] =formatted1stApplicants
             };
 

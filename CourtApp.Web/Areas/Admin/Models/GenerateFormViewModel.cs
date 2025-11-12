@@ -10,6 +10,7 @@ namespace CourtApp.Web.Areas.Admin.Models
         public Guid Id { get; set; }
         [Required]
         public string FormName { get; set; }
+        public string Mode { get; set; }
         public FormViewModel Form { get; set; }
     }
     public class FormViewModel
