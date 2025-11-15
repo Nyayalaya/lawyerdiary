@@ -72,29 +72,13 @@ namespace CourtApp.Application.Features.FormPrint
 
                 var result = casesQuery.Select(x => new GlobalFormPrintDto
                 {
-                    InstitutionDate = x.InstitutionDate.ToString("dd/MM/yyyy"),
-                    CaseNoYear = $"{x.CaseNo}/{x.CaseYear}",
-                    CisNoYear = $"{x.CisNumber}/{x.CisYear}",
-                    AgainstCourtDetail = x.CaseAgainstEntities.Select(s => new AgainstCaseDetail
-                    {
-                        ImpugedOrder = s.ImpugedOrderDate.ToString("dd/MM/yyyy"),
-                        State = s.State != null ? s.State.Name_En : "",
-                        CourtType = s.CourtType != null ? s.CourtType.CourtType : "",
-                        CourtDistrict = s.CourtDistrict != null ? s.CourtDistrict.Name_En : "",
-                        CourtComplex = s.Complex != null ? s.Complex.Name_En : "",
-                        CourtBench = s.CourtBench != null ? s.CourtBench.CourtBench_En : "",
-
-                        CaseNo = s.CaseNo != null ? s.CaseNo.ToString() : "",
-                        CaseYear = s.CaseYear.ToString(),
-                        CaseType = s.CaseType != null ? s.CaseType.Name_En : "",
-                        CisNo = s.CisNo != null ? s.CisNo.ToString() : "",
-                        CisYear = s.CisYear.ToString(),
-                        CnrNo = s.CnrNo != null ? s.CnrNo.ToString() : "",
-                        Cadre = s.Cadre != null ? s.Cadre.Name_En : "",
-                        OfficerName = s.OfficerName ?? "",
-                        CaseCategory = s.CaseCategory != null ? s.CaseCategory.Name_En : "",
-                        DistrictCourt = s.CourtDistrict != null ? s.CourtDistrict.Name_En : ""
-                    }).FirstOrDefault(),
+                    InstitutionDate = x.InstitutionDate.ToString("dd/MM/yyyy"),                    
+                    CaseNoYear = string.IsNullOrWhiteSpace(x.CaseNo) || x.CaseNo == "0"
+                                ? $"{x.CaseYear}"
+                                : $"{x.CaseNo}/{x.CaseYear}",                    
+                    CisNoYear = string.IsNullOrWhiteSpace(x.CisNumber) || x.CisNumber == "0"
+                                ? $"{x.CisYear}"
+                                : $"{x.CisNumber}/{x.CisYear}",                    
                     FirstPartyDetails = x.Titles.Where(s => s.TypeId == 1)
                     .SelectMany(s => s.CaseApplicants.Select(app => new ApplicantDetailDto
                     {
@@ -123,6 +107,28 @@ namespace CourtApp.Application.Features.FormPrint
                     NextDate = GetLatestNextDate(x),
                     CnrNo = x.CnrNumber,
                     DisposalDate = x.DisposalDate?.ToString("dd/MM/yyyy") ?? "",
+                    AgainstCourtDetail = x.CaseAgainstEntities.Select(s => new AgainstCaseDetail
+                    {
+                        ImpugedOrder = s.ImpugedOrderDate.ToString("dd/MM/yyyy"),
+                        State = s.State != null ? s.State.Name_En : "",
+                        CourtType = s.CourtType != null ? s.CourtType.CourtType : "",
+                        CourtDistrict = s.CourtDistrict != null ? s.CourtDistrict.Name_En : "",
+                        CourtComplex = s.Complex != null ? s.Complex.Name_En : "",
+                        CourtBench = s.CourtBench != null ? s.CourtBench.CourtBench_En : "",
+                        CaseNo = s.CaseNo != null ? s.CaseNo.ToString() : "",
+                        CaseYear = s.CaseYear.ToString(),
+                        CaseType = s.CaseType != null ? s.CaseType.Name_En : "",
+                        CisNo = s.CisNo != null ? s.CisNo.ToString() : "",
+                        CisYear = s.CisYear.ToString(),
+                        CisNoYear = string.IsNullOrWhiteSpace(s.CisNo) || s.CisNo == "0"
+                                ? $"{s.CisYear}"
+                                : $"{s.CisNo}/{s.CisYear}",
+                        CnrNo = s.CnrNo != null ? s.CnrNo.ToString() : "",
+                        Cadre = s.Cadre != null ? s.Cadre.Name_En : "",
+                        OfficerName = s.OfficerName ?? "",
+                        CaseCategory = s.CaseCategory != null ? s.CaseCategory.Name_En : "",
+                        DistrictCourt = s.CourtDistrict != null ? s.CourtDistrict.Name_En : ""
+                    }).FirstOrDefault(),
                 }).ToList();
                 return await Result<List<GlobalFormPrintDto>>.SuccessAsync(result);
             }

@@ -34,9 +34,10 @@ namespace CourtApp.Application.Features.FormBuilder
                     TemplateName = e.TemplateName,
                     Tags = e.Tags.Select(s => new TemplateTagInfo() { Tag = s.Tag }).ToList()
                 };
+                var dt =  _Repository.Entities.ToList();
                 var paginatedList = await _Repository.Entities
                     .Select(expression)
-                    .ToPaginatedListAsync(request.PageNumber, request.PageSize);
+                    .ToPaginatedListAsync(1, 10000);
                 paginatedList.TotalPages = _Repository.Entities.Count();
                 return paginatedList;
             }

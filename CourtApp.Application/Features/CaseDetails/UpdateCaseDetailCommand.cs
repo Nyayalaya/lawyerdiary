@@ -71,8 +71,9 @@ namespace CourtApp.Application.Features.CaseDetails
 
             // 🔁 Check for existing case with same CaseNo and CaseYear (but different ID)
             var courtId = request.BenchId ?? request.CourtId ?? Guid.Empty;
+            string caseNo = string.IsNullOrEmpty(request.CaseNo) ? "" : request.CaseNo;
             var duplicateCaseExists = await _repository.Entites.AnyAsync(x =>
-                                    x.CaseNo == request.CaseNo &&
+                                    x.CaseNo == caseNo &&
                                     x.CaseYear == request.CaseYear &&
                                     x.CourtTypeId == request.CourtTypeId &&
                                     x.CourtBenchId == courtId &&

@@ -5,6 +5,7 @@ using CourtApp.Web.Areas.Litigation.Models;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 namespace CourtApp.Web.Areas.Litigation.Controllers
@@ -154,16 +155,34 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
 
                     string FinalContent = string.Empty;
                     var Content = dt.TemplateBody;
+                    //foreach (var tg in dt.TagValues)
+                    //{
+                    //    FinalContent = Content.Replace(tg.Tag.Trim(), tg.Value?.Trim() ?? "");
+                    //    Content = FinalContent;
+                    //}
                     foreach (var tg in dt.TagValues)
                     {
-                        FinalContent = Content.Replace(tg.Tag.Trim(), tg.Value?.Trim() ?? "");
+                        string replacement = tg.Value?.Trim() ?? "";
+
+                        // Try parse if the value is a date in yyyy-MM-dd format
+                        if (DateTime.TryParseExact(replacement, "yyyy-MM-dd",
+                                                   CultureInfo.InvariantCulture,
+                                                   DateTimeStyles.None,
+                                                   out DateTime dtValue))
+                        {
+                            replacement = dtValue.ToString("dd/MM/yyyy");
+                        }
+
+                        FinalContent = Content.Replace(tg.Tag.Trim(), replacement);
                         Content = FinalContent;
                     }
 
                     var html = ReplaceFormPlaceholders(Content, caseInfoDetails.FirstOrDefault());
 
+                    string fileName = caseInfoDetails.Select(s => s.CaseNoYear).FirstOrDefault();
+
                     byte[] wordFile = ConvertHtmlToWord(html);
-                    return File(wordFile, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "Document.docx");
+                    return File(wordFile, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName + ".doc");
 
                 }
 
@@ -180,7 +199,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
 
             var formatted2stApplicants = caseInfo.SecondPartyDetails != null && caseInfo.SecondPartyDetails.Any()
             ? string.Join("<br/>",
-                caseInfo.FirstPartyDetails.Select(s => $"{s.ApplicantNo}. {s.Applicant}")
+                caseInfo.SecondPartyDetails.Select(s => $"{s.ApplicantNo}. {s.Applicant}")
             ) : string.Empty;
             var agDetail = caseInfo?.AgainstCourtDetail;
             var applicant = caseInfo?.SecondPartyDetails.Select(s => s.ApplicantNo).FirstOrDefault();
@@ -219,6 +238,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 ["#AgCaseType#"] = agDetail?.CaseType ?? "",
                 ["#AgCnrNo#"] = agDetail?.CnrNo ?? "",
                 ["#AgCisNo#"] = agDetail?.CisNo ?? "",
+                ["#AgCisNoYear#"] = agDetail?.CisNoYear ?? "",
                 ["#Cadre#"] = agDetail?.Cadre ?? "",
                 ["#OfficerName#"] = agDetail?.OfficerName ?? "",
                 ["#AgCaseCategory#"] = agDetail?.CaseCategory ?? "",

@@ -68,19 +68,7 @@ namespace CourtApp.Web.Abstractions
 
             if (User.Identity.IsAuthenticated)
             {
-                //CurrentUser = new UserViewModel
-                //{
-                //    Id = User.FindFirstValue(ClaimTypes.NameIdentifier),
-                //    UserName = User.FindFirstValue(ClaimTypes.Name),
-                //    Email = User.FindFirstValue(ClaimTypes.Email),
-                //    Role = User.FindFirstValue(ClaimTypes.Role),
-                //    FirstName = User?.FindFirst("FirstName")?.Value,
-                //    LastName = User?.FindFirst("LastName")?.Value,
-                //    Address = User.FindFirstValue(ClaimTypes.StreetAddress),
-                //    Mobile = User.FindFirstValue(ClaimTypes.MobilePhone),
-                //    EnrollmentNo= User?.FindFirst("EnrollmentNo")?.Value,
-                //    // Retrieve other claims as needed
-                //};
+                
                 CurrentUser = new UserViewModel
                 {
                     Id = User.FindFirstValue(AppClaimType.NameIdentifier),
