@@ -17,7 +17,8 @@ namespace CourtApp.Application.Mappings
         public LanguageProfileMapping()
         {
             CreateMap<CreateLanguageCommand, LanguageEntity>();
-            CreateMap<LangEntity, LangDto>();
+            CreateMap<LangEntity, LangDto>().ReverseMap();
+           
         }
     }
 }

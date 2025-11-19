@@ -16,6 +16,7 @@
 });
 
 $(document).ready(function () {
+    tinymce.baseURL = "/lib/tinymce";
     tinymce.init({
         selector: '#TemplateBody',
         height: 500,
@@ -24,38 +25,45 @@ $(document).ready(function () {
             'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview', 'anchor',
             'searchreplace', 'visualblocks', 'visualchars', 'code', 'fullscreen',
             'insertdatetime', 'media', 'table', 'help', 'wordcount',
-            'print', 'hr', 'pagebreak', 'nonbreaking', 'autosave','paste'
+            'print', 'hr', 'pagebreak', 'nonbreaking', 'autosave', 'paste'
         ],
         paste_as_text: false,
         paste_enable_default_filters: false,
-        paste_retain_style_properties: 'all', // preserve inline formatting
-        valid_elements: '*[*]',               // allow all tags and attributes
-        valid_styles: { '*': 'color,font-size,font-family,background,font-weight,font-style,text-decoration' },
-        paste_data_images: true, 
-
-        toolbar: 'undo redo | formatselect | fontselect fontsizeselect | ' +
+        paste_retain_style_properties: 'all',
+        valid_elements: '*[*]',
+        fontsize_formats: '5pt 6pt 7pt 8pt 9pt 10pt 11pt 12pt 13pt 14pt 16pt 18pt 20pt 22pt 24pt 26pt 28pt 36pt 48pt',
+        valid_styles: {
+            '*': 'color,font-size,font-family,background,font-weight,font-style,text-decoration,text-align,line-height'
+        },
+        paste_data_images: true,
+        toolbar:
+            'undo redo | formatselect | fontselect fontsizeselect | ' +
             'bold italic underline strikethrough forecolor backcolor | ' +
             'alignleft aligncenter alignright alignjustify | ' +
-            'bullist numlist outdent indent | table | hr pagebreak | ' +
+            'lineheight | ' +
+            'bullist numlist outdent indent | ' +
+            'table | hr pagebreak | ' +
             'link image media | removeformat code preview print | help',
         content_style: `
-            body { font-family:Helvetica,Arial,sans-serif; font-size:14px; padding:20px; }
-            hr.tiny-ruler { border: none; border-top: 1px dashed #888; margin: 20px 0; }
-        `,
+        body { font-family:Helvetica,Arial,sans-serif; font-size:14px; padding:20px; }
+        hr.tiny-ruler { border: none; border-top: 1px dashed #888; margin: 20px 0; }
+    `,
         setup: function (editor) {
+            //-------------------------------------------------------
+            // 3️⃣ Tab = Indent / Shift+Tab = Outdent
+            //-------------------------------------------------------
             editor.on('keydown', function (e) {
                 if (e.key === 'Tab') {
                     e.preventDefault();
-                    if (e.shiftKey) {
-                        editor.execCommand('Outdent');
-                    } else {
-                        editor.execCommand('Indent');
-                    }
+                    editor.execCommand(e.shiftKey ? 'Outdent' : 'Indent');
                 }
             });
         },
-        table_toolbar: 'tableprops tabledelete | tableinsertrowbefore tableinsertrowafter tabledeleterow | ' +
+
+        table_toolbar:
+            'tableprops tabledelete | tableinsertrowbefore tableinsertrowafter tabledeleterow | ' +
             'tableinsertcolbefore tableinsertcolafter tabledeletecol',
+
         branding: false
     });
 });

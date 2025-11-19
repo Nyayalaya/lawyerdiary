@@ -26,19 +26,19 @@
                 <td>
                     @bt.Abbreviation
                 </td>
-                @if ((AuthorizationService.AuthorizeAsync(User, Permissions.CourtType.Delete)).Result.Succeeded || (AuthorizationService.AuthorizeAsync(User, Permissions.CourtType.Edit)).Result.Succeeded)
-                {
+               @*  @if ((AuthorizationService.AuthorizeAsync(User, Permissions.CourtType.Delete)).Result.Succeeded || (AuthorizationService.AuthorizeAsync(User, Permissions.CourtType.Edit)).Result.Succeeded)
+                { *@
                     <td text-right">
                         <div class="btn-group">
                             <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 Action
                             </button>
                             <div class="dropdown-menu shadow animated--grow-in">
-                                @if ((AuthorizationService.AuthorizeAsync(User, Permissions.CourtType.Edit)).Result.Succeeded)
-                                {
+                                @* @if ((AuthorizationService.AuthorizeAsync(User, Permissions.CourtType.Edit)).Result.Succeeded)
+                                { *@
                                     <a onclick="jQueryModalGet('/LawyerDiary/courttype/OnGetCreateOrEdit?id=@bt.Id','Edit Court Type')" class="dropdown-item"><i class="fas fa-pencil-alt"></i>  Edit</a>
 
-                                }
+                              @*   } *@
                                 @if ((AuthorizationService.AuthorizeAsync(User, Permissions.CourtType.Delete)).Result.Succeeded)
 
                                 {
@@ -49,7 +49,7 @@
                             </div>
                         </div>
                     </td>
-                }
+               @*  } *@
             </tr>
         }
     </tbody>

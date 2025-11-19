@@ -1,5 +1,6 @@
 ﻿using AspNetCoreHero.Results;
 using AutoMapper;
+using CourtApp.Application.DTOs.Common;
 using CourtApp.Application.Interfaces.Repositories;
 using CourtApp.Domain.Entities.LawyerDiary;
 using KT3Core.Areas.Global.Classes;
@@ -16,6 +17,7 @@ namespace CourtApp.Application.Features.CourtType.Command
     {
         public string CourtType { get; set; }
         public string Abbreviation { get; set; }
+        public LangDto  Language { get; set; }
     }
     public class CreateCourtTypeCommandHandler : IRequestHandler<CreateCourtTypeCommand, Result<Guid>>
     {

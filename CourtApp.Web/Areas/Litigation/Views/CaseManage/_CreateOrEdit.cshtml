@@ -300,7 +300,7 @@
                                 <div class="input-group">
                                     @if (Model.IsProceeding)
                                     {
-                                        <input type="date" asp-for="NextDate" id="NextDate" placeholder="dd/MM/yyyy" class="form-control" disabled/>
+                                        <input type="date" asp-for="NextDate" id="NextDate" placeholder="dd/MM/yyyy" class="form-control" disabled />
                                     }
                                     else
                                     {
@@ -325,21 +325,16 @@
 
             <div class="form-group justify-content-between" style="margin-bottom: 0px !important">
                 <button type="submit" class="btn btn-success">@ViewBag.ActionType</button>
-                <button type="button" id="backButton" class="btn btn-secondary"><i class="fa fa-arrow-left"></i> Go Back</button>
-
+                <input type="button" value="Cancel" class="btn btn-default btn-cancel" data-url="/litigation/casemanage" />
             </div>
         </form>
     </div>
 </div>
 @section Scripts
 {
-
     <script src="~/js/litigation/managecase.js"></script>
-
     <script>
-        $('#backButton').on('click', function () {
-            window.history.back(); // Go to previous page
-        });
+
         $(document).ready(function () {
             var title="@(ViewBag.Title)";
             if(title==="Add New Case Detail")

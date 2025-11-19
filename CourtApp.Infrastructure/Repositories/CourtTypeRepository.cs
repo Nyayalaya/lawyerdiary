@@ -9,14 +9,14 @@ using System.Linq;
 using System.Threading.Tasks;
 namespace CourtApp.Infrastructure.Repositories
 {
-    public class CourtTypeRepository:ICourtTypeRepository
+    public class CourtTypeRepository : ICourtTypeRepository
     {
         private readonly IRepositoryAsync<CourtTypeEntity> _repository;
         private readonly IDistributedCache _distributedCache;
 
         public CourtTypeRepository(IRepositoryAsync<CourtTypeEntity> _repository, IDistributedCache _distributedCache)
         {
-            this._repository=_repository;
+            this._repository = _repository;
             this._distributedCache = _distributedCache;
         }
 
@@ -34,10 +34,24 @@ namespace CourtApp.Infrastructure.Repositories
             return await _repository.Entities.Where(p => p.Id == CourtTypeId).FirstOrDefaultAsync();
         }
 
-        public  async Task<List<CourtTypeEntity>> GetListAsync()
+        public async Task<List<CourtTypeEntity>> GetListAsync()
         {
-            
-            return await _repository.Entities.ToListAsync();
+
+            return await _repository
+                .Entities
+                .AsNoTracking()
+                .Include(ct => ct.Languages)
+                .Select(ct => new CourtTypeEntity
+                {
+                    Id=ct.Id,
+                    CourtType = ct.CourtType,
+                    Abbreviation = ct.Abbreviation,
+                    Languages = ct.Languages
+                                .Where(l => l.Code == "hi")
+                                .ToList()
+                })
+                .ToListAsync();
+
         }
 
         public async Task<Guid> InsertAsync(CourtTypeEntity courtTypeEntity)

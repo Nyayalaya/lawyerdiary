@@ -139,32 +139,20 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 {
                     var dt = response.Data;
                     var Cases = new List<Guid> { dt.CaseId };
-                    // 2. Fetch Case Data
                     var caseDataResult = await _mediator.Send(new GetFormPrintDataQuery { CaseIds = Cases });
-
                     if (!caseDataResult.Succeeded || caseDataResult.Data == null)
                         return BadRequest("Unable to retrieve case details.");
 
-                    //if applicant no is selected
                     var casesData = caseDataResult.Data;
-
                     var caseInfoDetails = _mapper.Map<List<FormPrintData>>(casesData);
-
                     if (caseInfoDetails == null || !caseInfoDetails.Any())
                         return BadRequest("No case data available.");
 
                     string FinalContent = string.Empty;
                     var Content = dt.TemplateBody;
-                    //foreach (var tg in dt.TagValues)
-                    //{
-                    //    FinalContent = Content.Replace(tg.Tag.Trim(), tg.Value?.Trim() ?? "");
-                    //    Content = FinalContent;
-                    //}
                     foreach (var tg in dt.TagValues)
                     {
                         string replacement = tg.Value?.Trim() ?? "";
-
-                        // Try parse if the value is a date in yyyy-MM-dd format
                         if (DateTime.TryParseExact(replacement, "yyyy-MM-dd",
                                                    CultureInfo.InvariantCulture,
                                                    DateTimeStyles.None,
@@ -178,11 +166,9 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                     }
 
                     var html = ReplaceFormPlaceholders(Content, caseInfoDetails.FirstOrDefault());
-
                     string fileName = caseInfoDetails.Select(s => s.CaseNoYear).FirstOrDefault();
-
                     byte[] wordFile = ConvertHtmlToWord(html);
-                    return File(wordFile, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName + ".doc");
+                    return File(wordFile, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName + ".docx");
 
                 }
 
@@ -195,7 +181,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             var formatted1stApplicants = caseInfo.FirstPartyDetails != null && caseInfo.FirstPartyDetails.Any()
             ? string.Join("<br/>",
                 caseInfo.FirstPartyDetails.Select(s => $"{s.ApplicantNo}. {s.Applicant}")
-            ): string.Empty;
+            ) : string.Empty;
 
             var formatted2stApplicants = caseInfo.SecondPartyDetails != null && caseInfo.SecondPartyDetails.Any()
             ? string.Join("<br/>",
@@ -248,7 +234,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 ["#LawyerAddress#"] = CurrentUser.Address,
                 ["#LawyerEmail#"] = CurrentUser.Email,
                 ["#LawyerEnrollment#"] = CurrentUser.EnrollmentNo,
-                ["#FirstPartyDetail#"] =formatted1stApplicants
+                ["#FirstPartyDetail#"] = formatted1stApplicants
             };
 
             foreach (var (key, value) in replacements)
