@@ -12,7 +12,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace CourtApp.Application.Features.CourtType.Command
 {
@@ -20,7 +19,7 @@ namespace CourtApp.Application.Features.CourtType.Command
     {
         public string CourtType { get; set; }
         public string Abbreviation { get; set; }
-        public List<LangDto> Language { get; set; }
+        public List<LangDto>  Language { get; set; }
     }
     public class CreateCourtTypeCommandHandler : IRequestHandler<CreateCourtTypeCommand, Result<Guid>>
     {

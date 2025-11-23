@@ -29,7 +29,7 @@ namespace CourtApp.Application.Features.CourtType.Query
         {
             var courtTypeList = await _CourtType.GetByIdAsync(request.Id);
             var mappedCourtTpe = _mapper.Map<GetCourtTypeResponse>(courtTypeList);
-            mappedCourtTpe.Language= _mapper.Map<List<LangDto>>(courtTypeList.Languages);
+            mappedCourtTpe.Language = _mapper.Map<List<LangDto>>(courtTypeList.Languages);
             return Result<GetCourtTypeResponse>.Success(mappedCourtTpe);
         }
     }
