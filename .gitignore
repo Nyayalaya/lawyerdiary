@@ -455,3 +455,4 @@ $RECYCLE.BIN/
 /CourtApp.Web/appsettings.json
 /CourtApp.Web/appsettings.json
 /CourtApp.Web/Properties/launchSettings.json
+/CourtApp.Web/wwwroot/js/App/GenerateForm.js
