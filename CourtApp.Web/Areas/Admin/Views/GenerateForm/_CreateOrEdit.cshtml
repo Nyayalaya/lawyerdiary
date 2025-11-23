@@ -104,13 +104,17 @@
                                         @if (i == 0)
                                         {
                                             <td class="btn-repeater">
-                                                <button class="add-btn-repeat btn btn-success" onclick="addElement($(this))" type="button"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                                <button class="add-btn-repeat btn btn-success" onclick="addElement($(this))" type="button">
+                                                    <i class="fa fa-plus" aria-hidden="true"></i>
+                                                </button>
                                             </td>
                                         }
                                         else
                                         {
                                             <td class="btn-repeater">
-                                                <button type="button" onclick="removeKolom($(this))" class="btn btn-warning"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                                                <button type="button" class="btn btn-warning delete">
+                                                    <i class="fa fa-trash" aria-hidden="true"></i>
+                                                </button>
                                             </td>
 
                                         }

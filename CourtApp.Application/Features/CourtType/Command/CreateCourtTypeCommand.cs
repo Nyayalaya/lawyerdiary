@@ -1,14 +1,17 @@
 ﻿using AspNetCoreHero.Results;
 using AutoMapper;
 using CourtApp.Application.Interfaces.Repositories;
+using CourtApp.Domain.Entities.Common;
 using CourtApp.Domain.Entities.LawyerDiary;
 using KT3Core.Areas.Global.Classes;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace CourtApp.Application.Features.CourtType.Command
 {
@@ -16,6 +19,7 @@ namespace CourtApp.Application.Features.CourtType.Command
     {
         public string CourtType { get; set; }
         public string Abbreviation { get; set; }
+        public LangDto  Language { get; set; }
     }
     public class CreateCourtTypeCommandHandler : IRequestHandler<CreateCourtTypeCommand, Result<Guid>>
     {
@@ -50,6 +54,7 @@ namespace CourtApp.Application.Features.CourtType.Command
 
             // Insert new record
             var entity = _mapper.Map<CourtTypeEntity>(request);
+            entity.Languages = _mapper.Map<List<LangEntity>>(request.Language);
             await _Repository.InsertAsync(entity);
             await _unitOfWork.Commit(cancellationToken);
 

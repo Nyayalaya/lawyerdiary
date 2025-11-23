@@ -20,6 +20,7 @@ namespace CourtApp.Application.Mappings
             CreateMap<CreateCourtTypeCommand, CourtTypeEntity>().ReverseMap();
             CreateMap<UpdateCourtTypeCommand, CourtTypeEntity>().ReverseMap();
             CreateMap<DeleteCourtTypeCommand, CourtTypeEntity>().ReverseMap();
+
         }
     }
 }
