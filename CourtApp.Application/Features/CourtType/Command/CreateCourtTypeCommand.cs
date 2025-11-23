@@ -20,7 +20,7 @@ namespace CourtApp.Application.Features.CourtType.Command
     {
         public string CourtType { get; set; }
         public string Abbreviation { get; set; }
-        public LangDto  Language { get; set; }
+        public List<LangDto> Language { get; set; }
     }
     public class CreateCourtTypeCommandHandler : IRequestHandler<CreateCourtTypeCommand, Result<Guid>>
     {
