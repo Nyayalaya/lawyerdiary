@@ -6,13 +6,10 @@
 @Html.AntiForgeryToken()
 <div class="card">
     <div class="col-sm-12" style="padding:20px">
-        @*  @if ((AuthorizationService.AuthorizeAsync(User, Permissions.ProceedingSubHeads.Create)).Result.Succeeded)
-        { *@
+
         <a onclick="jQueryModalGet('/lawyerdiary/ProceedingSubHead/OnGetCreateOrEdit','Create Proceeding Sub Head')" class="btn bg-success">
             <i class="fa fa-plus-square"></i> Create
         </a>
-        @* } *@
-
         <a id="reload" class="btn btn-primary text-white">
             <i class="fa fas fa-bolt"></i>
             Reload
@@ -22,6 +19,7 @@
         <table id="tblProceedingSHead" class="table table-striped" width="100%">
             <thead>
                 <tr>
+                    <th>Srn.</th>
                     <th>Head</th>
                     <th>Name(En)</th>
                     <th>Name(Hn)</th>
@@ -33,13 +31,11 @@
 </div>
 @section Scripts
 {
-    <script src="~/js/site.js"></script>
     <script>
         $('#tblProceedingSHead').DataTable().clear().destroy();
         $('#tblProceedingSHead').DataTable({
             "processing": true,
             "serverSide": true,
-
             "ajax": {
                 "url": "/LawyerDiary/ProceedingSubHead/LoadAll",
                 "type": "POST",
@@ -54,6 +50,13 @@
 
             },
             "columns": [
+                {
+            "data": null,
+            "render": function (data, type, row, meta) {
+                return meta.row + meta.settings._iDisplayStart + 1; // Serial number calculation
+            },
+            "orderable": false
+        },
                 { "data": "Head" },
                 { "data": "Name_En" },
                 { "data": "Name_Hn" },
@@ -69,13 +72,6 @@
                     }
                     }
              ]
-                // {
-                //     "data": null,
-                //     "render": function (data, type, row) {
-                //         return '<a href="/LawyerDiary/ProceedingSubHead/Edit/' + row.Id + '">Edit</a> | <a href="/LawyerDiary/ProceedingSubHead/Delete/' + row.Id + '">Delete</a>';
-                //     }
-                // }
-            //]
         });
     </script>
 }

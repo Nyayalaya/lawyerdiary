@@ -1,6 +1,7 @@
 ﻿using AuditTrail.Abstrations;
 using CourtApp.Application.Interfaces.Contexts;
 using CourtApp.Application.Interfaces.Shared;
+using CourtApp.Domain.Entities.Account;
 using CourtApp.Domain.Entities.CaseDetails;
 using CourtApp.Domain.Entities.Common;
 using CourtApp.Domain.Entities.FormBuilder;
@@ -13,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Threading;
 using System.Threading.Tasks;
 namespace CourtApp.Infrastructure.DbContexts
@@ -73,6 +75,9 @@ namespace CourtApp.Infrastructure.DbContexts
         public DbSet<CadreMasterEntity> Cadres { get; set; }
         public DbSet<SpecializationEntity> Specilities { get; set; }
         public DbSet<AssignCaseEntity> AssignedCases { get; set; }
+        public DbSet<LanguageEntity> LanguageEntities { get; set; }
+        public DbSet<CourtFormTypeEntity> CourtFormTypeEntities { get; set; }
+        public DbSet<BillingDetailEntity> BillingDetails { get; set; }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
         {
@@ -184,7 +189,22 @@ namespace CourtApp.Infrastructure.DbContexts
                    j.OwnsMany(d => d.Works);
                }
                );
+            builder.Entity<LanguageEntity>().OwnsMany(
+                j => j.Languages, k =>
+                {
+                    k.ToJson();
+                }
+                );
+
+            builder.Entity<CourtTypeEntity>().OwnsMany(
+               j => j.Languages, k =>
+               {
+                   k.ToJson();
+               }
+               );
             #endregion
+
+
         }
     }
 }

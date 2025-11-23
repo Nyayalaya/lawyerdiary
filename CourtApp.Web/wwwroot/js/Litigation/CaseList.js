@@ -49,12 +49,12 @@ $(document).ready(function () {
         },
         "columns": [
             { "data": "sno" },
-            { "data": "court" },
-            { "data": "caseType" },
-            { "data": "no" },
+            { "data": "court", "orderable": false },
+            { "data": "caseType", "orderable": false },
+            { "data": "no", "orderable": false },
             { "data": "year" },
-            { "data": "caseDetail" },
-            { "data": "caseStage" },
+            { "data": "caseDetail", "orderable": false },
+            { "data": "caseStage", "orderable": false },
             { "data": "nextDate" },
             { "data": "actions", "orderable": false } // Disable ordering for action buttons
         ]

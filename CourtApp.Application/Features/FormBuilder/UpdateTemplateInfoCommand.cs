@@ -15,6 +15,7 @@ namespace CourtApp.Application.Features.FormBuilder
     public class UpdateTemplateInfoCommand : IRequest<Result<Guid>>
     {
         public Guid Id { get; set; }
+        public Guid FormId { get; set; }
         public string TemplateName { get; set; }
         public string TemplatePath { get; set; }
         public string TemplateBody { get; set; }
@@ -39,6 +40,7 @@ namespace CourtApp.Application.Features.FormBuilder
             TempDetail.TemplateName = request.TemplateName;
             TempDetail.TemplatePath = request.TemplatePath;
             TempDetail.TemplateBody = request.TemplateBody;
+            TempDetail.FormId = request.FormId;
             TempDetail.Tags=_mapper.Map<List<TemplateTagsEntity>>(request.Tags);            
             await _repository.UpdateAsync(TempDetail);
             await _UoW.Commit(cancellationToken);

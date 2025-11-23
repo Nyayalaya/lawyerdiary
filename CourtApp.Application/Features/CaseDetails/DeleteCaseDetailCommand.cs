@@ -1,6 +1,7 @@
 ﻿using AspNetCoreHero.Results;
 using CourtApp.Application.Interfaces.Repositories;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Threading;
@@ -30,17 +31,30 @@ namespace CourtApp.Application.Features.CaseDetails
 
         public async Task<Result<Guid>> Handle(DeleteCaseDetailCommand command, CancellationToken cancellationToken)
         {
+            // 1️⃣ Get the parent record
             var detail = await _Repository.GetByIdAsync(command.Id);
-            if (detail == null) return Result<Guid>.Fail("Record is not found for deletion!");
-            var caseDocs = _caseDocRepo.Entities.Where(w => w.CaseId.Equals(command.Id)).ToList();
-            if (caseDocs.Count > 0)
+            if (detail == null)
+                return Result<Guid>.Fail("Record not found for deletion!");
+
+            // 2️⃣ Get and delete related Case Documents
+            var caseDocs = await _caseDocRepo.Entities
+                .Where(w => w.CaseId == command.Id)
+                .ToListAsync(cancellationToken);
+
+            if (caseDocs.Any())
                 await _caseDocRepo.DeleteRangeAsync(caseDocs);
+
+            // 3️⃣ Get and delete related Proceedings
             var procData = await caseProceeding.GetProceedingByCaseIdAsync(command.Id);
-            if (procData.Any())
+            if (procData != null && procData.Any())
                 await caseProceeding.DeleteRangeAsync(procData);
 
+            // 4️⃣ Delete the main record
             await _Repository.DeleteAsync(detail);
+
+            // 5️⃣ Commit all changes atomically
             await _unitOfWork.Commit(cancellationToken);
+
             return Result<Guid>.Success(detail.Id);
         }
     }

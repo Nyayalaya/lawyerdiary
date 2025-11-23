@@ -31,8 +31,11 @@ using CourtApp.Web.Areas.LawyerDiary.Models.Lawyer;
 using CourtApp.Web.Areas.LawyerDiary.Models.Title;
 using CourtApp.Web.Areas.Litigation.Models;
 using CourtApp.Web.Extensions;
+using CourtApp.Web.Models;
+using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Google.Apis.Drive.v3.Data;
 using HtmlAgilityPack;
 using HtmlToOpenXml;
 using MediatR;
@@ -65,12 +68,18 @@ namespace CourtApp.Web.Abstractions
 
             if (User.Identity.IsAuthenticated)
             {
+                
                 CurrentUser = new UserViewModel
                 {
-                    Id = User.FindFirstValue(ClaimTypes.NameIdentifier),
-                    UserName = User.FindFirstValue(ClaimTypes.Name),
-                    Email = User.FindFirstValue(ClaimTypes.Email),
-                    Role = User.FindFirstValue(ClaimTypes.Role)
+                    Id = User.FindFirstValue(AppClaimType.NameIdentifier),
+                    UserName = User.FindFirstValue(AppClaimType.Name),
+                    Email = User.FindFirstValue(AppClaimType.Email),
+                    Role = User.FindFirstValue(AppClaimType.Role),
+                    FirstName = User.FindFirstValue(AppClaimType.GivenName),
+                    LastName = User.FindFirstValue(AppClaimType.Surname),
+                    Address = User.FindFirstValue(AppClaimType.StreetAddress),
+                    Mobile = User.FindFirstValue(AppClaimType.MobilePhone),
+                    EnrollmentNo = User.FindFirstValue(AppClaimType.EnrollmentNo),
                     // Retrieve other claims as needed
                 };
             }
@@ -87,6 +96,14 @@ namespace CourtApp.Web.Abstractions
         protected ILogger<T> _logger => _loggerInstance ??= HttpContext.RequestServices.GetService<ILogger<T>>();
         protected IViewRenderService _viewRenderer => _viewRenderInstance ??= HttpContext.RequestServices.GetService<IViewRenderService>();
         protected IMapper _mapper => _mapperInstance ??= HttpContext.RequestServices.GetService<IMapper>();
+
+
+        [HttpGet]
+        public IActionResult IsSessionActive()
+        {
+            bool isAuthenticated = User.Identity.IsAuthenticated;
+            return Json(new { isActive = isAuthenticated });
+        }
 
 
         protected async Task<JsonResult> RenderForm<TModel>(TModel model, bool isValid, string viewName)
@@ -296,13 +313,13 @@ namespace CourtApp.Web.Abstractions
 
         public async Task<JsonResult> LoadTypeOfCase(Guid natureId)
         {
-            var caseType = await _mediator.Send(new GetAllTypeOfCasesQuery(1, 1000) { CategoryId = natureId });
+            var caseType = await _mediator.Send(new GetAllTypeOfCasesQuery(1, 10000) { CategoryId = natureId });
             var data = Json(caseType);
             return data;
         }
         public async Task<SelectList> CaseTypes(Guid CategoryId)
         {
-            var response = await _mediator.Send(new GetAllTypeOfCasesQuery(1, 100) { CategoryId = CategoryId });
+            var response = await _mediator.Send(new GetAllTypeOfCasesQuery(1, 10000) { CategoryId = CategoryId });
             if (response.Succeeded)
             {
                 var fields = _mapper.Map<List<TypeOfCasesViewModel>>(response.Data);
@@ -310,6 +327,7 @@ namespace CourtApp.Web.Abstractions
             }
             return null;
         }
+
         public async Task<JsonResult> LCCByCourtTypeStage(Guid CourtType, int StateId)
         {
             var CCatogories = await _mediator.Send(new GetQueryCaseCategory()
@@ -352,12 +370,22 @@ namespace CourtApp.Web.Abstractions
         }
         public async Task<JsonResult> DdlSubProcHeads(Guid Id)
         {
-            var response = await _mediator.Send(new GetProceedingSubHeadQuery { HeadId = Id });
+            var response = await _mediator.Send(new GetProceedingSubHeadQuery
+            {
+                HeadId = Id,
+                PageNumber = 1,
+                PageSize = 1500,
+            });
             return Json(response);
         }
         public async Task<SelectList> DdlSubProc(Guid Id)
         {
-            var response = await _mediator.Send(new GetProceedingSubHeadQuery { HeadId = Id });
+            var response = await _mediator.Send(new GetProceedingSubHeadQuery
+            {
+                HeadId = Id,
+                PageNumber = 1,
+                PageSize = 1500,
+            });
             if (response.Succeeded)
             {
                 var viewModel = _mapper.Map<List<ProceedingSubHeadViewModel>>(response.Data);
@@ -642,71 +670,54 @@ namespace CourtApp.Web.Abstractions
         #endregion
 
         #region Read File
-        //public string ReadTemplate(string fPath, string fName)
-        //{
-        //    string DirPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "documents", "Templates");
-        //    string filePath = Path.Combine(DirPath, fName);
-        //    if (!System.IO.File.Exists(filePath))
-        //        return "File Not found";
-        //    string fileContent = string.Empty;
-        //    using (FileStream inputFileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-        //    {
-        //        // Load the file stream into a Word document
-        //        using (WordDocument document = new WordDocument(inputFileStream, FormatType.Automatic))
-        //        {
-        //            fileContent = document.GetText();
-        //        }
-        //    }
-        //    return fileContent;
-        //}
         public byte[] ConvertHtmlToWord(string htmlContent)
         {
             using (MemoryStream memoryStream = new MemoryStream())
             {
-                using (WordprocessingDocument wordDocument = WordprocessingDocument.Create(
-                    memoryStream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document, true))
+                using (WordprocessingDocument wordDocument =
+                       WordprocessingDocument.Create(memoryStream,
+                       DocumentFormat.OpenXml.WordprocessingDocumentType.Document, true))
                 {
                     MainDocumentPart mainPart = wordDocument.AddMainDocumentPart();
                     mainPart.Document = new Document();
                     Body body = new Body();
 
-                    // Initialize HtmlConverter and convert HTML to Word
+                    // Convert HTML to Word
                     HtmlConverter converter = new HtmlConverter(mainPart);
                     converter.ParseBody(htmlContent);
 
-                    // Apply right alignment and indentation
-                    // Apply specific formatting based on the document's legal style
+                    // ✔ DO NOT overwrite formatting created by HtmlConverter
                     foreach (var paragraph in mainPart.Document.Body.Elements<Paragraph>())
                     {
-                        // Create a new paragraph properties
-                        ParagraphProperties paragraphProperties = new ParagraphProperties();
-                        // Apply right alignment for all text
-                        paragraphProperties.Append(new Justification() { Val = JustificationValues.Left });
+                        // Get or create paragraph properties
+                        ParagraphProperties pPr = paragraph.GetFirstChild<ParagraphProperties>();
+                        if (pPr == null)
+                        {
+                            pPr = new ParagraphProperties();
+                            paragraph.PrependChild(pPr);
+                        }
 
-                        // Set indentation to start from the middle of the page
-                        paragraphProperties.Append(new Indentation() { Left = "3500" }); // 7200 is half of the typical page width in twips (approx 6 inches)
-                        paragraphProperties.Append(new SpacingBetweenLines() { Before = "200", After = "200" });
+                        // ✔ Do not remove or override existing justification
+                        var existingJustify = pPr.GetFirstChild<Justification>();
 
+                        // If no alignment found in HTML, default to Left
+                        if (existingJustify == null)
+                        {
+                            pPr.Append(new Justification() { Val = JustificationValues.Left });
+                        }
 
-                        // Apply right alignment for headings or important sections
-                        //if (IsHeadingOrImportantSection(paragraph.InnerText))
-                        //{
-                        //    paragraphProperties.Append(new Justification() { Val = JustificationValues.Center });
-                        //}
-                        //else
-                        //{
-                        //    // Apply justified alignment for normal text
-                        //    paragraphProperties.Append(new Justification() { Val = JustificationValues.Both });
-                        //}
+                        // OPTIONAL: Add spacing (does NOT override HTML justify)
+                        pPr.Append(new SpacingBetweenLines()
+                        {
+                            Before = "120",
+                            After = "120"
+                        });
 
-                        // Indentation and spacing for paragraphs
-                        //paragraphProperties.Append(new Indentation() { Left = "0", Hanging = "360" });
-                        //paragraphProperties.Append(new SpacingBetweenLines() { Before = "200", After = "200" });
-
-                        // Apply paragraph properties
-                        paragraph.PrependChild(paragraphProperties);
+                        // OPTIONAL: Indentation (REMOVE if not needed)
+                        // pPr.Append(new Indentation() { Left = "350" });
                     }
 
+                    // Finalize Word document
                     mainPart.Document.Append(body);
                     mainPart.Document.Save();
                 }
@@ -714,6 +725,35 @@ namespace CourtApp.Web.Abstractions
                 return memoryStream.ToArray();
             }
         }
+
+
+        //public byte[] ConvertHtmlToWord(string htmlContent)
+        //{
+        //    using (MemoryStream memoryStream = new MemoryStream())
+        //    {
+        //        using (WordprocessingDocument wordDocument = WordprocessingDocument.Create(
+        //            memoryStream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document, true))
+        //        {
+        //            MainDocumentPart mainPart = wordDocument.AddMainDocumentPart();
+        //            mainPart.Document = new Document();
+        //            Body body = new Body();                    
+        //            HtmlConverter converter = new HtmlConverter(mainPart);
+        //            converter.ParseBody(htmlContent);
+        //            foreach (var paragraph in mainPart.Document.Body.Elements<Paragraph>())
+        //            {
+
+        //                ParagraphProperties paragraphProperties = new ParagraphProperties();                        
+        //                paragraphProperties.Append(new Justification() { Val = JustificationValues.Left });                        
+        //                paragraphProperties.Append(new Indentation() { Left = "3500" }); 
+        //                paragraphProperties.Append(new SpacingBetweenLines() { Before = "200", After = "200" });
+        //                paragraph.PrependChild(paragraphProperties);
+        //            }
+        //            mainPart.Document.Append(body);
+        //            mainPart.Document.Save();
+        //        }
+        //        return memoryStream.ToArray();
+        //    }
+        //}
         // Helper method to determine if the paragraph is a heading or an important section
         private bool IsHeadingOrImportantSection(string text)
         {
@@ -744,26 +784,6 @@ namespace CourtApp.Web.Abstractions
             }
         }
 
-        #endregion
-
-        #region Case DropDown By Lawyer
-        public async Task<JsonResult> ddlCaseInfoByLawyer(string UserId)
-        {
-            var response = await _mediator.Send(new GetCaseInfoQuery()
-            {
-                LinkedIds = User.GetUserLinkedIds(),
-                PageNumber = 1,
-                PageSize = 10000
-            });
-            if (response.Succeeded)
-            {
-                var dt = response.Data;
-                var result = dt.Where(d => d.DisposalDate != null).ToList();
-                var ViewModel = _mapper.Map<List<DropDownGViewModel>>(result);
-                return Json(ViewModel);
-            }
-            return null;
-        }
         #endregion
 
         #region File Compression

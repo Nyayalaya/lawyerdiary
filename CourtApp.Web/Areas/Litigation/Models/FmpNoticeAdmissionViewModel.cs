@@ -24,6 +24,11 @@ namespace CourtApp.Web.Areas.Litigation.Models
         public string CaseType { get; set; }
 
         /// <summary>
+        /// Case category either form Writ, Civil, or criminal
+        /// </summary>
+        public string CaseCategory { get; set; }
+
+        /// <summary>
         /// Combined value fo Case No & Year
         /// </summary>
         public string NoYear { get; set; }

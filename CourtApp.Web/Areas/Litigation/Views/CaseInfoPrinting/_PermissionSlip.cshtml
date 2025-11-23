@@ -1,69 +1,62 @@
 ﻿@model FmpPermissionSlipFormViewModel
-<style>
-    .a4-size {
-        width: 210mm;
-        height: 297mm;
-        line-height: 10px;
-    }
-</style>
+
 <div id="printableArea">
     @foreach (var cd in Model.PerSlipInfo)
     {
-        <div style="padding-left:10%;padding-right:10%;page-break-after: always;" class="a4-size">
+        <div style="page-break-after: always;" class="a4-size">
             <center><span style="font-size:26px;margin-bottom:20px;"><strong>Application For Early Listing of the Case</strong></span></center><br />
             <br /><br />
-            <br /><br />            
+            <br /><br />
             <div style="width:100%;line-height:1.75; font-size:16px; text-align:justify">
                 <table style="width:100%" cellpadding="2" cellspacing="0">
                     <tr>
                         <td style="width:55%"> (1)  Type of case</td>
-                        <td style="font-weight:bold;width:45%;text-align:left"><i>: &emsp;&emsp; @cd.CaseType </i></td>
+                        <td style="font-weight:bold;width:45%;text-align:left"><i>: &emsp; @cd.CaseType </i></td>
                     </tr>
                     <tr>
                         <td style="width:55%"> (2)  Number & Year of case</td>
-                        <td style="font-weight:bold;width:45%;text-align:left"><i>: &emsp;&emsp; @cd.NoYear<br>&emsp;&emsp;&nbsp;@cd.Title </i></td>
+                        <td style="font-weight:bold;width:45%;text-align:left"><i>: &emsp; @cd.NoYear<br>&emsp;@cd.Title </i></td>
                     </tr>
                     <tr>
                         <td style="width:60%">  (3)  Date of filling of  the petition / appeal / application &ensp;&ensp;which is prayed to be listed</td>
-                        <td style="font-weight:bold;width:40%;text-align:left"><i>: &emsp;&emsp; @cd.DoP </i></td>
+                        <td style="font-weight:bold;width:40%;text-align:left"><i>: &emsp; @cd.DoP </i></td>
                     </tr>
                     <tr>
                         <td style="width:60%">  (4)  Date of Passing of impungned order</td>
-                        <td style="font-weight:bold;width:40%;text-align:left"><i>: &emsp;&emsp; @cd.DoI </i></td>
+                        <td style="font-weight:bold;width:40%;text-align:left"><i>: &emsp; @cd.DoI </i></td>
                     </tr>
                     <tr>
                         <td style="width:60%">   (5)  Matter shall go for</td>
-                        <td style="font-weight:bold;width:40%;text-align:left"><i>: &emsp;&emsp; @cd.MatterGo </i></td>
+                        <td style="font-weight:bold;width:40%;text-align:left"><i>: &emsp; @cd.MatterGo </i></td>
                     </tr>
                     <tr>
                         <td style="width:60%">   (6)  Prayer is made on behalf of    </td>
-                        <td style="font-weight:bold;width:40%;text-align:left"><i>: &emsp;&emsp; @cd.PrayerMadeBy </i></td>
+                        <td style="font-weight:bold;width:40%;text-align:left"><i>: &emsp; @cd.PrayerMadeBy </i></td>
                     </tr>
                     <tr>
                         <td style="width:60%">
-                            (7)  Next date in the matter(in case where next <br />
-                            date has already been fixed by Hon'ble<br />
+                            (7)  Next date in the matter(in case where next date has already been fixed by Hon'ble<br />
                             Court or Registrar.)
                         </td>
-                        <td style="font-weight:bold;width:40%;text-align:left"><i>: &emsp;&emsp; @cd.NextDate </i></td>
+                        <td style="font-weight:bold;width:40%;text-align:left"><i>: &emsp; @cd.NextDate </i></td>
                     </tr>
                     <tr>
                         <td style="width:60%">
                             (8)  Matter is prayed to be listed on
                         </td>
-                        <td style="font-weight:bold;width:40%;text-align:left"><i>: &emsp;&emsp; </i></td>
+                        <td style="font-weight:bold;width:40%;text-align:left"><i>: &emsp; </i></td>
                     </tr>
                     <tr>
                         <td style="width:60%">
                             (9)  Urgency(In brief)
                         </td>
-                        <td style="font-weight:bold;width:40%;text-align:left"><i>: &emsp;&emsp; </i></td>
+                        <td style="font-weight:bold;width:40%;text-align:left"><i>: &emsp; </i></td>
                     </tr>
                     <tr>
                         <td style="width:60%">
                             (10) Full signature of Counsel/Party
                         </td>
-                        <td style="font-weight:bold;width:40%;text-align:left"><i>: &emsp;&emsp; </i></td>
+                        <td style="font-weight:bold;width:40%;text-align:left"><i>: &emsp; </i></td>
                     </tr>
                     <tr>
                         <td style="width:60%">
@@ -81,7 +74,7 @@
                                 (c) To be moved after.<br />
                             </i>
                         </td>
-                    </tr>                   
+                    </tr>
                 </table>
                 <br>
                 <br>
@@ -90,6 +83,6 @@
                     Date
                 </div>
             </div>
-        </div>        
+        </div>
     }
 </div>

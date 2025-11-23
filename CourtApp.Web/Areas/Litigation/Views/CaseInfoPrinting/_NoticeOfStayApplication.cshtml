@@ -1,14 +1,9 @@
 ﻿@model FmpNoticeOfStayApplicationViewModel
-<style>
-    .a4-size {
-        width: 210mm;
-        height: 297mm;
-    }
-</style>
+
 <div id="printableArea">
     @foreach (var d in Model.NoticeStayApps)
     {
-        <div style="width:800px; padding-left:100px;page-break-after: always;">
+        <div style="page-break-after: always;" class="a4-size">
             <center>
                 <span style="font-size:26px;">
                     <strong>

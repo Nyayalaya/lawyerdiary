@@ -36,6 +36,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                         PWorkCase.CaseTitle = cd.CaseDetail;
                         PWorkCase.Id = cd.CaseId;
                         PWorkCase.WorkDate = cd.LastWorkingDate;
+                        PWorkCase.ProceedingDate = cd.ProceedingDate;
                         List<WorkDt> wdt = new List<WorkDt>();
                         foreach (var w in cd.AWorks)
                         {

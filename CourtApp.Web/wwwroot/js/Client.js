@@ -1,14 +1,10 @@
 ﻿$(document).ready(function () {
-    
 
-
-    $("#ClientType").select2({
-        placeholder: "Select a client type",
-        theme: "bootstrap4",
-        escapeMarkup: function (m) {
-            return m;
-        }
-    });        
+    $('#ClientType').select2({
+        theme: 'bootstrap4',
+        placeholder: 'Select a client type',
+        allowClear: true
+    });      
 
     let selectedIndex = -1; // Track the index of the currently highlighted suggestion
 
@@ -95,12 +91,12 @@ $(document).ready(function () {
     }
 
     // Initially check the selected value of ClientType and update RegNo label
-    addAsterisk();
+   // addAsterisk();
 
     // Event listener for changes to the ClientType dropdown
-    $('#ClientType').change(function () {       
-        addAsterisk(); // Call the function to update the label when the value changes
-    });
+    //$('#ClientType').change(function () {       
+    //    addAsterisk(); // Call the function to update the label when the value changes
+    //});
 });
 
 function restrictInput(event) {

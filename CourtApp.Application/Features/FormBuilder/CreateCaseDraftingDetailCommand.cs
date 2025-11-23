@@ -23,21 +23,23 @@ namespace CourtApp.Application.Features.FormBuilder
 
     public class TemplateFields
     {
-        public Guid Key { get; set; }
+        public string Tag { get; set; }
         public string Value { get; set; }
     }
 
     public class CreateCaseDraftingDetailCommandCommandHanlder : IRequestHandler<CreateCaseDraftingDetailCommand, Result<Guid>>
     {
         private readonly ICaseDraftingRepository repository;
+        private readonly ITemplateInfoRepository templateInfoRepository;
         private IUnitOfWork _UoW { get; set; }
         private readonly IMapper _mapper;
         public CreateCaseDraftingDetailCommandCommandHanlder(ICaseDraftingRepository repository
-            , IUnitOfWork _UoW, IMapper _mapper)
+            , IUnitOfWork _UoW, IMapper _mapper, ITemplateInfoRepository templateInfoRepository)
         {
             this.repository = repository;
             this._mapper = _mapper;
             this._UoW = _UoW;
+            this.templateInfoRepository = templateInfoRepository;
         }
         public async Task<Result<Guid>> Handle(CreateCaseDraftingDetailCommand request, CancellationToken cancellationToken)
         {
@@ -51,6 +53,8 @@ namespace CourtApp.Application.Features.FormBuilder
                 else
                 {
                     var _map = _mapper.Map<DraftingDetailEntity>(request);
+                    var templateInfo = await templateInfoRepository.GetByIdAsync(request.TemplateId);
+                    _map.FormId = templateInfo.FormId;
                     await repository.InsertAsync(_map);
                     await _UoW.Commit(cancellationToken);
                     return Result<Guid>.Success(_map.Id);

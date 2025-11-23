@@ -61,7 +61,7 @@ namespace CourtApp.Web.Areas.Admin.Controllers
         private async Task<List<UserViewModel>> GetAllUsers()
         {
             var model = new List<UserViewModel>();
-            if (User.GetRoles().Contains("SUPERADMIN"))
+            if (User.IsInRole("SuperAdmin"))
             {
                 List<string> superAdminUsers = new List<string>() { "LAWYER", "CORPORATE" };
                 var superAdminUsersData = await _userManager.Users
@@ -74,7 +74,8 @@ namespace CourtApp.Web.Areas.Admin.Controllers
                         Email = user.Email,
                         Mobile = user.Mobile,
                         EmailConfirmed = user.EmailConfirmed,
-                        ProfileImgPath = user.ProfileImgPath,
+                        ProfileImgPath = "",
+                        ProfilePicture = user.ProfilePicture,
                         Id = user.Id,
                         IsActive = user.IsActive
                     })
@@ -101,7 +102,8 @@ namespace CourtApp.Web.Areas.Admin.Controllers
                         Email = user.Email,
                         Mobile = user.Mobile,
                         EmailConfirmed = user.EmailConfirmed,
-                        ProfileImgPath = user.ProfileImgPath,
+                        ProfileImgPath = "",
+                        ProfilePicture = user.ProfilePicture,
                         Id = user.Id,
                         IsActive = user.IsActive
                     })
@@ -129,24 +131,9 @@ namespace CourtApp.Web.Areas.Admin.Controllers
                 {
                     throw new Exception("Operator user not found.");
                 }
-                var opDt = await _identityDbContext.LawyerUsers
-                            .Where(w => w.Id == Guid.Parse(oprUser.Id))
-                            .Select(o => new
-                            {
-                                o.AddressInfo.StreetAddress,
-                                o.DateOfJoining,
-                                o.Enrollment
-                            })
-                            .FirstOrDefaultAsync();
-
-                if (opDt == null)
-                {
-                    throw new Exception("Operator details not found.");
-                }
                 model = _mapper.Map<UserViewModel>(oprUser);
-                model.Address = opDt.StreetAddress;
-                model.DateOfJoining = opDt.DateOfJoining;
-                model.EnrollmentNo = opDt.Enrollment;
+                model.Address = oprUser.AddressInfo?.StreetAddress;
+                model.EnrollmentNo = oprUser.ProfessionalInfo?.EnrollmentNo;
                 var usrRole = await _userManager.GetRolesAsync(oprUser);
                 model.Role = usrRole.FirstOrDefault().ToUpper();
                 ViewBag.BtnText = "Update";
@@ -201,7 +188,9 @@ namespace CourtApp.Web.Areas.Admin.Controllers
                     Gender = uModel.Gender,
                     DateOfBirth = uModel.DateOfBirth ?? default(DateTime),
                     UserType = uModel.Role,
-                    IsActive = true
+                    IsActive = true,
+                    ProfessionalInfo = new ProfessionalInfo { EnrollmentNo = uModel.EnrollmentNo },
+                    AddressInfo = new AddressInfo { StreetAddress = uModel.Address },
                 };
 
                 var result = await _userManager.CreateAsync(user, "123Pa$$word!");
@@ -225,7 +214,8 @@ namespace CourtApp.Web.Areas.Admin.Controllers
                 user.Gender = uModel.Gender;
                 user.DateOfBirth = uModel.DateOfBirth ?? default(DateTime);
                 user.UserType = uModel.Role;
-
+                user.ProfessionalInfo = new ProfessionalInfo { EnrollmentNo = uModel.EnrollmentNo };
+                user.AddressInfo = new AddressInfo { StreetAddress = uModel.Address };
                 var result = await _userManager.UpdateAsync(user);
                 if (!result.Succeeded)
                 {
@@ -234,16 +224,27 @@ namespace CourtApp.Web.Areas.Admin.Controllers
                 }
             }
 
-            // **Handle Profile Image Upload**
-            if (ProfileImgFile != null)
+            if (Request.Form.Files.Count > 0)
             {
-                string fileName = user.Id + System.IO.Path.GetExtension(ProfileImgFile.FileName);
-                using var stream = ProfileImgFile.OpenReadStream();
-                var path = await _documentUploadService.UploadFileAsync(stream, fileName, "Profile");
-                user.ProfileImgPath = path;
-                //user.ProfileImgPath = await _blobService.UploadOrUpdateFileAsync(stream, fileName, ProfileImgFile.ContentType, "ProfileImage", cancellationToken: System.Threading.CancellationToken.None);
-                await _userManager.UpdateAsync(user);
+                IFormFile file = Request.Form.Files.FirstOrDefault();
+                if (file != null)
+                {
+                    user.ProfilePicture = file.OptimizeImageSize(720, 720);
+                    await _userManager.UpdateAsync(user);
+                }
             }
+
+            // **Handle Profile Image Upload**
+            //if (ProfileImgFile != null)
+            //{
+            //string fileName = user.Id + System.IO.Path.GetExtension(ProfileImgFile.FileName);
+            //using var stream = ProfileImgFile.OpenReadStream();
+            //var path = await _documentUploadService.UploadFileAsync(stream, fileName, "Profile");
+            //user.ProfileImgPath = path;
+            //user.ProfileImgPath = await _blobService.UploadOrUpdateFileAsync(stream, fileName, ProfileImgFile.ContentType, "ProfileImage", cancellationToken: System.Threading.CancellationToken.None);
+            //user.ProfilePicture=
+            //await _userManager.UpdateAsync(user);
+            // }
 
             // **Handle LawyerUser Data**
             var lawyerUser = await _identityDbContext.LawyerUsers.FindAsync(Guid.Parse(user.Id));
@@ -363,11 +364,11 @@ namespace CourtApp.Web.Areas.Admin.Controllers
                 if (!result.Succeeded) throw new Exception("User deletion failed");
 
                 // Delete associated files from Azure Blob Storage
-                if (!string.IsNullOrEmpty(user.ProfileImgPath))
-                {
-                    await _documentUploadService.DeleteFileAsync(user.ProfileImgPath);
-                    //await _blobService.DeleteFileAsync(user.ProfileImgPath);
-                }
+                //if (!string.IsNullOrEmpty(user.ProfileImgPath))
+                //{
+                //    await _documentUploadService.DeleteFileAsync(user.ProfileImgPath);
+                //    //await _blobService.DeleteFileAsync(user.ProfileImgPath);
+                //}
 
 
                 return true;

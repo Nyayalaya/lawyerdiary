@@ -16,6 +16,7 @@ namespace CourtApp.Web.Areas.Admin.Models
         public string Telephone { get; set; }
         public string Address { get; set; }
         public string ProfileImgPath { get; set; }
+        public byte[] ProfilePicture { get; set; }
         public bool EmailConfirmed { get; set; }
         public string Id { get; set; }
         public string Gender { get; set; }

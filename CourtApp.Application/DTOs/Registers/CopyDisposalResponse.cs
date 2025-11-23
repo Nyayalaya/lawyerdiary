@@ -1,7 +1,7 @@
 ﻿using CourtApp.Application.DTOs.CaseDetails;
 namespace CourtApp.Application.DTOs.Registers
 {
-    public class CopyDisposalResponse: CaseDetailDto
+    public class CopyDisposalResponse: CaseBasicInfoDto
     {
         public string Reason { get; set; }
         public string AppliedOn { get; set; }

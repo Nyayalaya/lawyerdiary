@@ -1,194 +1,169 @@
 ﻿@page
 @model CourtApp.Web.Areas.Identity.Pages.ProfileModel
-@using CourtApp.Web.Views.Shared.Components.Culture;
+@using CourtApp.Web.Views.Shared.Components.Culture
 @inject IHtmlLocalizer<SharedResource> localizer
+@{
+	ViewData["Title"] = @Model.FirstName +  @Model.LastName +"'s Prfile";
+}
 <style>
-    .div_hide {
-        display: none
-    }
+	.profile-picture {
+		width: 100%;
+		height: 300px;
+		object-fit: cover;
+		border-radius: 8px;
+		border: 1px solid #ccc;
+	}
 
-    .divider {
-        border-right: 1px solid #ccc;
-        height: 100%;
-    }
+	fieldset.scheduler-border {
+		border: 1px solid #ccc !important;
+		padding: 1rem;
+		margin-bottom: 1.5rem;
+		border-radius: 6px;
+	}
 
-    fieldset.scheduler-border {
-        border: 1px groove #ddd !important;
-        padding: 0 1.4em 1.4em 1.4em !important;
-        margin: 0 0 1.5em 0 !important;
-        -webkit-box-shadow: 0px 0px 0px 0px #000;
-        box-shadow: 0px 0px 0px 0px #000;
-        width: 100% !important;
-    }
+	legend.scheduler-border {
+		font-size: 1.2rem;
+		font-weight: bold;
+		padding: 0 10px;
+		width: auto;
+	}
 
-    legend.scheduler-border {
-        font-size: 1.2em !important;
-        font-weight: bold !important;
-        text-align: left !important;
-        width: auto;
-        padding: 0 10px;
-        border-bottom: none;
-    }
+	.divider-vertical {
+		border-left: 1px solid #ddd;
+		height: 100%;
+	}
 </style>
 
-<div class="d-sm-flex align-items-center justify-content-between">
-    <h1 class="h3 mb-0 text-gray-800">@Model.FirstName @Model.LastName's Profile</h1>
-</div>
-<div id="userRoles" style="padding: 20px 20px 20px 0px">
-    @foreach (var role in Model.Roles)
-    {
-        <span class="badge badge-success">@localizer[@role]</span>
-    }
+<div id="userRoles" class="mb-3">
+	@foreach (var role in Model.Roles)
+	{
+		<span class="badge badge-success mr-1">@localizer[@role]</span>
+	}
 </div>
 
-<div>
-    @if (User.IsInRole("SuperAdmin"))
-    {
-        if (!Model.IsSuperAdmin)
-        {
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="card">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 text-secondary">@localizer["Admin Area"]</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col">
-                                            @if (!@Model.IsActive)
-                                            {
-                                                <form method="post" style="display: inline-flex;">
-                                                    <button style='margin-right:16px' type="submit" id="activate-profile" asp-route-userId="@Model.UserId" asp-page-handler="ActivateUser" class="btn btn-success btn-sm">
-                                                        @localizer["Activate"]
-                                                    </button>
-                                                </form>
-                                            }
-                                            else
-                                            {
-                                                <form method="post" style="display: inline-flex;">
-                                                    <button style='margin-right:16px' type="submit" class="btn btn-danger btn-sm" asp-route-userId="@Model.UserId" asp-page-handler="DeActivateUser">
-                                                        @localizer["Deactivate"]
-                                                    </button>
-                                                </form>
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
-    }
-    <div class="row">
-        <div class="col-md-3">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="card">
-                        <div class="card-header py-3">
-                            <h4 class="m-0 text-secondary">@localizer["Profile Picture"]</h4>
-                        </div>
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col">
-                                    @if (Model.ProfilePicture != null)
-                                    {
-                                        <img id="viewableImage" alt="Profile Picture of @Model.Username" style="width:inherit; height:300px; object-fit:cover" src="data:image/*;base64,@(Convert.ToBase64String(Model.ProfilePicture))">
-                                    }
-                                    else
-                                    {
-                                        <img id="viewableImage" alt="Profile Picture of @Model.Username" style="width:inherit; height:300px; object-fit:cover" src="~/images/default-user.png">
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-9">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="card">
-                        <div class="card-header py-3">
-                            <h4 class="m-0 text-secondary"><strong>@localizer["Lawyer's Complete Information"]</strong></h4>
-                        </div>
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="form-group row" style="width:100%">
-                                    <fieldset class="scheduler-border" >
-                                        <legend class="scheduler-border">Personal Info</legend>
-                                        <div class="form-group row">
-                                            <!-- First Name Section -->
-                                            <div class="col-md-5 d-flex">
-                                                <div class="col-sm-4">@localizer["First Name"]</div>
-                                                <div class="col-sm-8">@Model.FirstName</div>
-                                            </div>
-
-                                            <!-- Vertical Divider -->
-                                            <div class="col-md-1 text-center border-right"></div>
-
-                                            <!-- Last Name Section -->
-                                            <div class="col-md-5 d-flex">
-                                                <div class="col-sm-4">@localizer["Last Name"]</div>
-                                                <div class="col-sm-8">@Model.LastName</div>
-                                            </div>
-                                        </div>
-
-                                        <div class="form-group row">
-                                            <!-- First Name Section -->
-                                            <div class="col-md-5 d-flex">
-                                                <div class="col-sm-4">@localizer["Mobile"]</div>
-                                                <div class="col-sm-8">@Model.Mobile</div>
-                                            </div>
-
-                                            <!-- Vertical Divider -->
-                                            <div class="col-md-1 text-center border-right"></div>
-
-                                            <!-- Last Name Section -->
-                                            <div class="col-md-5 d-flex">
-                                                <div class="col-sm-4">@localizer["Email"]</div>
-                                                <div class="col-sm-8">@Model.Email</div>
-                                            </div>
-                                        </div>
-
-                                        <div class="form-group row">
-                                            <!-- First Name Section -->
-                                            <div class="col-md-5 d-flex">
-                                                <div class="col-sm-4">@localizer["Date of Birth"]</div>
-                                                <div class="col-sm-8"></div>
-                                            </div>
-
-                                            <!-- Vertical Divider -->
-                                            <div class="col-md-1 text-center border-right"></div>
-
-                                            <!-- Last Name Section -->
-                                            <div class="col-md-5 d-flex">
-                                                <div class="col-sm-4">@localizer["Date of joining"]</div>
-                                                <div class="col-sm-8"></div>
-                                            </div>
-                                        </div>
-                                    </fieldset>
-                                    <fieldset class="scheduler-border">
-                                        <legend class="scheduler-border">Work Info</legend>
-                                    </fieldset>
-                                    <fieldset class="scheduler-border">
-                                        <legend class="scheduler-border">Address Info</legend>
-                                    </fieldset>
-                                </div>                               
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-@section Scripts
+@if (User.IsInRole("SuperAdmin") && !Model.IsSuperAdmin)
 {
-    <script src="~/js/imageModal.js"></script>
+	<div class="card mb-4">
+		<div class="card-header">
+			<h6 class="text-secondary mb-0">@localizer["Admin Area"]</h6>
+		</div>
+		<div class="card-body">
+			@if (!Model.IsActive)
+			{
+				<form method="post" class="d-inline">
+					<button type="submit" id="activate-profile"
+							asp-route-userId="@Model.UserId"
+							asp-page-handler="ActivateUser"
+							class="btn btn-success btn-sm mr-2">
+						@localizer["Activate"]
+					</button>
+				</form>
+			}
+			else
+			{
+				<form method="post" class="d-inline">
+					<button type="submit"
+							asp-route-userId="@Model.UserId"
+							asp-page-handler="DeActivateUser"
+							class="btn btn-danger btn-sm">
+						@localizer["Deactivate"]
+					</button>
+				</form>
+			}
+		</div>
+	</div>
+}
+
+<div class="row">
+	<!-- Profile Picture -->
+	<div class="col-md-3 mb-4">
+		<div class="card">
+			<div class="card-header">
+				<h4 class="text-secondary mb-0">@localizer["Profile Picture"]</h4>
+			</div>
+			<div class="card-body text-center">
+				<img id="viewableImage"
+					 class="profile-picture"
+					 src="@(Model.ProfilePicture != null ? $"data:image/*;base64,{Convert.ToBase64String(Model.ProfilePicture)}" : Url.Content("~/images/default-user.png"))"
+					 alt="@Model.Username's profile picture"
+					 title="@Model.Username's profile picture" />
+			</div>
+		</div>
+	</div>
+
+	<!-- Profile Info -->
+	<div class="col-md-9 mb-4">
+		<div class="card">
+			<div class="card-header">
+				<h4 class="text-secondary mb-0"><strong>@localizer["Lawyer's Complete Information"]</strong></h4>
+			</div>
+			<div class="card-body">
+				<fieldset class="scheduler-border">
+					<legend class="scheduler-border">@localizer["Personal Info"]</legend>
+					<div class="row mb-2">
+						<div class="col-md-6 d-flex">
+							<strong class="mr-2">@localizer["First Name"]:</strong> @Model.FirstName
+						</div>
+						<div class="col-md-6 d-flex">
+							<strong class="mr-2">@localizer["Last Name"]:</strong> @Model.LastName
+						</div>
+					</div>
+					<div class="row mb-2">
+						<div class="col-md-6 d-flex">
+							<strong class="mr-2">@localizer["Mobile"]:</strong> @Model.Mobile
+						</div>
+						<div class="col-md-6 d-flex">
+							<strong class="mr-2">@localizer["Phone"]:</strong> @Model.Phone
+						</div>
+					</div>
+					<div class="row mb-2">
+						<div class="col-md-6 d-flex">
+							<strong class="mr-2">@localizer["Date of Birth"]:</strong> <!-- Add DOB value -->
+						</div>
+						<div class="col-md-6 d-flex">
+							<strong class="mr-2">@localizer["Email"]:</strong> @Model.Email
+						</div>						
+					</div>
+				</fieldset>
+
+				<fieldset class="scheduler-border">
+					<legend class="scheduler-border">@localizer["Professional Info"]</legend>
+					<div class="row mb-2">
+						<div class="col-md-6 d-flex">
+							<strong class="mr-2">@localizer["Enrollment Number"]:</strong> @Model.LaywerInfo.ProfInfo.EnrollmentNo
+						</div>
+						<div class="col-md-6 d-flex">
+							<strong class="mr-2">@localizer["Bar Association Number"]:</strong> @Model.LaywerInfo.ProfInfo.BarAssociationNumber
+						</div>
+					</div>
+					<div class="row mb-2">
+						<div class="col-md-6 d-flex">
+							<strong class="mr-2">@localizer["License Date"]:</strong> @Model.LaywerInfo.ProfInfo.PracticeLicenseDate
+						</div>
+						
+					</div>
+					
+				</fieldset>
+
+				<fieldset class="scheduler-border">
+					<legend class="scheduler-border">@localizer["Work Info"]</legend>
+					<div class="col-md-6 d-flex">
+						<strong class="mr-2">@localizer["Address"]:</strong> @Model.LaywerInfo.WorkLocInfo.Address
+					</div>
+
+				</fieldset>
+
+				<fieldset class="scheduler-border">
+					<legend class="scheduler-border">@localizer["Residense Cum Office Address Info"]</legend>
+					<div class="col-md-6 d-flex">
+						<strong class="mr-2">@localizer["Address"]:</strong> @Model.LaywerInfo.AddressInfo.StreetAddress
+					</div>
+				</fieldset>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section Scripts {
+	<script src="~/js/imageModal.js"></script>
 }

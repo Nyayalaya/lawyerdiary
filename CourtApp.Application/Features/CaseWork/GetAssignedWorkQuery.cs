@@ -45,6 +45,7 @@ namespace CourtApp.Application.Features.CaseWork
                     a.CaseId = c.CaseId;
                     a.CaseDetail = " (" + c.Case.CaseNo + "/" + c.Case.CaseYear + "/" + c.Case.CaseType.Name_En + "/" + c.Case.CourtBench.CourtBench_En + ") /" + c.Case.FirstTitle + " " + c.Case.SecondTitle;
                     a.AWorks = new List<AssignedWork>();
+                    a.ProceedingDate = c.ProceedingDate.HasValue? c.ProceedingDate.Value:default(DateTime);
                     a.LastWorkingDate = c.ProcWork != null && c.ProcWork.LastWorkingDate != null ? c.ProcWork.LastWorkingDate.Value : default(DateTime);
                     if (c.ProcWork != null)
                     {

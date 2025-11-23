@@ -1,14 +1,9 @@
 ﻿@model FmpCopyingAppViewModel
-<style>
-    .a4-size {
-        width: 210mm;
-        height: 297mm;
-    }
-</style>
+
 <div id="printableArea">
     @foreach (var cd in Model.Cases)
     {
-        <div style="padding-left:10%;padding-right:10%;page-break-after: always;" class="a4-size">
+        <div style="page-break-after: always;" class="a4-size">
             <center><span style="font-size:26px;"><strong>Application for Copy of Record </strong></span> </center>
             <br />
             <center><span style="font-size:20px;">Form No. 20 (Rule 218)</span></center>

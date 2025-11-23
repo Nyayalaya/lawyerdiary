@@ -1,4 +1,4 @@
-﻿using CourtApp.Domain.Entities.LawyerDiary;
+﻿using CourtApp.Domain.Entities.Account;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;

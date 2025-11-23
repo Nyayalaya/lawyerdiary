@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,7 +47,7 @@ namespace CourtApp.Web.Areas.LawyerDiary.Controllers
             {
                 PageNumber = 1,
                 PageSize = 10000,
-                UserId = CurrentUser.Id,
+                LinkedIds = User.GetUserLinkedIds(),
                 Role = CurrentUser.Role
             }
             );
@@ -88,13 +89,12 @@ namespace CourtApp.Web.Areas.LawyerDiary.Controllers
                 bool isUpdating = ViewModel.Id == Guid.Empty ? false : true;
                 string oldImagePath = string.Empty;
                 string newImagePath = string.Empty;
-                if (ProfileImgFile != null)
-                {
-                    string fileName = Guid.NewGuid() + System.IO.Path.GetExtension(ProfileImgFile.FileName);
-                    using var stream = ProfileImgFile.OpenReadStream();
-                    newImagePath = await _docService.UploadFileAsync(stream, fileName, "ProfileImage");
-                    //newImagePath = await _blobService.UploadOrUpdateFileAsync(stream, fileName, ProfileImgFile.ContentType, "ProfileImage", System.Threading.CancellationToken.None);
-                }
+                //if (ProfileImgFile != null)
+                //{
+                //    string fileName = Guid.NewGuid() + System.IO.Path.GetExtension(ProfileImgFile.FileName);
+                //    using var stream = ProfileImgFile.OpenReadStream();
+                //    newImagePath = await _docService.UploadFileAsync(stream, fileName, "ProfileImage");                    
+                //}
                 if (!isUpdating)
                 {
                     var ldModel = _mapper.Map<LawyerCreateCommand>(ViewModel);
@@ -113,11 +113,14 @@ namespace CourtApp.Web.Areas.LawyerDiary.Controllers
                     {
                         if (result.Data != null)
                             await _docService.DeleteFileAsync(upModel.ProfileImgPath);
-                        // await _blobService.DeleteFileAsync(result.Message);
                         _notify.Information($"Lawyer with ID {result.Data} Updated.");
                     }
                 }
-                var response = await _mediator.Send(new LawyerGetAllQuery());
+                var response = await _mediator.Send(new LawyerGetAllQuery
+                {
+                    Role = CurrentUser.Role,
+                    LinkedIds = User.GetUserLinkedIds()
+                });
                 if (response.Succeeded)
                 {
                     var viewModel = _mapper.Map<List<LawyerLViewModel>>(response.Data);

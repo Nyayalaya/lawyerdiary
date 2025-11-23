@@ -327,6 +327,32 @@ namespace CourtApp.Application.Constants
             };
             return _Str;
         }
+
+        public static readonly Dictionary<string, string> CultureDisplayNames = new()
+        {
+            { "en", "English" },
+            { "hi", "Hindi (हिन्दी)" },
+            { "bn", "Bengali (বাংলা)" },
+            { "te", "Telugu (తెలుగు)" },
+            { "mr", "Marathi (मराठी)" },
+            { "ta", "Tamil (தமிழ்)" },
+            { "ur", "Urdu (اردو)" },
+            { "gu", "Gujarati (ગુજરાતી)" },
+            { "kn", "Kannada (ಕನ್ನಡ)" },
+            { "or", "Odia (ଓଡ଼ିଆ)" },
+            { "ml", "Malayalam (മലയാളം)" },
+            { "pa", "Punjabi (ਪੰਜਾਬੀ)" },
+            { "as", "Assamese (অসমীয়া)" },
+            { "ma", "Maithili (मैथिली)" },
+            { "bh", "Bihari" },
+            { "ks", "Kashmiri (کٲشُر)" },
+            { "sd", "Sindhi (سنڌي)" },
+            { "sa", "Sanskrit (संस्कृतम्)" },
+            { "ne", "Nepali (नेपाली)" },
+            { "do", "Dogri (डोगरी)" },
+            { "ko", "Konkani (कोंकणी)" },
+            { "manip", "Manipuri (মেইতেই)" }
+        };
     }
 
 }

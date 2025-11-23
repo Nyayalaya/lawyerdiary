@@ -11,6 +11,7 @@ namespace CourtApp.Application.DTOs.CaseWorking
         public Guid CaseId { get; set; }
         public string CaseDetail { get; set; }
         public DateTime LastWorkingDate { get; set; }
+        public DateTime ProceedingDate { get; set; }
         public List<AssignedWork> AWorks { get; set; }
     }
 }

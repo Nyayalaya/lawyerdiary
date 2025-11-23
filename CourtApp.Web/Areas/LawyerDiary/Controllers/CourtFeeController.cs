@@ -1,5 +1,4 @@
-﻿using CourtApp.Application.Features.CourtFeeStructure.Command;
-using CourtApp.Application.Features.CourtFeeStructure.Queries;
+﻿using CourtApp.Application.Features.Account;
 using CourtApp.Application.Features.Queries.States;
 using CourtApp.Web.Abstractions;
 using CourtApp.Web.Areas.LawyerDiary.Models;
@@ -21,7 +20,7 @@ namespace CourtApp.Web.Areas.LawyerDiary.Controllers
 
         public async Task<IActionResult> LoadAllAsync()
         {
-            var response = await _mediator.Send(new GetCourtFeeStructAllQuery() { PageNumber=1,PageSize=10});
+            var response = await _mediator.Send(new CourtFeeStructureGetQuery() { PageNumber=1,PageSize=10});
             if (response.Succeeded)
             {
                 var viewModel = _mapper.Map<List<CourtFeeStructureViewModel>>(response.Data);
@@ -41,7 +40,7 @@ namespace CourtApp.Web.Areas.LawyerDiary.Controllers
             }
             else
             {
-                var response = await _mediator.Send(new GetCourtFeeStructByIdQuery() { Id = id });
+                var response = await _mediator.Send(new CourtFeeStructureByIdQuery() { Id = id });
                 if (response.Succeeded)
                 {
                     var brandViewModel = _mapper.Map<CourtFeeStructureViewModel>(response.Data);
@@ -56,7 +55,7 @@ namespace CourtApp.Web.Areas.LawyerDiary.Controllers
             var ViewModel = new CourtFeeStructureViewModel();
             if (id != null)
             {
-                var response = await _mediator.Send(new GetCourtFeeStructByIdQuery() { Id = id.Value });
+                var response = await _mediator.Send(new CourtFeeStructureByIdQuery() { Id = id.Value });
                 if (response.Succeeded == true)
                     ViewModel = _mapper.Map<CourtFeeStructureViewModel>(response.Data);
             }
@@ -73,7 +72,7 @@ namespace CourtApp.Web.Areas.LawyerDiary.Controllers
             {
                 if (id == Guid.Empty)
                 {
-                    var createCommand = _mapper.Map<CreateCourtFeeStructureCommand>(ViewModel);
+                    var createCommand = _mapper.Map<CourtFeeStructureCreateCommand>(ViewModel);
                     var result = await _mediator.Send(createCommand);
                     if (result.Succeeded)
                         _notify.Success($"Court Fee structure  with ID {result.Data} created");
@@ -81,12 +80,12 @@ namespace CourtApp.Web.Areas.LawyerDiary.Controllers
                 }
                 else
                 {
-                    var updateCommand = _mapper.Map<UpdateCourtFeeStructureCommand>(ViewModel);
+                    var updateCommand = _mapper.Map<CourtFeeStructureUpdateCommand>(ViewModel);
                     var result = await _mediator.Send(updateCommand);
                     if (result.Succeeded)
                         _notify.Information($"Court Fee structure updated with ID {result.Data}");
                 }
-                var response = await _mediator.Send(new GetCourtFeeStructAllQuery());
+                var response = await _mediator.Send(new CourtFeeStructureGetQuery());
                 if (response.Succeeded)
                 {
                     var viewModel = _mapper.Map<List<CourtFeeStructureViewModel>>(response.Data);
@@ -105,11 +104,11 @@ namespace CourtApp.Web.Areas.LawyerDiary.Controllers
         [HttpPost]
         public async Task<JsonResult> OnPostDelete(Guid id)
         {
-            var deleteCommand = await _mediator.Send(new DeleteCourtFeeStructureCommand { Id = id });
+            var deleteCommand = await _mediator.Send(new CourtFeeStructureDeleteCommand { Id = id });
             if (deleteCommand.Succeeded)
             {
                 _notify.Information($"Court fee structure with Id {id} Deleted.");
-                var response = await _mediator.Send(new GetCourtFeeStructAllQuery());
+                var response = await _mediator.Send(new CourtFeeStructureGetQuery());
                 if (response.Succeeded)
                 {
                     var viewModel = _mapper.Map<List<CourtFeeStructureViewModel>>(response.Data);

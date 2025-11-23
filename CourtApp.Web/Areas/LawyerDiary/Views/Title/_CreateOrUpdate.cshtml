@@ -22,7 +22,10 @@
         border-bottom: none;
     }
 </style>
-<form id="create-form" method="post" method="post" asp-controller="Title" asp-action="OnCreatOrUpdateTitle" asp-route-Id="@Model.Id" onsubmit="return jQueryModalPost(this);" enctype="multipart/form-data">
+<form id="create-form" method="post" asp-controller="Title"
+      asp-action="OnCreatOrUpdateTitle" asp-route-Id="@Model.Id"
+      onsubmit="return jQueryModalPost(this);"
+      enctype="multipart/form-data">
     <div class="row">
         <div class="col-md-12">
             <div class="form-group row">
@@ -41,12 +44,15 @@
                 <label class="col-md-3 col-form-label">@localizer["Case Detail"]</label>
                 <div class="col-md-9">
                     <div class="input-group">
-                        <select class="form-control select2bs4" asp-for="CaseId" asp-items="@Model.Cases">
+                        <select class="form-control select2bs4"
+                                asp-for="CaseId"
+                                asp-items="@Model.Cases">
                             <option></option>
                         </select>
                     </div>
+                    <span asp-validation-for="CaseId" class="text-danger"></span>
                 </div>
-            </div>           
+            </div>
             <div class="form-group row">
                 <fieldset class="scheduler-border">
                     <legend class="scheduler-border">@localizer["Complete Title"]</legend>
@@ -79,7 +85,7 @@
                         </tbody>
                     </table>
                 </fieldset>
-            </div>           
+            </div>
         </div>
     </div>
     <div class="form-group justify-content-between" style="margin-bottom: 0px !important">
@@ -87,7 +93,9 @@
         <button type="submit" class="btn btn-default close-button" data-dismiss="modal">Cancel</button>
     </div>
 </form>
+
 <script type="text/javascript" language=javascript>
+    $.validator.unobtrusive.parse("#create-form");
     $(document).ready(function () {
         $("#TypeId").select2({
             placeholder: "Select a type",
@@ -107,8 +115,7 @@
     var btn_delete = '<button type="button" onclick="removeKolom($(this))" class="btn btn-warning"><i class="fa fa-trash" aria-hidden="true"></i></button>';
     var btn_add = '<button class="add-btn-repeat btn btn-success" onclick="addElement($(this))" type="button"><i class="fa fa-plus" aria-hidden="true"></i></button>';
     var counter = 1;
-    function addElement(e) { 
-        debugger;
+    function addElement(e) {
         var trlength = $('#tblApplicant tbody tr').length;
         var clonedRow = $('#tblApplicant tbody tr:last').clone();
         clonedRow.find('input').each(function (i) {
@@ -125,9 +132,9 @@
         clonedRow.find('button').find('button').replaceWith(btn_add);
         clonedRow.find('button.add-btn-repeat').replaceWith(btn_delete);
         clonedRow.find("textarea").val("");
-        $('#tblApplicant tbody').append(clonedRow);           
+        $('#tblApplicant tbody').append(clonedRow);
     }
-    function removeKolom(e) {        
+    function removeKolom(e) {
         e.parents('.kolom').remove();
     }
 

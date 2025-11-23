@@ -1,4 +1,4 @@
-@inject SignInManager<ApplicationUser> SignInManager
+@* @inject SignInManager<ApplicationUser> SignInManager
 @{
     var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
 }
@@ -12,4 +12,51 @@
     }
     <li class="nav-item"><a class="nav-link @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)" id="two-factor" asp-page="./TwoFactorAuthentication">Two-factor authentication</a></li>
     <li class="nav-item"><a class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext)" id="personal-data" asp-page="./PersonalData">Personal data</a></li>
+</ul> *@
+
+        @inject SignInManager<ApplicationUser> SignInManager
+@{
+    var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
+}
+
+<ul class="nav nav-tabs mb-4" id="manageTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <a class="nav-link @ManageNavPages.IndexNavClass(ViewContext)" id="profile-tab" asp-page="./Index" role="tab">
+            @localizer["Profile"]
+        </a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link @ManageNavPages.BillingNavClass(ViewContext)" id="billing-tab" asp-page="./BillingDetail" role="tab">
+            @localizer["Billing Info"]
+        </a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link @ManageNavPages.EmailNavClass(ViewContext)" id="email-tab" asp-page="./Email" role="tab">
+            @localizer["Email"]
+        </a>
+    </li>
+    
+    <li class="nav-item" role="presentation">
+        <a class="nav-link @ManageNavPages.ChangePasswordNavClass(ViewContext)" id="password-tab" asp-page="./ChangePassword" role="tab">
+            @localizer["Password"]
+        </a>
+    </li>
+    @if (hasExternalLogins)
+    {
+        <li class="nav-item" role="presentation">
+            <a class="nav-link @ManageNavPages.ExternalLoginsNavClass(ViewContext)" id="external-login-tab" asp-page="./ExternalLogins" role="tab">
+                @localizer["External Logins"]
+            </a>
+        </li>
+    }
+   @*  <li class="nav-item" role="presentation">
+        <a class="nav-link @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)" id="twofactor-tab" asp-page="./TwoFactorAuthentication" role="tab">
+            @localizer["Two-Factor Authentication"]
+        </a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext)" id="personal-data-tab" asp-page="./PersonalData" role="tab">
+            @localizer["Personal Data"]
+        </a>
+    </li> *@
 </ul>

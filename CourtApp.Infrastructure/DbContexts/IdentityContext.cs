@@ -14,7 +14,7 @@ namespace CourtApp.Infrastructure.DbContexts
         {
             AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
         }
-        public DbSet<Demographic> Lawyers { get; set; }
+        //public DbSet<Demographic> Lawyers { get; set; }
         public DbSet<OperatorUser> LawyerUsers { get; set; }
         public DbSet<CorporateUser> Corporates { get; set; }
 
@@ -28,9 +28,9 @@ namespace CourtApp.Infrastructure.DbContexts
             });
 
             // configure Application User and Demographic relationship.
-            builder.Entity<ApplicationUser>().
-                HasOne(e => e.Demographic).WithOne(d => d.User)
-                .HasForeignKey<ApplicationUser>(a => a.DemographicId);
+            //builder.Entity<ApplicationUser>().
+            //    HasOne(e => e.Demographic).WithOne(d => d.User)
+            //    .HasForeignKey<ApplicationUser>(a => a.DemographicId);
 
             //Configure Application User and operator Relationship.
             builder.Entity<OperatorUser>()
@@ -64,6 +64,33 @@ namespace CourtApp.Infrastructure.DbContexts
             builder.Entity<IdentityUserToken<string>>(entity =>
             {
                 entity.ToTable("UserTokens");
+            });
+
+            builder.Entity<ApplicationUser>(entity =>
+            {
+                entity.Property(e => e.ProfessionalInfo)
+                 .HasConversion(
+                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                     v => JsonSerializer.Deserialize<ProfessionalInfo>(v, (JsonSerializerOptions)null))
+                 .HasColumnType("jsonb");
+
+                entity.Property(e => e.AddressInfo)
+                  .HasConversion(
+                      v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                      v => JsonSerializer.Deserialize<AddressInfo>(v, (JsonSerializerOptions)null))
+                  .HasColumnType("jsonb");
+
+                entity.Property(e => e.ContactInfo)
+                  .HasConversion(
+                      v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                      v => JsonSerializer.Deserialize<ContactInfo>(v, (JsonSerializerOptions)null))
+                  .HasColumnType("jsonb");
+
+                entity.Property(e => e.WorkLocInfo)
+                  .HasConversion(
+                      v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                      v => JsonSerializer.Deserialize<WorkLocation>(v, (JsonSerializerOptions)null))
+                  .HasColumnType("jsonb");
             });
 
             builder.Entity<Demographic>(entity =>

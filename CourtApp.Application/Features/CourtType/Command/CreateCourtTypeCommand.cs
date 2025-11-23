@@ -1,5 +1,6 @@
 ﻿using AspNetCoreHero.Results;
 using AutoMapper;
+using CourtApp.Application.DTOs.Common;
 using CourtApp.Application.Interfaces.Repositories;
 using CourtApp.Domain.Entities.Common;
 using CourtApp.Domain.Entities.LawyerDiary;

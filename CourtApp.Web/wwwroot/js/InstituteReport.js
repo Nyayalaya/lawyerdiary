@@ -2,7 +2,11 @@
     var table = $("#tblRegister").DataTable({
         "language": {
             "emptyTable": "Record is not there!"
-        }
+        },
+        columnDefs: [
+            { orderable: false, targets: [0, 1, 2, 3, 4, 6, 8] }
+            
+        ]
     });
 
     var lengthDiv = $("#tblRegister_wrapper .dataTables_length");
@@ -13,39 +17,59 @@
 
     // Define filter dropdowns (id, label)
     var filters = [
-       /* { id: "ddlStatus", label: "Status" },*/
         { id: "ddlReferral", label: "Referral" },
         { id: "ddlClient", label: "Client" }
     ];
 
-    // Dynamically calculate column width based on the number of elements
-    var colWidth = `col-sm-${Math.floor(12 / (filters.length + 2))}`; // +2 for Pagination & Search
-
     // Function to create dropdown dynamically with dynamic width
     function createDropdown(id, label) {
-        return $(
-            `<div class="${colWidth} d-flex align-items-center">
-                        <label class="fw-bold me-2">${label}:</label>
-                        <select class="form-control customFilter" id="${id}">
-                            <option value="">Select</option>
-                        </select>
-                    </div>`
-        );
+        return $(`
+            <div class="col-sm-3 d-flex align-items-center mb-2">
+                <label class="fw-bold me-2">${label}:</label>
+                <select class="form-control customFilter" id="${id}">
+                    <option value="">Select</option>
+                </select>
+            </div>
+        `);
     }
 
-    // Create Row Container
-    var filterContainer = $('<div class="row w-100 mt-2"></div>');
+    // Function to create Radio buttons
+    function createRadioButtons() {
+        return $(`
+            <div class="col-sm-3 d-flex align-items-center mb-2">
+                <label class="fw-bold me-2">Status:</label>
+                <div class="form-check me-3">
+                    <input class="form-check-input" type="radio" name="status" id="statusAll" value="" checked>
+                    <label class="form-check-label" for="statusAll">All</label>
+                </div>
+                <div class="form-check me-3">
+                    <input class="form-check-input" type="radio" name="status" id="statusPending" value="Pending">
+                    <label class="form-check-label" for="statusPending">Pending</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="status" id="statusDisposal" value="Disposal">
+                    <label class="form-check-label" for="statusDisposal">Disposal</label>
+                </div>
+            </div>
+        `);
+    }
+
+    // Create Row Container for Filters and Radio buttons
+    var filterContainer = $('<div class="row w-100 mt-2 flex-wrap"></div>');
 
     // Append Pagination
-    filterContainer.append(lengthDiv.parent().addClass(colWidth));
+    filterContainer.append(lengthDiv.parent().addClass("col-sm-2"));
 
-    // Append Filters
+    // Append Radio Buttons (Status)
+    filterContainer.append(createRadioButtons());
+
+    // Append Filters (Referral, Client)
     filters.forEach(filter => {
         filterContainer.append(createDropdown(filter.id, filter.label));
     });
 
     // Append Search Box
-    filterContainer.append(filterDiv.parent().addClass(colWidth));
+    filterContainer.append(filterDiv.parent().addClass("col-sm-2"));
 
     // Insert into DataTable wrapper
     $("#tblRegister_wrapper").prepend(filterContainer);
@@ -63,7 +87,7 @@
                 var ddl = "";
                 if (item.Key === "ReferBy") ddl = "#ddlReferral";
                 if (item.Key === "Client") ddl = "#ddlClient";
-                populateDropdown(ddl, data);                
+                populateDropdown(ddl, data);
             },
             error: function (error) {
                 console.log("Error loading filter data:", error);
@@ -71,13 +95,10 @@
         });
     });
 
-
-
-
     // Function to populate dropdown
     function populateDropdown(selector, options) {
         options.forEach(function (item) {
-            $(selector).append(new Option(item.Name,item.Id));
+            $(selector).append(new Option(item.Name.toUpperCase(), item.Id));
         });
     }
 
@@ -87,18 +108,22 @@
         placeholder: "Select",
         allowClear: true
     });
-    $(".customFilter").on("change", function () {       
+
+    // Apply Filter on change (Client, Referral, Status)
+    $(".customFilter, input[name='status']").on("change", function () {
+        debugger;
         let client = $("#ddlClient").val();
         let referral = $("#ddlReferral").val();
-       // let status = $("#ddlStatus").val();
+        let status = $("input[name='status']:checked").val();
+
         $.ajax({
             url: "/Report/Register/Search",
             type: "GET",
-            data: { ClientId: client, ReferalBy: referral, Status: "" },
+            data: { ClientId: client, ReferalBy: referral, Status: status },
             success: function (response) {
                 table.clear().draw(); // Clear existing data and re-draw without destroying the table
                 $("#tblRegister tbody").html(response); // Update only tbody with new rows
-                table.rows.add($("#tblRegister tbody tr")).draw();                
+                table.rows.add($("#tblRegister tbody tr")).draw();
             },
             error: function () {
                 alert("Error fetching filtered data.");

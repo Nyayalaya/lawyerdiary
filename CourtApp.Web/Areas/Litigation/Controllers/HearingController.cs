@@ -21,7 +21,6 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
         public IActionResult Index(string SelectedDate)
         {
             var model = new BringTodayCaseViewModel();
-            //var SelectedDate = TempData["SelectedDate"] != null ? TempData["SelectedDate"].ToString() : "";
             model.HearingDate = SelectedDate != null ? Convert.ToDateTime(SelectedDate) : DateTime.Now;
             return View(model);
         }
@@ -78,7 +77,13 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             if (response.Succeeded)
             {
                 var viewModel = _mapper.Map<List<GetCaseViewModel>>(response.Data);
-                return new JsonResult(new { isValid = true, html = await _viewRenderer.RenderViewToStringAsync("_BringToday", TodayCaseList(viewModel, DateTime.Now.ToString())) });
+                string SelectedDate = string.Empty;
+                if (TempData["SelectedDate"] != null)
+                {
+                    SelectedDate = TempData["SelectedDate"].ToString();
+                    TempData.Keep();
+                }
+                return new JsonResult(new { isValid = true, html = await _viewRenderer.RenderViewToStringAsync("_BringToday", TodayCaseList(viewModel, SelectedDate)) });
             }
             return null;
         }
@@ -98,6 +103,8 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 hearing.CaseTypeName = item.CaseTypeName;
                 hearing.IsProceedingDone = item.IsProceedingDone;
                 hearing.Reference = item.Reference;
+                hearing.IsCaseAssigned = item.IsCaseAssigned;
+                hearing.HasChild = item.HasChild;
                 cdt.Add(hearing);
             }
             model.CaseList = cdt;
@@ -109,16 +116,20 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
 
         #region Add the case in today's hearing register select and save.
 
-        public async Task<IActionResult> UpdateCaseDate(BringTodayCaseViewModel model)
+        public async Task<IActionResult> UpdateCaseDate(BringTodayCaseViewModel model, List<Guid> SelectedCaseIds)
         {
             if (model.CaseList != null)
             {
-                var CaseIds = model.CaseList.Where(s => s.Selected == true).Select(s => s.Id).ToList();
-                var result = await _mediator.Send(new UpdateCaseNextDateCommand { CaseIds = CaseIds });
-                if (result.Succeeded) _notify.Information($"Case Next hearing date with ID {result.Data} Updated.");
+                //var CaseIds = model.CaseList.Where(s => s.Selected == true).Select(s => s.Id).ToList();
+                var result = await _mediator.Send(new UpdateCaseNextDateCommand
+                {
+                    CaseIds = SelectedCaseIds,
+                    NextHearingDate = model.HearingDate
+                });
+                if (result.Succeeded) _notify.Information($"Updated the selected cases next heaing date successfully.");
                 else _notify.Error(result.Message);
             }
-            return RedirectToAction("Index");
+            return RedirectToAction("Index", new { SelectedDate = model.HearingDate }); ;
         }
         #endregion
 
@@ -150,8 +161,13 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
         #region Today's Proceeding to the case
         public async Task<JsonResult> CaseProceeding(Guid CaseId)
         {
-            var SelectedDate = TempData["SelectedDate"].ToString();
-            TempData.Keep();
+            string SelectedDate = DateTime.Now.ToString();
+            if (TempData["SelectedDate"] != null)
+            {
+                SelectedDate = TempData["SelectedDate"].ToString();
+                TempData.Keep();
+            }
+
             var response = await _mediator.Send(new GetCaseProceedingByIdQuery()
             {
                 CaseId = CaseId,
@@ -170,6 +186,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 model.Court = dt.Court;
                 model.CaseType = dt.CaseType;
                 model.Stage = dt.Stage;
+                model.MCasIds = dt.ParentChildCaseIds;
                 if (dt.HeadId != Guid.Empty)
                 {
                     model = _mapper.Map<CaseProceedingViewModel>(dt);
@@ -221,6 +238,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 if (model.IsUpdate)
                 {
                     var up = _mapper.Map<UpdateCaseProceedingCommand>(model);
+                    up.UserId = CurrentUser.Id;
                     up.ProceedingDate = Convert.ToDateTime(TempData["SelectedDate"].ToString());
                     bool hasValues = up.ProcWork.GetType().GetProperties()
                                        .Any(prop => prop.GetValue(up.ProcWork) != null);
@@ -228,7 +246,9 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                         up.ProcWork = null;
                     var result = await _mediator.Send(up);
                     if (result.Succeeded)
-                        _notify.Success($"Case proceeding with ID {result.Data} Updated.");
+                        _notify.Success($"Case proceeding updated successfull!");
+                    else
+                        _notify.Warning(result.Message);
                 }
                 else
                 {
@@ -241,7 +261,9 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                         cmd.ProcWork = null;
                     var result = await _mediator.Send(cmd);
                     if (result.Succeeded)
-                        _notify.Success($"Case proceeding with ID {result.Data} Created.");
+                        _notify.Success($"Case proceeding done successfull!");
+                    else
+                        _notify.Warning(result.Message);
                 }
             }
             return RedirectToAction("Index", new { SelectedDate = TempData["SelectedDate"].ToString() });

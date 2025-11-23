@@ -298,7 +298,14 @@
                             <label class="col-md-2 col-form-label">@localizer["Next Date"]</label>
                             <div class="col-md-4">
                                 <div class="input-group">
-                                    <input type="date" asp-for="NextDate" id="NextDate" placeholder="dd/MM/yyyy" class="form-control">
+                                    @if (Model.IsProceeding)
+                                    {
+                                        <input type="date" asp-for="NextDate" id="NextDate" placeholder="dd/MM/yyyy" class="form-control" disabled />
+                                    }
+                                    else
+                                    {
+                                        <input type="date" asp-for="NextDate" id="NextDate" placeholder="dd/MM/yyyy" class="form-control" />
+                                    }
                                 </div>
                             </div>
                             <label class="col-md-2 col-form-label">@localizer["Linked With"]</label>
@@ -318,24 +325,21 @@
 
             <div class="form-group justify-content-between" style="margin-bottom: 0px !important">
                 <button type="submit" class="btn btn-success">@ViewBag.ActionType</button>
-                <a asp-area="Litigation" asp-controller="CaseManage" asp-action="index"
-                   class="btn btn-secondary" onclick="return confirm('Are you sure you want to cancel?')">
-                    <i class="fa fa-arrow-left"></i> Cancel
-                </a>
+                <input type="button" value="Cancel" class="btn btn-default btn-cancel" data-url="/litigation/casemanage" />
             </div>
         </form>
     </div>
 </div>
 @section Scripts
 {
-
     <script src="~/js/litigation/managecase.js"></script>
     <script>
+
         $(document).ready(function () {
-            debugger;
             var title="@(ViewBag.Title)";
             if(title==="Add New Case Detail")
             {
+                 $("#hypCopy").css("display", "block");
                 $("#hypButton").css("display", "block");
                 $("#hypRepeatButton").css("display", "block");
             }
@@ -381,6 +385,23 @@
                     $('.ACourt').css('display', 'block');
                 }
             }
+
+            $("#btnCancel").on("click",function(){
+            Swal.fire({
+                              title: 'Are you sure?',
+                              text: "You won't be able to revert this!",
+                              icon: 'warning',
+                              showCancelButton: true,
+                              confirmButtonColor: '#3085d6',
+                              cancelButtonColor: '#d33',
+                              confirmButtonText: 'Yes, cancel it!'
+            }).then((result) => {
+          if (result.isConfirmed) {
+              window.history.back();
+          }
+        });
+
+            });
         });
     </script>
 

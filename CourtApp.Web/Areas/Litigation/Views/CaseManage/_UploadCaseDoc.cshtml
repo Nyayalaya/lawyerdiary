@@ -26,7 +26,9 @@
         opacity: 1 !important;
     }
 </style>
-<form id="CaseDocUpload" method="post" asp-controller="CaseManage" asp-action="UploadCaseDocs" enctype="multipart/form-data">
+<form id="CaseDocUpload" method="post" asp-controller="CaseManage"
+      asp-action="UploadCaseDocs"
+      enctype="multipart/form-data">
     <input type="hidden" asp-for="CaseId" />
     <input type="hidden" asp-for="Where" />
     <input type="hidden" asp-for="Reference" />

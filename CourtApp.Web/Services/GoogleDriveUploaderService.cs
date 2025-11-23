@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace CourtApp.Web.Services
@@ -31,16 +30,25 @@ namespace CourtApp.Web.Services
             {
                 "Draft" => _settings.Folders["DraftDocuments"],
                 "Order" => _settings.Folders["OrderDocuments"],
-                "Profile" => _settings.Folders["ProfileImages"],
+                "ProfileImage" => _settings.Folders["ProfileImages"],
                 _ => throw new ArgumentException("Invalid document type")
             };
-            var jsonKeyPath = Path.Combine(_environment.WebRootPath, "service-account-key.json");
+            //var jsonKeyPath = Path.Combine(_environment.WebRootPath, "service-account-key.json");
+            var jsonKeyPath = Environment.GetEnvironmentVariable("GOOGLE_SERVICE_ACCOUNT_KEY");
             GoogleCredential credential;
-            using (var stream = new FileStream(jsonKeyPath, FileMode.Open, FileAccess.Read))
+            if (string.IsNullOrEmpty(jsonKeyPath))
             {
-                credential = GoogleCredential.FromStream(stream)
-                    .CreateScoped(DriveService.Scope.Drive);
+                throw new InvalidOperationException("Environment variable 'GOOGLE_SERVICE_ACCOUNT_KEY' is not set.");
             }
+
+             credential = GoogleCredential
+                .FromJson(jsonKeyPath)
+                .CreateScoped(DriveService.Scope.Drive);
+            //using (var stream = new FileStream(jsonKeyPath, FileMode.Open, FileAccess.Read))
+            //{
+            //    credential = GoogleCredential.FromStream(stream)
+            //        .CreateScoped(DriveService.Scope.Drive);
+            //}
 
             var service = new DriveService(new BaseClientService.Initializer
             {
@@ -142,13 +150,23 @@ namespace CourtApp.Web.Services
         {
             try
             {
-                var jsonKeyPath = Path.Combine(_environment.WebRootPath, "service-account-key.json");
+                
+                var jsonKeyPath = Environment.GetEnvironmentVariable("GOOGLE_SERVICE_ACCOUNT_KEY");
                 GoogleCredential credential;
-                using (var stream = new FileStream(jsonKeyPath, FileMode.Open, FileAccess.Read))
+                if (string.IsNullOrEmpty(jsonKeyPath))
                 {
-                    credential = GoogleCredential.FromStream(stream)
-                        .CreateScoped(DriveService.Scope.Drive);
+                    throw new InvalidOperationException("Environment variable 'GOOGLE_SERVICE_ACCOUNT_KEY' is not set.");
                 }
+
+                credential = GoogleCredential
+                   .FromJson(jsonKeyPath)
+                   .CreateScoped(DriveService.Scope.Drive);
+                //GoogleCredential credential;
+                //using (var stream = new FileStream(jsonKeyPath, FileMode.Open, FileAccess.Read))
+                //{
+                //    credential = GoogleCredential.FromStream(stream)
+                //        .CreateScoped(DriveService.Scope.Drive);
+                //}
 
                 var service = new DriveService(new BaseClientService.Initializer
                 {

@@ -44,6 +44,7 @@ namespace CourtApp.Web.Areas.Litigation.Mappings
             CreateMap<LinkCaseInfo, LinkCaseInfoViewModel>();
             CreateMap<GetAllClientCachedResponse, ClientViewModel>();
             CreateMap<AssignCaseViewModel, CreateCaseAssignedCommand>();
+            CreateMap<AssignCaseViewModel, CaseDeAssignedCommnad>();
         }
     }
 }

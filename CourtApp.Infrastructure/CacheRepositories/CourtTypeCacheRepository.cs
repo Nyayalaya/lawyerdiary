@@ -39,7 +39,7 @@ namespace CourtApp.Infrastructure.CacheRepositories
         {
             string cacheKey = CourtTypeCacheKeys.ListKey;
             var CourtTypeList = await _distributedCache.GetAsync<List<CourtTypeEntity>>(cacheKey);
-            if (CourtTypeList == null)
+            if ( CourtTypeList==null)
             {
                 CourtTypeList = await _Repository.GetListAsync();
                 await _distributedCache.SetAsync(cacheKey, CourtTypeList);

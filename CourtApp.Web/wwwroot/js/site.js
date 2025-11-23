@@ -81,33 +81,169 @@
         return false;
     }
 
-    JqueryDataTable = function (tableId, ptitle, ecolumns) {
-        $('#' + tableId).DataTable({            
-            dom: 'Bfrtip',// This includes the Buttons, filtering input, processing indicator, table, info, and pagination controls            
-            buttons: [
-                {
-                    extend: 'excelHtml5',
-                    text: 'Export',
-                    title: ptitle,
-                    filename: function () {
-                        var date = new Date();
-                        return ptitle +"_"+ date.toISOString().split('T')[0];  // Exports with the current date
-                    },
-                    exportOptions: {
-                        // Optional: This ensures that all columns (including hidden ones) are included in the export
-                        //columns: ':visible'
-                        columns: ecolumns
-                    }
+    //JqueryDataTable = function (tableId, ptitle, ecolumns) {
+    //    $('#' + tableId).DataTable({
+    //        dom:
+    //            "<'row align-items-center custom-header-row'<'col-md-2'l><'col-md-8 text-center'f><'col-md-2 text-end dt-export-buttons'B>>" +
+    //            "<'row'<'col-12'tr>>" +
+    //            "<'row'<'col-md-5'i><'col-md-7'p>>",
+
+    //        buttons: [
+    //            {
+    //                extend: 'excelHtml5',
+    //                text: '<i class="fas fa-file-excel"></i> Export',
+    //                className: 'btn btn-outline-success me-2',
+    //                title: ptitle,
+    //                filename: function () {
+    //                    var date = new Date();
+    //                    return ptitle + "_" + date.toISOString().split('T')[0]; // e.g. CaseReport_2025-06-21
+    //                },
+    //                exportOptions: {
+    //                    columns: ecolumns
+    //                }
+    //            }
+    //            // Add more buttons dynamically if needed
+    //        ],
+
+    //        paging: true,
+    //        lengthChange: true,
+    //        pageLength: 10,
+    //        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+    //        processing: false,
+    //        info: true,
+    //        searching: true
+    //    });
+    //}
+
+    JqueryDataTable = function (tableId, config) {
+        let defaultConfig = {
+            tableId: tableId,
+            ajaxUrl: null,
+            addUrl: null,
+            columns: [],
+            exportColumns: ':not(:last-child)',
+            serverSide: false,
+            pageLength: 10,
+            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+            buttons: null, // ← Allow user to override this
+            dom:
+                "<'row align-items-center custom-header-row'<'col-md-2'l><'col-md-2 text-center'f><'col-md-8 text-end dt-export-buttons'B>>" +
+                "<'row'<'col-12'tr>>" +
+                "<'row'<'col-md-5'i><'col-md-7'p>>"
+        };
+
+        const dt = Object.assign({}, defaultConfig, config);
+
+        // Fallback to default button set only if user did not provide custom buttons
+        const buttons = dt.buttons || [
+            {
+                extend: 'excelHtml5',
+                text: '<i class="fas fa-file-excel"></i> Export',
+                className: 'btn btn-outline-warning me-2',
+                exportOptions: {
+                    modifier: { page: 'all' },
+                    columns: dt.exportColumns
                 }
-            ],
-            // Ensure pagination and info UI are enabled correctly
-            paging: true,  // Enable pagination
-            lengthChange: true,  // Enable length change dropdown (number of entries to display)
-            pageLength: 10,  // Default number of rows to display per page
-            processing: false,  // Show processing indicator when table is being drawn
-            info: true,  // Display information about the table (e.g., "Showing 1 to 10 of 50 entries")
-            searching: true,  // Enable search functionality
+            }
+        ];
+
+        const options = {
+            dom: dt.dom,
+            paging: true,
+            pageLength: dt.pageLength,
+            lengthMenu: dt.lengthMenu,
+            processing: true,
+            serverSide: dt.serverSide,
+            columns: dt.columns,
+            searching: true,
+            info: true,
+            lengthChange: true,
+            buttons: buttons
+        };
+
+        if (dt.ajaxUrl) {
+            options.ajax = {
+                url: dt.ajaxUrl,
+                type: 'POST',
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                },
+                dataSrc: function (json) {
+                    console.log(json);
+                    return json.data;
+                }
+            };
+        }
+
+        const table = $('#' + dt.tableId).DataTable(options);
+
+        // External reload support
+        $('#reload').on('click', function () {
+            table.ajax.reload(null, false);
         });
-    }
+
+        return table;
+    };
+
+
+
+
 });
+
+
+// ---Debounced Session Expiry Check on Interaction ---
+
+function checkSession() {
+    fetch('/Litigation/CaseManage/IsSessionActive', { cache: 'no-store' })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.isActive) {
+                alert("Session expired. Redirecting to login.");
+                window.location.href = "/Identity/Account/Login";
+            }
+        })
+        .catch(error => {
+            console.error("Session check failed:", error);
+        });
+}
+
+// Debounce function to prevent too many requests
+function debounce(func, delay) {
+    let timeout;
+    return function () {
+        clearTimeout(timeout);
+        timeout = setTimeout(func, delay);
+    };
+}
+
+// Use debounced version
+const checkSessionDebounced = debounce(checkSession, 2000);
+
+// Attach to user interaction events
+document.addEventListener("keydown", checkSessionDebounced);
+document.addEventListener("mousedown", checkSessionDebounced);
+
+
+
+$(document).ready(function () {
+    $(document).on('submit', 'form', function (e) {
+   
+       // Prevent double submit
+        if ($(this).data("submitted") === true) {
+            e.preventDefault();
+            return false;
+        }
+
+        // Mark as submitted
+        $(this).data("submitted", true);
+
+        // Disable all submit buttons inside this form
+        $(this).find('button[type="submit"]').prop('disabled', true);
+
+        // Show loader
+        $('#loader-wrapper').show();
+    });
+});
+
+
 

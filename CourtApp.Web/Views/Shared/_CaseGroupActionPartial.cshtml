@@ -1,0 +1,34 @@
+﻿@model CaseActionViewModel
+<div class="btn-group">
+    <button type="button" class="btn btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Action
+    </button>
+    <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in">
+        <a onclick="jQueryModalGet('/Litigation/casemanage/OnGetCaseHistory?CaseId=@Model.CaseId', 'See History')" class="dropdown-item" title="See History">
+            <i class="fa fa-history"></i> Case History
+        </a>
+        <a class="dropdown-item" title="Click for case proceeding" onclick="jQueryModalGet('/Litigation/hearing/CaseProceeding?CaseId=@Model.CaseId', 'Case Proceeding')">
+            <i class="fa fa-plus-square"></i> Case Proceeding
+        </a>
+        <a onclick="jQueryModalGet('/Litigation/casemanage/GetFileUploadModel?CaseId=@Model.CaseId&w=mc&reft=@Model.Reference', 'Upload Document')" class="dropdown-item" title="Upload Document">
+            <i class="fas fa-file-alt"></i> Upload Document
+        </a>
+        <a asp-area="Litigation" asp-controller="casemanage" asp-action="GetCaseDetail" asp-route-id="@Model.CaseId" asp-route-reft="@Model.Reference" class="dropdown-item" title="View Case Detail">
+            <i class="fa fa-eye"></i> Case Detail
+        </a>
+        @if (@Model.Reference.ToLower() == "self")
+        {
+            string ButtonText = @Model.IsCaseAssigned == true ? "De-Assigned" : "Assigned";
+            string PlaceHolderText = @Model.IsCaseAssigned == true ? "De-Assigned case from lawyer" : "Assigned case to other lawyer";
+            string Url = @Model.IsCaseAssigned == false ? "/Litigation/casemanage/OnGetAssignCase?CaseId=" + @Model.CaseId : "/Litigation/casemanage/DeAssignedCase?CaseId=" + @Model.CaseId+"&LawyerId="+@Model.LawyerId;
+
+            <a onclick="jQueryModalGet('@Url', '@PlaceHolderText')"
+               class="dropdown-item" title="@PlaceHolderText"><i class="fa fa-tasks" aria-hidden="true"></i> @ButtonText</a>
+
+            <a href="javascript:void(0);" onclick="deleteCase('@Model.CaseId')" title="Delete Case" class="dropdown-item">
+                <i class="fa fa-trash" style="font-size: 18px; color: red;" aria-hidden="true"> Delete </i>
+            </a>
+
+        }
+    </div>
+</div>

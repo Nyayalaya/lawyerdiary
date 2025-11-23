@@ -7,7 +7,9 @@ namespace CourtApp.Web.Areas.Litigation.Models
     {
         public Guid Id { get; set; }
         public SelectList Lawyers { get; set; }
-        public Guid CaseId { get; set; }
         public Guid LawyerId { get; set; }
+        public string Remark { get; set; }
+        public string LawyerInfo { get; set; }
+        public bool IsAssignAction { get; set; }
     }
 }

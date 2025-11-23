@@ -35,11 +35,12 @@ namespace CourtApp.Application.Features.FormBuilder
             var dt = _Repository.Entities.Where(w => w.Id == request.Id).FirstOrDefault();
             detail.CaseId = dt.CaseId;
             detail.TemplateId = dt.TemplateId;
-            detail.DraftingFormId=dt.DraftingFormId;
             detail.Id = request.Id;
+            //var fmr = dt.FieldDetails.Select(s => new FormFieldDetailValue {Tag=s.Tag,Value=s.Value });
+
             if (dt.FieldDetails != null)
             {
-                var fbr = await _FrmRepository.GetByIdAsync(dt.DraftingFormId);
+                var fbr = await _FrmRepository.GetByIdAsync(dt.FormId);
                 var frmDetails = fbr.FieldsDetails.Fields.ToList();
                 List<FormFieldDetailValue> fmr = new List<FormFieldDetailValue>();
                 foreach (var item in frmDetails)
@@ -49,7 +50,8 @@ namespace CourtApp.Application.Features.FormBuilder
                     fm.DispOrder = item.DispOrder;
                     fm.Name = item.Name;
                     fm.Type = item.Type;
-                    fm.Value = dt.FieldDetails.Where(s => s.Key == item.Key)
+                    fm.Tag = item.Tag;
+                    fm.Value = dt.FieldDetails.Where(s => s.Tag == item.Tag)
                     .Select(s => s.Value).FirstOrDefault();
                     fm.DefaultVal = item.DefaultVal;
                     fmr.Add(fm);
@@ -68,9 +70,9 @@ namespace CourtApp.Application.Features.FormBuilder
                 //                FieldSize = _mapper.Map<FieldSizeDto>(f.FieldSize),
                 //                Value = t == null ? "" : t.Value
                 //            };
-                detail.FieldDetails = fmr;
+                detail.FieldDetails = fmr.ToList();
             }
-            return Result<CaseDarftingDetailDtoByIdResponse>.Success(detail);
+            return await Result<CaseDarftingDetailDtoByIdResponse>.SuccessAsync(detail);
         }
     }
 }

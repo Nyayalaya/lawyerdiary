@@ -33,7 +33,7 @@ namespace CourtApp.Application.Features.CaseDetails
                 var entity = _mapper.Map<AssignCaseEntity>(request);
                 await _repository.InsertAsync(entity);
                 await _unitOfWork.Commit(cancellationToken);
-                return Result<Guid>.Success();
+                return Result<Guid>.Success(entity.Id);
             }
             await _unitOfWork.Commit(cancellationToken);
             return Result<Guid>.Fail("There is an issue in request model");

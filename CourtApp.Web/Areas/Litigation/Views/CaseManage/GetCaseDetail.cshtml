@@ -35,7 +35,8 @@
         </div>
     }
     <div class="col-sm-3">
-        <button type="button" onclick="location.href='@Url.Action("index", "CaseManage")'" class="btn btn-info btn-style float-lg-right"><i class="fa fa-arrow-left"></i> Back to list</button>
+        @* <button type="button" onclick="location.href='@Url.Action("index", "CaseManage")'" class="btn btn-info btn-style float-lg-right"><i class="fa fa-arrow-left"></i> Back to list</button> *@
+        <button type="button" id="backButton" class="btn btn-info btn-style float-lg-right"><i class="fa fa-arrow-left"></i> Go Back</button>
     </div>
 </div>
 
@@ -111,9 +112,11 @@
         </dt>
         <dd class="col-sm-4">
             @{
-                string caseyear = (Model.CaseNo + "/" + Model.CaseYear);
+                string caseYear = string.IsNullOrWhiteSpace(Model.CaseNo)
+                ? Model.CaseYear.ToString()
+                : $"{Model.CaseNo}/{Model.CaseYear}";
             }
-            @caseyear
+            @caseYear
         </dd>
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.CaseCategory)
@@ -135,9 +138,11 @@
         </dt>
         <dd class="col-sm-4">
             @{
-                string cisno = (Model.CisNo + "/" + Model.CisYear);
+                string cisYear = string.IsNullOrWhiteSpace(Model.CisNo)
+                ? Model.CisYear.ToString()
+                : $"{Model.CisNo}/{Model.CisYear}";
             }
-            @caseyear
+            @cisYear
         </dd>
     </dl>
 
@@ -282,7 +287,9 @@
             </dt>
             <dd class="col-sm-4">
                 @{
-                    string lcisno = (Model.LinkCaseInfo.CisNo + "/" + Model.LinkCaseInfo.CisYear);
+                    string lcisno = Model.LinkCaseInfo?.CisYear == "0"
+                    ? ""
+                    : $"{Model.LinkCaseInfo?.CisNo}/{Model.LinkCaseInfo?.CisYear}";
                 }
                 @lcisno
             </dd>
@@ -508,4 +515,13 @@
     <div class="col-sm-3 pull-right">
         @Html.ActionLink("Edit", "CreateOrUpdate", new { id = Model.Id })
     </div>
+}
+
+@section Scripts
+{
+    <script>
+        $('#backButton').on('click', function () {
+        window.history.back(); // Go to previous page
+    });
+    </script>
 }

@@ -12,8 +12,11 @@ using CourtApp.Web.Areas.Admin.Models;
 using CourtApp.Web.Areas.Client.Model;
 using CourtApp.Web.Areas.Litigation.Models;
 using CourtApp.Web.Extensions;
+using CourtApp.Web.Helpers;
 using CourtApp.Web.Models;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -22,6 +25,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -38,22 +42,90 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IDocumentUploadService _documentUploadService;
         private readonly UploadSettings _settings;
+        private readonly IdentityContext _identityDbContext;
+        private readonly ActionRenderHelper _viewRenderHelper;
 
         public CaseManageController(IWebHostEnvironment _webHostEnvironment, /*BlobService _blobService,*/
             UserManager<ApplicationUser> _userManager, IDocumentUploadService _documentUploadService,
-            IdentityContext _identityDbContext, IOptions<UploadSettings> options)
+            IdentityContext identityDbContext, IOptions<UploadSettings> options,
+            ActionRenderHelper _viewRenderHelper)
         {
             this._webHostEnvironment = _webHostEnvironment;
             //this._blobService = _blobService;
             this._userManager = _userManager;
             this._documentUploadService = _documentUploadService;
             _settings = options.Value;
+            _identityDbContext = identityDbContext;
+            this._viewRenderHelper = _viewRenderHelper;
         }
 
         #region Case Management Area
         public IActionResult Index()
         {
             return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> LoadAllAsync([FromForm] DataTableRequest request)
+        {
+            int pageSize = request.length;
+            int start = request.start;
+            int pageNumber = (start / pageSize) + 1;
+
+            var response = await _mediator.Send(new GetCaseInfoQuery
+            {
+                LinkedIds = User.GetUserLinkedIds(),
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                Search = request.search?.value ?? "",   // Optional: for search
+                SortColumn = request.columns?[request.order[0].column].data,
+                SortDirection = request.order[0].dir
+            });
+
+            if (response.Succeeded)
+            {
+
+                List<GetCaseInfoViewModel> dataModels = new List<GetCaseInfoViewModel>();
+                foreach (var item in response.Data)
+                {
+                    var actionModel = new CaseActionViewModel
+                    {
+                        CaseId = item.Id,
+                        Reference = item.Reference,
+                        IsCaseAssigned = item.IsCaseAssigned,
+                        LawyerId = item.LawyerId
+                    };
+                    dataModels.Add(new GetCaseInfoViewModel
+                    {
+                        Id = item.Id,
+                        CaseDetail = item.CaseDetail,
+                        CaseStage = item.CaseStage,
+                        CaseType = item.CaseType,
+                        Court = item.Court,
+                        CourtType = item.CourtType,
+                        IsCaseAssigned = item.IsCaseAssigned,
+                        NextDate = item.NextDate,
+                        No = item.No,
+                        Reference = item.Reference,
+                        Year = item.Year,
+                        ActionHtml = await _viewRenderHelper.RenderPartialViewToStringAsync("_CaseGroupActionPartial", actionModel)
+                    });
+                }
+
+                _logger.LogInformation("Load all the user's cases successfully!");
+                var dataTableResponse = new
+                {
+                    draw = request.draw,
+                    recordsTotal = response.TotalCount,
+                    recordsFiltered = response.TotalCount, // Filtered = Total when no filtering logic used
+                    data = dataModels
+                };
+
+                return Json(dataTableResponse);
+            }
+
+            return Json(new { error = "Unable to load data" });
+
         }
 
         public async Task<IActionResult> LoadAll()
@@ -72,32 +144,6 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             }
             return null;
         }
-
-        //[HttpPost]
-        //public async Task<IActionResult> LoadAll([FromBody] DataTableRequest request)
-        //{
-        //    var response = await _mediator.Send(new GetCaseInfoQuery()
-        //    {
-        //        UserId = CurrentUser.Id,
-        //        PageSize = request.PageSize,
-        //        PageNumber = request.PageNumber
-        //    });
-        //    if (response.Succeeded)
-        //    {
-        //        var viewModel = _mapper.Map<List<GetCaseInfoViewModel>>(response.Data);
-        //        _logger.LogInformation("Loaded paginated cases successfully!");
-
-        //        return Json(new
-        //        {
-        //            draw = request.PageNumber,
-        //            recordsTotal = response.TotalCount, // Total records count before filtering
-        //            recordsFiltered = response.TotalPages, // Records after filtering
-        //            data = viewModel
-        //        });
-        //    }
-        //    return null;
-        //}
-
 
         public async Task<IActionResult> CreateOrUpdateAsync(Guid id, string from)
         {
@@ -118,9 +164,9 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 cam.ACadres = await DdlCadres();
                 cam.AStrengths = DdlStrength();
                 cam.ACaseNatures = await LoadCaseNature();
+                if (from == "repeat") id = Guid.Empty;
                 if (id == Guid.Empty && (from == null || from == ""))
                 {
-                    //caseViewModel.Courts = await DdlCourts();
                     ViewBag.Title = "Add New";
                     caseViewModel.InstitutionDate = DateTime.Now;
                     caseViewModel.States = await LoadStates();
@@ -147,7 +193,6 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 }
                 else
                 {
-                    ViewBag.Title = "Update";
                     var response = await _mediator.Send(new GetUserCaseDetailByIdQuery
                     {
                         CaseId = id,
@@ -156,6 +201,13 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                     if (response.Succeeded)
                     {
                         var CaseDetail = _mapper.Map<CaseUpseartViewModel>(response.Data);
+                        if (from == "cp")
+                        {
+                            ViewBag.Title = "Add New";
+                            CaseDetail.UserCaseId = id;
+                        }
+                        else
+                            ViewBag.Title = "Update";
                         CaseDetail.ClientList = await DdlClient(CurrentUser.Id);
                         CaseDetail.States = await LoadStates();
                         CaseDetail.CourtTypes = await LoadCourtTypes();
@@ -222,7 +274,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                         ViewBag.ShowHighCourt = showHighCourt;
                         ViewBag.AgIsHighCourt = AgIsHighCourt;
                         CaseDetail.Cadres = await DdlCadres();
-                        if (from != "repeat")
+                        if (from != "repeat" && from != "cp")
                         {
                             ViewBag.ActionType = "Update";
                             ViewBag.Id = CaseDetail.Id.ToString();
@@ -296,6 +348,11 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                         _notify.Information($"Case information with ID {result.Data} Updated.");
                         return RedirectToAction("getcasedetail", new { id = Id, reft = TempData["referenceType"] });
                     }
+                    else
+                    {
+                        _notify.Information(result.Message);
+                        //return RedirectToAction("CreateOrUpdateAsync(Guid id, string from)", new { id = Id, reft = TempData["referenceType"] });
+                    }
                 }
             }
 
@@ -316,34 +373,26 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
         }
 
         [HttpPost]
-        public async Task<JsonResult> OnPostDelete(Guid id)
+        public async Task<IActionResult> DeleteCase(Guid id)
         {
-            var deleteCommand = await _mediator.Send(new DeleteCaseDetailCommand { Id = id });
-            if (deleteCommand.Succeeded)
+            try
             {
-                _notify.Information($"Case with Id {id} is deleted.");
-                var response = await _mediator.Send(new GetCaseInfoQuery()
+                var deleteResult = await _mediator.Send(new DeleteCaseDetailCommand { Id = id });
+
+                if (!deleteResult.Succeeded)
                 {
-                    LinkedIds = User.GetUserLinkedIds(),
-                    PageSize = 10000,
-                    PageNumber = 1
-                });
-                if (response.Succeeded)
-                {
-                    var viewModel = _mapper.Map<List<GetCaseInfoViewModel>>(response.Data);
-                    var html = await _viewRenderer.RenderViewToStringAsync("_ViewAll", viewModel);
-                    return new JsonResult(new { isValid = true, html = html });
+                    _notify.Error(deleteResult.Message ?? "Failed to delete case.");
+                    return Json(new { succeeded = false, message = deleteResult.Message });
                 }
-                else
-                {
-                    _notify.Error(response.Message);
-                    return null;
-                }
+
+                _notify.Information($"Case with ID {id} has been deleted successfully.");
+                return Json(new { succeeded = true, message = "Case deleted successfully." });
             }
-            else
+            catch (Exception ex)
             {
-                _notify.Error(deleteCommand.Message);
-                return null;
+                _logger.LogError(ex, "Error deleting case with ID {CaseId}", id);
+                _notify.Error("An unexpected error occurred while deleting the case.");
+                return Json(new { succeeded = false, message = "Unexpected error occurred." });
             }
         }
         #endregion
@@ -478,9 +527,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
         public async Task<IActionResult> UploadCaseDocs(CaseAttacheDocumentViewModel model)
         {
             if (!ModelState.IsValid)
-            {
-                return new JsonResult(new { isValid = false, message = "Invalid request data." });
-            }
+                return Json(new { success = "failed", message = "Invalid request data, uplaoded file size may be > 30MB or some information is missin! " });
 
             List<CaseDocumentModel> ddoc = new List<CaseDocumentModel>();
             if (model.Documents.Count > 0)
@@ -489,17 +536,12 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 {
                     // Step 1: Validate File
                     var fileExtension = Path.GetExtension(f.Document.FileName).ToLower();
-                    if (fileExtension != ".pdf" && fileExtension != ".docx")
-                    {
-                        return new JsonResult(new { isValid = false, message = "Only PDF and DOCX are allowed." });
-                        //return BadRequest($"Invalid file type: {fileExtension}. Only PDF and DOCX are allowed.");
-                    }
+                    if (fileExtension != ".pdf" && fileExtension != ".docx" && fileExtension != ".doc")
+                        return Json(new { success = "failed", message = "Only PDF, doc and DOCX are allowed." });
 
                     if (f.Document.Length > MaxFileSize)
-                    {
                         return Json(new { success = "failed", message = "Uploaded document has exeed size(>30mb), please compress and upload it again " + f.Document.FileName });
-                        //return BadRequest("File size exceeds the 200MB limit.");
-                    }
+
                     try
                     {
                         // Step 2: Generate Unique File Name
@@ -573,6 +615,62 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             return Json(new { success = respose.Failed, respose.Message });
 
         }
+
+
+        [HttpPost]
+        [RequestSizeLimit(MaxFileSize)]
+        public async Task<IActionResult> ReplaceDocument(Guid docId, string fileId, string documentType, IFormFile newDocument)
+        {
+            if (newDocument == null || newDocument.Length == 0)
+                return Json(new { success = false, message = "No document provided." });
+
+            var fileExtension = Path.GetExtension(newDocument.FileName).ToLower();
+            if (fileExtension != ".pdf" && (fileExtension != ".docx" || fileExtension != ".doc"))
+                return Json(new { success = false, message = "Only PDF, doc and DOCX are allowed." });
+
+            if (newDocument.Length > MaxFileSize)
+                return Json(new { success = false, message = "File size exceeds 30MB." });
+
+            try
+            {
+                //step 1: Delete existing document from cloud
+                var isDeleted = await _documentUploadService.DeleteFileAsync(fileId);
+                if (!isDeleted)
+                    return Json(new { success = false, message = "The file is not exist for replace!" });
+
+                //Step 2: Generate the unique file Id and compressed newly file.
+                string compressedFileName = $"{Path.GetFileNameWithoutExtension(newDocument.FileName)}_{Guid.NewGuid()}.zip";
+                using var docStream = newDocument.OpenReadStream();
+                using var memoryStream = new MemoryStream();
+                using (var zipArchive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+                {
+                    var zipEntry = zipArchive.CreateEntry(newDocument.FileName);
+                    using var entryStream = zipEntry.Open();
+                    await docStream.CopyToAsync(entryStream);
+                }
+                memoryStream.Seek(0, SeekOrigin.Begin);
+
+                //Step 3: Upload the new file 
+                string filePath = await _documentUploadService.UploadFileAsync(memoryStream, compressedFileName, documentType);
+
+                //Step 4: Update the file path in the database
+                var dbUpdateResponse = await _mediator.Send(new UpdateCaseDocumentCommand
+                {
+                    Id = docId,
+                    DocId = fileId
+                });
+                if (dbUpdateResponse.Succeeded)
+                    return Json(new { success = true, message = "Document replaced successfully." });
+
+                return Json(new { success = false, message = "Failed to update document information." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error replacing document: {ex.Message}");
+                return StatusCode(500, "Internal Server Error while replacing the file.");
+            }
+        }
+
         #endregion
 
         #region Case Detail
@@ -753,13 +851,88 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             return null;
         }
         [HttpPost]
-        public async Task<JsonResult> UpdateHearingDate(List<UpdateHearingDtViewModel> casedts)
+        public JsonResult UpdateHearingDate(List<UpdateHearingDtViewModel> casedts)
         {
-            var response = await _mediator.Send(new UpdateCaseHearingDatesCommand()
+            var format = "dd/MM/yyyy";
+            var culture = CultureInfo.InvariantCulture;
+
+            var splitCases = casedts.Select(x =>
             {
-                CasesHearingDt = _mapper.Map<List<CaseHearingDto>>(casedts)
-            });
-            return Json(response);
+                string reason = "";
+                bool isValid = true;
+
+                // If ProcDt is null or empty, it's considered valid
+                if (!string.IsNullOrWhiteSpace(x.ProcDt))
+                {
+                    if (DateTime.TryParseExact(x.ProcDt, format, culture, DateTimeStyles.None, out var procDate))
+                    {
+                        if (x.HearingDt < procDate)
+                        {
+                            isValid = false;
+                            reason = "Hearing date is earlier than proceeding date";
+                        }
+                    }
+                    else
+                    {
+                        isValid = false;
+                        reason = "Invalid proceeding date format";
+                    }
+                }
+
+                return new
+                {
+                    Case = x,
+                    IsValid = isValid,
+                    Reason = reason
+                };
+            }).ToList();
+
+            // Separate valid and invalid cases
+            var invalidCases = splitCases.Where(x => !x.IsValid).Select(x => x.Case).ToList();
+            var validCases = splitCases.Where(x => x.IsValid).Select(x => x.Case).ToList();
+
+            // Case: There are invalid dates
+            if (invalidCases.Any())
+            {
+                return Json(new
+                {
+                    Success = false,
+                    Message = "Next hearing date must be equal to or greater than the last proceeding date for the cases -",
+                    InvalidCaseNos = invalidCases.Select(x => x.CaseNoYear),
+                    ValidCases = validCases
+                });
+            }
+
+            // Case: All are invalid
+            if (validCases.Count==0)
+            {
+                return Json(new
+                {
+                    Success = false,
+                    Message = "You have not selected a valid next date. Cannot update!",
+                    NoValidCase = true
+                });
+            }
+
+            // Proceed to update only valid cases
+            var response = _mediator.Send(new UpdateCaseHearingDatesCommand
+            {
+                UserId = CurrentUser.Id,
+                CasesHearingDt = _mapper.Map<List<CaseHearingDto>>(validCases)
+            }).Result;
+
+            if (response.Failed)
+            {
+                return Json(new
+                {
+                    Success = false,
+                    response.Message,
+                    NoValidCase = true
+                });
+            }
+
+            return Json(new { Success = true });
+
         }
         #endregion
 
@@ -767,6 +940,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
         public async Task<JsonResult> OnGetAssignCase(Guid CaseId)
         {
             var model = new AssignCaseViewModel();
+            model.IsAssignAction = true;
             var userType = new List<string>();
             userType.Add("LAWYER");
             userType.Add("CORPORATE");
@@ -780,22 +954,23 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 Id = x.Id,
                 FullDisplay = $"{x.FirstName} {x.LastName}"
             });
-
             model.Lawyers = new SelectList(lawyerSelectList, "Id", "FullDisplay");
-            model.CaseId = CaseId;
+            model.Id = CaseId;
             return new JsonResult(new { isValid = true, html = await _viewRenderer.RenderViewToStringAsync("_AssignCase", model) });
         }
+
         [HttpPost]
         public async Task<JsonResult> OnPostAssignCase(Guid Id, AssignCaseViewModel model)
         {
             if (ModelState.IsValid)
             {
-                if (Id == Guid.Empty)
+                if (model.IsAssignAction == true)
                 {
                     try
                     {
                         var cmd = _mapper.Map<CreateCaseAssignedCommand>(model);
                         cmd.UserId = Guid.Parse(CurrentUser.Id);
+                        cmd.CaseId = Id;
                         var result = await _mediator.Send(cmd);
                         if (result.Succeeded)
                         {
@@ -810,8 +985,34 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                         Console.WriteLine(ex);
                     }
                 }
+                else
+                {
+                    var cmd = _mapper.Map<CaseDeAssignedCommnad>(model);
+                    var result = await _mediator.Send(cmd);
+                    if (result.Succeeded)
+                    {
+                        Id = result.Data;
+                        _notify.Success($"Case is de-assigned successfully!");
+                        return new JsonResult(new { isValid = true, html = "" });
+                    }
+                }
             }
             return new JsonResult(new { isValid = false, html = "html" });
+        }
+
+
+        public async Task<JsonResult> DeAssignedCase(Guid CaseId, Guid LawyerId)
+        {
+            var model = new AssignCaseViewModel();
+            model.IsAssignAction = false;
+            model.Id = CaseId;
+            model.LawyerId = LawyerId;
+            var lawyerInfo = await _userManager.Users
+                .Where(a => a.IsActive == true
+                            && a.Id == LawyerId.ToString()).FirstOrDefaultAsync();
+            string lawyerFullName = lawyerInfo.FirstName + " " + lawyerInfo.LastName;
+            model.LawyerInfo = lawyerFullName;
+            return new JsonResult(new { isValid = true, html = await _viewRenderer.RenderViewToStringAsync("_AssignCase", model) });
         }
         #endregion
 
@@ -830,5 +1031,58 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             }
         }
         #endregion
+
+        #region Case DropDown By Lawyer
+        public async Task<JsonResult> ddlCaseInfoByLawyer(string UserId)
+        {
+            try
+            {
+                Console.WriteLine("UserId" + UserId);
+                List<string> LinkedIds = new List<string>();
+                LinkedIds = await _identityDbContext.LawyerUsers
+                            .Where(w => w.LawyerId == UserId)
+                            .Select(s => s.Id.ToString())
+                            .ToListAsync();
+                LinkedIds.Add(UserId);
+                Console.WriteLine("LinkedUserId" + string.Join(",", LinkedIds));
+                var response = await _mediator.Send(new GetCasesByUserQuery()
+                {
+                    LinkIds = LinkedIds,
+                    CallingFrom = "Bring"
+                });
+                if (response.Succeeded)
+                {
+                    Console.WriteLine("After success" + string.Join(",", LinkedIds));
+                    var dt = response.Data;
+                    var ViewModel = _mapper.Map<List<DropDownGViewModel>>(dt);
+                    Console.WriteLine("After success" + string.Join(",", LinkedIds));
+                    return Json(ViewModel);
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
+        }
+        #endregion
+
+        #region Copy Case Detail
+        public async Task<IActionResult> CopyCaseDetail()
+        {
+            CopyCaseViewModel model = new CopyCaseViewModel();
+            model.Cases = await UserCaseTitle(Guid.Empty);
+            return new JsonResult(new { isValid = true, html = await _viewRenderer.RenderViewToStringAsync("_CopyCaseInfo", model) });
+        }
+
+        [HttpPost]
+        public IActionResult CopyCaseDetail(CopyCaseViewModel model)
+        {
+            // Redirect to the target action with id and from=cp
+            return RedirectToAction("CreateOrUpdate", new { id = model.CaseId, from = "cp" });
+        }
+        #endregion
+
     }
 }

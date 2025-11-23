@@ -1,92 +1,103 @@
-﻿@model IEnumerable<GetCaseInfoViewModel>
+﻿@* @model IEnumerable<GetCaseInfoViewModel> *@
+@model PaginationViewModel<GetCaseInfoViewModel>
 <table id="tblUserCase" class="table table-striped" width="100%" cellspacing="0">
-    <thead>
-        <tr>
-            <th style="width:1%!important">Sno.</th>
-            <th style="width:10%!important">Reference</th>
-            <th style="width:16%!important">Court</th>
-            <th style="width:16%!important">Type</th>
-            <th style="width:5%!important">No.</th>
-            <th style="width:5%!important">Year</th>
-            <th style="width:30%!important">Title</th>
-            <th style="width:10%!important">Stage</th>
-            <th style="width:14%!important">Next Date</th>
-            <th style="width:3%!important">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @{
-            int count = 0;
-        }
-        @foreach (var bt in Model)
-        {
-            <tr>
-                <td>
-                    @(count = count + 1)
-                </td>
-                <td>
-                    @bt.Reference
-                </td>
-                <td>
-                    @bt.Court
-                </td>
-                <td>
-                    @bt.CaseType
-                </td>
-                <td>
-                    @bt.No
-                </td>
-                <td>
-                    @if (bt.Year != "0")
-                    {
-                        @bt.Year
-                    }
-                </td>
-                <td>
-                    @bt.CaseDetail
-                </td>
-                <td>
-                    @bt.CaseStage
-                </td>
+	<thead>
+		<tr>
+			<th style="width:1%!important">Sno.</th>
+			<th style="width:10%!important">Reference</th>
+			<th style="width:16%!important">Court</th>
+			<th style="width:16%!important">Type</th>
+			<th style="width:5%!important">No.</th>
+			<th style="width:5%!important">Year</th>
+			<th style="width:30%!important">Title</th>
+			<th style="width:10%!important">Stage</th>
+			<th style="width:14%!important">Next Date</th>
+			<th style="width:3%!important">Actions</th>
+		</tr>
+	</thead>
+	<tbody>
+		@{
+			int count = 0;
+		}
+		@foreach (var bt in Model.Data)
+		{
+			<tr>
+				<td>
+					@(count = count + 1)
+				</td>
+				<td>
+					@bt.Reference
+				</td>
+				<td>
+					@bt.Court
+				</td>
+				<td>
+					@bt.CaseType
+				</td>
+				<td>
+					@bt.No
+				</td>
+				<td>
+					@if (bt.Year != "0")
+					{
+						@bt.Year
+					}
+				</td>
+				<td>
+					@bt.CaseDetail
+				</td>
+				<td>
+					@bt.CaseStage
+				</td>
 
-                <td>
-                    @if (bt.NextDate != "01-01-0001")
-                        @bt.NextDate
-                </td>
-                <td class="text-right">
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Action
-                        </button>
-                        <div class="dropdown-menu shadow animated--grow-in">
-                            <a onclick="jQueryModalGet('/Litigation/casemanage/OnGetCaseHistory?CaseId=@bt.Id', 'See History')"
-                               class="dropdown-item" title="See History"><i class="fa fa-history"></i>  History</a>
-                            <a onclick="jQueryModalGet('/Litigation/casemanage/GetFileUploadModel?CaseId=@bt.Id&w=mc&reft=@bt.Reference', 'Upload Document')"
-                               class="dropdown-item" title="Upload Document"><i class="fas fa-file-alt"></i>  Upload Document</a>
-                            <a asp-area="Litigation" asp-controller="casemanage" asp-action="GetCaseDetail"
-                               asp-route-id="@bt.Id" asp-route-reft="@bt.Reference" class="dropdown-item" title="View Case Detail"><i class="fa fa-eye"></i>  Case Detail</a>
-                            @if ((AuthorizationService.AuthorizeAsync(User, "CasePanel.ManageCase.Delete")).Result.Succeeded && bt.Reference.ToLower() != "assigned")
-                            {
-                                <form id="form_delete_@bt.Id" asp-area="Litigation"
-                                      asp-controller="casemanage" method="post"
-                                      asp-action="OnPostDelete" asp-route-id="@bt.Id" onsubmit="return jQueryModalDelete(this)">
-                                    <a href="javascript:$('#form_delete_@bt.Id').submit();" class="dropdown-item"><i class="fas fa-trash-alt"></i>  Delete</a>
-                                </form>
-                            }
-                            @if(bt.Reference.ToLower()=="self"){
-                            <a onclick="jQueryModalGet('/Litigation/casemanage/OnGetAssignCase?CaseId=@bt.Id', 'Assigned case to other lawyer')"
-                               class="dropdown-item" title="Assigned case to other lawyer"><i class="fa fa-tasks" aria-hidden="true"></i> Assigned Case</a>
-                            }
-                        </div>
-                    </div>
-                </td>
-                
-            </tr>
-        }
-    </tbody>
+				<td>
+					@if (bt.NextDate != "01-01-0001")
+						@bt.NextDate
+				</td>
+				<td class="text-right">
+					@{
+						var actionModel = new CaseActionViewModel();
+						actionModel.CaseId = @bt.Id;
+						actionModel.Reference = @bt.Reference;
+						actionModel.IsCaseAssigned = @bt.IsCaseAssigned;
+						actionModel.LawyerId = @bt.LawyerId;
+					}
+					<partial name="_CaseGroupActionPartial" model="@actionModel"></partial>
+				</td>
+			</tr>
+		}
+	</tbody>
 </table>
 <script>
-    $(document).ready(function () {
-        JqueryDataTable('tblUserCase','User Data List','0,1,2,3,4,5,6,7');
-    });
+	$(document).ready(function () {
+		$("#tblUserCase").DataTable({
+			"processing": true,
+			"serverSide": true,
+			"ajax": {
+				"url": "/LawyerDiary/CaseManage/LoadAll",
+				"type": "POST"
+			},
+			"columns": [
+				{ "data": "Head" },
+				{ "data": "Name_En" },
+				{ "data": "Name_Hn" },
+				{
+					"data": null,
+					"render": function (data, type, row) {
+						var actions = '<div class="btn-group">';
+						actions += '<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action</button>';
+						actions += '<div class="dropdown-menu shadow animated--grow-in">';
+						if (data.CanEdit) {
+							actions += '<a onclick="jQueryModalGet(\'/LawyerDiary/ProceedingSubHead/OnGetCreateOrEdit?id=' + row.Id + '\',\'Edit Proceeding Sub Head Type\')" class="dropdown-item"><i class="fas fa-pencil-alt"></i> Edit</a>';
+						}
+						if (data.CanDelete) {
+							actions += '<a href="javascript:$(\'#form_delete_' + row.Id + '\').submit();" class="dropdown-item"><i class="fas fa-trash-alt"></i> Delete</a>';
+						}
+						actions += '</div></div>';
+						return actions;
+					}
+				}
+			]
+		});
+	});
 </script>

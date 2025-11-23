@@ -1,8 +1,10 @@
-﻿using CourtApp.Application.DTOs.CaseDetails;
+﻿using System;
+using CourtApp.Application.DTOs.CaseDetails;
 namespace CourtApp.Application.DTOs.Registers
 {
-    public class InstitutionResponse : CaseDetailDto
+    public class InstitutionResponse : CaseBasicInfoDto
     {
-        public string Reference { get; set; }
+        public bool IsCaseAssigned { get; set; }
+        public Guid LawyerId { get; set; }
     }
 }

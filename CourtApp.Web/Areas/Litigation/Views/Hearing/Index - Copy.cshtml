@@ -1,0 +1,65 @@
+﻿@{
+    ViewData["Title"] = localizer["Today's Hearing Case Register"];
+    ViewData["Caption"] = localizer["Your Case List"];
+}
+@model BringTodayCaseViewModel
+<div class="card">
+    @* <div class="col-sm-12" style="padding:20px">
+        <div class="form-group row">
+            <div class="col-sm-3">
+                <a id="btnBirngToday" onclick="jQueryModalGet('/Litigation/hearing/GetCaseHearing','Bring Today')" class="btn bg-success">
+                    <i class="fa fa-calendar"></i> Bring Today
+                </a>
+            </div>
+            <div class="col-sm-3">
+                <input type="date" id="SelData" asp-for="@Model.HearingDate" class="form-control" />
+            </div>
+        </div>
+    </div> *@
+    <div class="col-sm-3">
+        <input type="date" id="SelData" asp-for="@Model.HearingDate" class="form-control" />
+    </div>
+    <div id="viewAll" class="card-body table-responsive">
+    </div>
+</div>
+
+@section Scripts
+{
+    
+    <script>
+        $(document).ready(function () {
+
+              $("#tblTHearingCaseDetail").DataTable();
+            loadData();
+            $('#reload').on('click', function () {
+                loadData();
+            });
+        });
+        function loadData() {
+            $('#viewAll').load('/Litigation/Hearing/LoadAll?seleDate=' + $("#SelData").val());
+        }
+        $("#SelData").on("change", function () {
+            $('#viewAll').load('/Litigation/Hearing/LoadAll?seleDate=' + $("#SelData").val());
+        });
+
+        $("#btnWork").click(function () {
+            var caseHtml = "";
+            var CaseArr = [];
+            $('#tblTHearingCaseDetail tbody tr').each(function () {
+                if ($(this).find("input[type=Checkbox]").is(":checked")) {
+                    CaseArr.push($(this).find('input[type="hidden"]').val());
+                }
+            });
+            if (CaseArr.length > 0) {
+                $.each(CaseArr, function (index, value) {
+                    caseHtml += "<input type='hidden' value='" + value + "'/>";
+                });
+                $("#create-form").appendTo(caseHtml);
+            }
+            else {
+                alert("Please select atleast one case!", "", "warning");
+                return;
+            }
+        });
+    </script>
+}

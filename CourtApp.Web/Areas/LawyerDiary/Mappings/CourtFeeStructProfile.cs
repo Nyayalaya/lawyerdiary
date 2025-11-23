@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using CourtApp.Application.Features.CourtFeeStructure.Command;
-using CourtApp.Application.Features.CourtFeeStructure.Queries;
+using CourtApp.Application.DTOs.Account;
+using CourtApp.Application.Features.Account;
 using CourtApp.Web.Areas.LawyerDiary.Models;
 using System;
 using System.Collections.Generic;
@@ -13,11 +13,11 @@ namespace CourtApp.Web.Areas.LawyerDiary.Mappings
     {
         public CourtFeeStructProfile()
         {
-            CreateMap<GetCourtFeeStructureByIdResponse, CourtFeeStructureViewModel>().ReverseMap();
-            CreateMap<GetAllCourtFeeStructureResponse, CourtFeeStructureViewModel>().ReverseMap();
-            CreateMap<CreateCourtFeeStructureCommand, CourtFeeStructureViewModel>().ReverseMap();
-            CreateMap<UpdateCourtFeeStructureCommand, CourtFeeStructureViewModel>().ReverseMap();
-            CreateMap<DeleteCourtFeeStructureCommand, CourtFeeStructureViewModel>().ReverseMap();
+            CreateMap<CourtFeeStructureByIdDto, CourtFeeStructureViewModel>().ReverseMap();
+            CreateMap<CourtFeeStructureDto, CourtFeeStructureViewModel>().ReverseMap();
+            CreateMap<CourtFeeStructureCreateCommand, CourtFeeStructureViewModel>().ReverseMap();
+            CreateMap<CourtFeeStructureUpdateCommand, CourtFeeStructureViewModel>().ReverseMap();
+            CreateMap<CourtFeeStructureDeleteCommand, CourtFeeStructureViewModel>().ReverseMap();
         }
     }
 }

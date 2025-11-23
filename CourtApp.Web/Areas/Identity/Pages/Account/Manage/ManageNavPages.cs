@@ -8,6 +8,7 @@ namespace CourtApp.Web.Areas.Identity.Pages.Account.Manage
         public static string Index => "Index";
 
         public static string Email => "Email";
+        public static string Billing => "Billing Detail";
 
         public static string ChangePassword => "ChangePassword";
 
@@ -24,6 +25,7 @@ namespace CourtApp.Web.Areas.Identity.Pages.Account.Manage
         public static string IndexNavClass(ViewContext viewContext) => PageNavClass(viewContext, Index);
 
         public static string EmailNavClass(ViewContext viewContext) => PageNavClass(viewContext, Email);
+        public static string BillingNavClass(ViewContext viewContext) => PageNavClass(viewContext, Billing);
 
         public static string ChangePasswordNavClass(ViewContext viewContext) => PageNavClass(viewContext, ChangePassword);
 

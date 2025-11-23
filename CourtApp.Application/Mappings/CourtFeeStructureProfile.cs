@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using CourtApp.Application.Features.CourtFeeStructure.Command;
-using CourtApp.Application.Features.CourtFeeStructure.Queries;
-using CourtApp.Domain.Entities.LawyerDiary;
+using CourtApp.Application.DTOs.Account;
+using CourtApp.Application.Features.Account;
+using CourtApp.Domain.Entities.Account;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,9 +14,9 @@ namespace CourtApp.Application.Mappings
     {
         public CourtFeeStructureProfile()
         {
-            CreateMap<CourtFeeStructureEntity, GetCourtFeeStructureByIdResponse>()
+            CreateMap<CourtFeeStructureEntity, CourtFeeStructureByIdDto>()
                 .ForPath(d => d.StateName, opt => opt.MapFrom(src => src.State.Name_En));
-            CreateMap<CreateCourtFeeStructureCommand, CourtFeeStructureEntity>()
+            CreateMap<CourtFeeStructureCreateCommand, CourtFeeStructureEntity>()
                 .ForPath(d => d.State.Id, opt => opt.MapFrom(src => src.StateCode));
         }
     }

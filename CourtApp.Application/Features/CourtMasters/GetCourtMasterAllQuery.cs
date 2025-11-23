@@ -32,34 +32,62 @@ namespace CourtApp.Application.Features.CourtMasters
             this._repository = _repository;
             this._repoBench = _repoBench;
         }
-        public Task<Result<List<GetCourtMasterDataAllResponse>>> Handle(GetCourtMasterAllQuery request, CancellationToken cancellationToken)
+        public async Task<Result<List<GetCourtMasterDataAllResponse>>> Handle(GetCourtMasterAllQuery request, CancellationToken cancellationToken)
         {
-            var predicate = PredicateBuilder.True<CourtMasterEntity>();
+            var query = _repository.Entities
+                        .Include(e => e.CourtType)
+                        .Include(e => e.State)
+                        .Include(e => e.CourtComplex)
+                        .Include(e => e.CourtDistrict)
+                        .Include(e => e.CourtBenches) // To avoid N+1 issue when using .Count()
+                        .AsQueryable();
+
             if (request.CourtTypeId != Guid.Empty)
-                predicate = predicate.And(b => b.CourtType.Id == request.CourtTypeId);
+            {
+                query = query.Where(e => e.CourtType.Id == request.CourtTypeId);
+            }
+
+            var dtlist = await query.Select(e => new GetCourtMasterDataAllResponse
+            {
+                Id = e.Id,
+                CourtType = e.CourtType.CourtType,
+                CourtName = e.Name_En,
+                CourtFullName = e.Name_En,
+                State = e.State.Name_En,
+                District = e.CourtDistrict != null ? e.CourtDistrict.Name_En : null,
+                Complex = e.CourtComplex != null ? e.CourtComplex.Name_En : null,
+                Total = e.CourtBenches.Count
+            }).ToListAsync();
+
+            return Result<List<GetCourtMasterDataAllResponse>>.Success(dtlist);
 
 
-            var dtlist = _repository.Entities
-                .Include(ct => ct.CourtType)
-                .Include(st => st.State)
-                .Include(d => d.CourtComplex)
-                .Include(d => d.CourtDistrict)
-               .Where(predicate)
-               .Select(e => new GetCourtMasterDataAllResponse
-               {
-                   Id = e.Id,
-                   CourtType = e.CourtType.CourtType,
-                   CourtName = e.Name_En,
-                   CourtFullName = e.Name_En,
-                   State = e.State.Name_En,
-                   District = e.CourtDistrict != null ? e.CourtDistrict.Name_En : null,
-                   Complex = e.CourtComplex != null ? e.CourtComplex.Name_En : null,
-                   Total = e.CourtBenches.Count()
-               })
-               .ToList();
+            //var predicate = PredicateBuilder.True<CourtMasterEntity>();
+            //if (request.CourtTypeId != Guid.Empty)
+            //    predicate = predicate.And(b => b.CourtType.Id == request.CourtTypeId);
 
-            return Task.FromResult(Result<List<GetCourtMasterDataAllResponse>>
-                .Success(dtlist));
+
+            //var dtlist = _repository.Entities
+            //    .Include(ct => ct.CourtType)
+            //    .Include(st => st.State)
+            //    .Include(d => d.CourtComplex)
+            //    .Include(d => d.CourtDistrict)
+            //   .Where(predicate)
+            //   .Select(e => new GetCourtMasterDataAllResponse
+            //   {
+            //       Id = e.Id,
+            //       CourtType = e.CourtType.CourtType,
+            //       CourtName = e.Name_En,
+            //       CourtFullName = e.Name_En,
+            //       State = e.State.Name_En,
+            //       District = e.CourtDistrict != null ? e.CourtDistrict.Name_En : null,
+            //       Complex = e.CourtComplex != null ? e.CourtComplex.Name_En : null,
+            //       Total = e.CourtBenches.Count()
+            //   })
+            //   .ToList();
+
+            //return Task.FromResult(Result<List<GetCourtMasterDataAllResponse>>
+            //    .Success(dtlist));
         }
     }
 }

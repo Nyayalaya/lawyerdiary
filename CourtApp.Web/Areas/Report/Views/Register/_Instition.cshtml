@@ -1,47 +1,34 @@
 ﻿@model InstitutionRegisterViewMode
 <tbody>
-    @for (int i = 0; i < Model.dtmodel.Count(); i++)
-    {
-        <tr>
-            <td>
-                <input type="hidden" asp-for="@Model.dtmodel[i].Id" />
-                @(i + 1)
-            </td>
-            <td> @Model.dtmodel[i].Reference </td>
-            <td> @Model.dtmodel[i].Court </td>
-            <td>@Model.dtmodel[i].CaseType</td>
-            <td>@Model.dtmodel[i].No</td>
-            <td>@Model.dtmodel[i].Year</td>
-            <td>
-                @{
-                    string Title = Model.dtmodel[i].FirstTitle + " Vs " + Model.dtmodel[i].SecondTitle;
-                }
-                @Title
-            </td>
-            <td> @Model.dtmodel[i].InsititutionDate </td>
-            <td text-right">
-                <div class="btn-group">
-                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Action
-                    </button>
-                    <div class="dropdown-menu shadow animated--grow-in">
-                        <a onclick="jQueryModalGet('/Litigation/casemanage/OnGetCaseHistory?CaseId=@Model.dtmodel[i].Id', 'See History')"
-                           class="dropdown-item" title="See History"><i class="fa fa-history"></i>  History</a>
-                        <a onclick="jQueryModalGet('/Litigation/casemanage/GetFileUploadModel?CaseId=@Model.dtmodel[i].Id&w=ir', 'Upload Document')"
-                           class="dropdown-item" title="Upload Document"><i class="fas fa-file-alt"></i>  Upload Document</a>
-                        <a asp-area="Litigation" asp-controller="casemanage" asp-action="GetCaseDetail"
-                           asp-route-id="@Model.dtmodel[i].Id" asp-route-reft="@Model.dtmodel[i].Reference" class="dropdown-item" title="View Case Detail"><i class="fa fa-eye"></i>  Case Detail</a>
-                        @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Cases.Delete)).Result.Succeeded)
-                        {
-                            <form id="form_delete_@Model.dtmodel[i].Id" asp-area="Litigation"
-                                  asp-controller="casemanage" method="post"
-                                  asp-action="OnPostDelete" asp-route-id="@Model.dtmodel[i].Id" onsubmit="return jQueryModalDelete(this)">
-                                <a href="javascript:$('#form_delete_@Model.dtmodel[i].Id').submit();" class="dropdown-item"><i class="fas fa-trash-alt"></i>  Delete</a>
-                            </form>
-                        }
-                    </div>
-                </div>
-            </td>
-        </tr>
-    }
+	@for (int i = 0; i < Model.dtmodel.Count(); i++)
+	{
+		<tr>
+			<td>
+				<input type="hidden" asp-for="@Model.dtmodel[i].Id" />
+				@(i + 1)
+			</td>
+			<td> @Model.dtmodel[i].Reference </td>
+			<td> @Model.dtmodel[i].Court </td>
+			<td>@Model.dtmodel[i].CaseType</td>
+			<td>@Model.dtmodel[i].No</td>
+			<td data-order="@(string.IsNullOrWhiteSpace(Model.dtmodel[i].Year) ? 0 : Convert.ToInt32(Model.dtmodel[i].Year))">@Model.dtmodel[i].Year</td>
+			<td>
+				@{
+					string Title = Model.dtmodel[i].FirstTitle + " Vs " + Model.dtmodel[i].SecondTitle;
+				}
+				@Title
+			</td>
+			<td data-order="@DateTime.ParseExact(Model.dtmodel[i].InsititutionDate, "dd/MM/yyyy", null).ToString("yyyy-MM-dd")"> @Model.dtmodel[i].InsititutionDate </td>
+			<td class="text-right">
+				@{
+					var actionModel = new CaseActionViewModel();
+					actionModel.CaseId = @Model.dtmodel[i].Id;
+					actionModel.Reference = @Model.dtmodel[i].Reference;
+					actionModel.IsCaseAssigned = @Model.dtmodel[i].IsCaseAssigned;
+					actionModel.LawyerId = @Model.dtmodel[i].LawyerId;
+				}
+				<partial name="_CaseGroupActionPartial" model="@actionModel"></partial>
+			</td>
+		</tr>
+	}
 </tbody>

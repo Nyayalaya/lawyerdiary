@@ -30,7 +30,8 @@
 @model GenerateFormViewModel
 <form id="create-form" method="post" asp-controller="GenerateForm" asp-action="OnPostCreateOrEdit"
       asp-route-id="@Model.Id" onsubmit="return jQueryModalPost(this);" enctype="multipart/form-data">
-    <div class="row" >
+    <div class="row">
+        <input type="hidden" asp-for="Mode" />
         <div class="col-md-12">
             <div class="form-group row">
                 <label class="col-md-3 col-form-label">@localizer["Form Name"]</label>
@@ -45,23 +46,16 @@
             <div class="form-group row" style="height:400px!important;overflow-y:auto">
                 <fieldset class="scheduler-border">
                     <legend class="scheduler-border">Template Data Fields </legend>
-                    <table id="tblFormFields" border="1" 
-                        style="width:100%!important;">
+                    <table id="tblFormFields" border="1"
+                           style="width:100%!important;">
                         <thead>
                             <tr>
                                 <th width="20%" rowspan="2">Label</th>
                                 <th width="20%" rowspan="2">Type</th>
                                 <th width="20%" rowspan="2">Value</th>
-                                @*  <th width="8%" rowspan="2">Is Req.</th>
-                                <th width="7%" rowspan="2">Order</th>
-                                <th width="15%" rowspan="2">Placeholder</th>
-                                <th width="25%" colspan="2" style="text-align:center">Length</th> *@
+                                <th width="8%" rowspan="2">Tag</th>
                                 <th width="5%" rowspan="2"></th>
                             </tr>
-                            @*  <tr>
-                            <th style="text-align:center">Min.</th>
-                            <th style="text-align:center">Max.</th>
-                            </tr> *@
                         </thead>
                         <tbody class="data-repeater">
                             @{
@@ -75,11 +69,7 @@
                                         </td>
                                         <td><select asp-for="Form.Fields[0].Type" asp-items="Html.GetEnumSelectList<FieldType>()" class="form-control" title="Please enter type name!"><option>--Select--</option></select></td>
                                         <td><input type="text" asp-for="Form.Fields[0].DefaultVal" width="300px" placeholder="Enter Default value (In case of Dropdown provide comma seprated values)" class="form-control" title="Enter Default value (In case of Dropdown provide comma seprated values)" /></td>
-                                        @* <td><input type="checkbox" asp-for="Form.Fields[0].IsRequire" class="form-control" title="Please tick field if would be mandatory!" /></td>
-                                <td><input type="number" asp-for="Form.Fields[0].DispOrder" placeholder="Enter field display order" class="form-control" title="Please provide field display order number!" /></td>
-                                <td><input type="text" asp-for="Form.Fields[0].Placeholder" placeholder="Enter field placeholder name" class="form-control" title="Please enter field placeholder name!" /></td>
-                                <td><input type="text" asp-for="Form.Fields[0].FieldSize.Min" placeholder="Enter field min length" class="form-control" title="Please enter field min. length!" /></td>
-                                <td><input type="text" asp-for="Form.Fields[0].FieldSize.Max" placeholder="Enter field min length" class="form-control" title="Please enter field max. length!" /></td> *@
+                                        <td><input type="text" asp-for="Form.Fields[0].Tag" readonly /></td>
                                         <td class="btn-repeater">
                                             <button class="add-btn-repeat btn btn-success" onclick="addElement($(this))" type="button"><i class="fa fa-plus" aria-hidden="true"></i></button>
                                         </td>
@@ -96,11 +86,7 @@
                                         <td><input type="text" asp-for="@Model.Form.Fields[i].Name" width="300px" placeholder="Enter label name" class="form-control" title="Please enter field label name!" /></td>
                                         <td><select asp-for="@Model.Form.Fields[i].Type" asp-items="Html.GetEnumSelectList<FieldType>()" class="form-control" title="Please enter type name!"><option>--Select--</option></select></td>
                                         <td><input type="text" asp-for="Form.Fields[i].DefaultVal" width="300px" placeholder="Enter Default value (In case of Dropdown provide comma seprated values)" class="form-control" title="Enter Default value (In case of Dropdown provide comma seprated values)" /></td>
-                                        @* <td><input type="checkbox" asp-for="Form.Fields[0].IsRequire" class="form-control" title="Please tick field if would be mandatory!" /></td>
-                                <td><input type="number" asp-for="Form.Fields[0].DispOrder" placeholder="Enter field display order" class="form-control" title="Please provide field display order number!" /></td>
-                                <td><input type="text" asp-for="Form.Fields[0].Placeholder" placeholder="Enter field placeholder name" class="form-control" title="Please enter field placeholder name!" /></td>
-                                <td><input type="text" asp-for="Form.Fields[0].FieldSize.Min" placeholder="Enter field min length" class="form-control" title="Please enter field min. length!" /></td>
-                                <td><input type="text" asp-for="Form.Fields[0].FieldSize.Max" placeholder="Enter field min length" class="form-control" title="Please enter field max. length!" /></td> *@
+                                        <td><input type="text" asp-for="Form.Fields[i].Tag" readonly /></td>
                                         @if (i == 0)
                                         {
                                             <td class="btn-repeater">
@@ -116,7 +102,6 @@
                                                     <i class="fa fa-trash" aria-hidden="true"></i>
                                                 </button>
                                             </td>
-
                                         }
                                     </tr>
                                 }

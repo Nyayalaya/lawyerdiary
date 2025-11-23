@@ -5,6 +5,7 @@ using CourtApp.Application.Interfaces.Shared;
 using CourtApp.Infrastructure.Extensions;
 using CourtApp.Web.Abstractions;
 using CourtApp.Web.Extensions;
+using CourtApp.Web.Helpers;
 using CourtApp.Web.Models;
 using CourtApp.Web.Permission;
 using CourtApp.Web.Services;
@@ -79,7 +80,7 @@ namespace CourtApp.Web
                 // Example: Setting the timeout for connections
                 options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(2);
             });
-            services.AddAutoMapper(Assembly.GetExecutingAssembly());
+            services.AddAutoMapper(cfg => { }, Assembly.GetExecutingAssembly());
             services.AddDistributedMemoryCache();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddTransient<IActionContextAccessor, ActionContextAccessor>();
@@ -90,6 +91,7 @@ namespace CourtApp.Web
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
             });
+
             services.ConfigureApplicationCookie(options =>
             {
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
@@ -113,6 +115,7 @@ namespace CourtApp.Web
             {
                 services.AddScoped<IDocumentUploadService, LocalUploaderService>();
             }
+            services.AddScoped<ActionRenderHelper>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

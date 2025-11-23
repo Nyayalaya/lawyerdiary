@@ -453,3 +453,5 @@ $RECYCLE.BIN/
 !.vscode/launch.json
 !.vscode/extensions.json
 /CourtApp.Web/appsettings.json
+/CourtApp.Web/appsettings.json
+/CourtApp.Web/Properties/launchSettings.json

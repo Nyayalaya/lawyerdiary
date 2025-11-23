@@ -54,6 +54,12 @@ namespace CourtApp.Application.Features.Registers
                         .Select(s => s.Id).ToList();
                     predicate = predicate.And(c => clientIds.Contains(c.ClientId.Value));
                 }
+                if (request.Status == "Pending")
+                    predicate = predicate.And(p => p.DisposalDate == null);
+
+                if (request.Status == "Disposal")
+                    predicate = predicate.And(p => p.DisposalDate != null);
+
             }
             var caseDetails = (from c in _caseRepo.Entites.Where(predicate)
                                join ac in _assignRepo.Entities
@@ -61,10 +67,15 @@ namespace CourtApp.Application.Features.Registers
                                from ac in caseAssignments.DefaultIfEmpty()
                                where request.LinkedIds.Contains(c.CreatedBy)
                               || request.LinkedIds.Contains(ac.LawyerId.ToString())
+                               let asignedOrSelf = ac != null && request.LinkedIds.Contains(ac.LawyerId.ToString()) ? "Assigned" : "Self"
+                               let isCaseAssigned = asignedOrSelf == "Self" && ac != null && ac.CaseId == c.Id
+                               let AssignedLawyerId = asignedOrSelf == "Self" && ac != null ? ac.LawyerId : Guid.Empty
                                select new InstitutionResponse
                                {
                                    Id = c.Id,
-                                   Reference = ac != null && request.LinkedIds.Contains(ac.LawyerId.ToString()) ? "Assigned" : "Self",
+                                   Reference = asignedOrSelf,
+                                   IsCaseAssigned = isCaseAssigned,
+                                   LawyerId=AssignedLawyerId,
                                    CaseType = c.CaseType.Name_En,
                                    No = c.CaseNo,
                                    Year = c.CaseYear == 0 ? "" : c.CaseYear.ToString(),

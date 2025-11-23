@@ -1,0 +1,20 @@
+﻿@{
+	ViewData["Title"] = localizer["Court Form Master"];	
+}
+<div id="viewAll"></div>
+@section Scripts
+{
+
+	<script>
+		$(document).ready(function () {
+			$("#tblCourtForm").DataTable();
+			loadData();
+			$('#reload').on('click', function () {
+				loadData();
+			});
+		});
+		function loadData() {
+			$('#viewAll').load('/LawyerDiary/CourtForm/LoadAll');
+		}
+	</script>
+}

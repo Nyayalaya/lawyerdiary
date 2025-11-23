@@ -179,7 +179,7 @@ namespace CourtApp.Application.Features.Case
                         OfficerName = item.OfficerName,
                         CisYear = item.CisYear ?? 0,
                         CisNo = item.CisNo,
-                        CadreId = item.CadreId ?? Guid.Empty,
+                        CadreId = item.CadreId ?? null,
                         CnrNo = item.CnrNo,
                         CourtDistrictId = item.CourtDistrictId != Guid.Empty ? item.CourtDistrictId : null,
                         ComplexId = item.ComplexId != Guid.Empty ? item.ComplexId : null

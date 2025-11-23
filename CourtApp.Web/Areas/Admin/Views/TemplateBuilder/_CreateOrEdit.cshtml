@@ -23,34 +23,19 @@
     <input type="hidden" id="hdnId" asp-for="@Model.Id" value="@Model.Id" />
     <div class="row">
         <div class="col-md-12">
-            @* <div class="form-group row">
-                <label class="col-md-3 col-form-label">Court Type</label>
-                <div class="col-md-9">
+            <div class="form-group row">
+                <label class="col-md-2 col-form-label">@localizer["Form Name"]</label>
+                <div class="col-md-4">
                     <div class="input-group">
-                        <select name="CourtTypeId" class="form-control select2bs4" id="CourtTypeId"
-                                asp-for="CourtTypeId" placeholder="Select Court Type"
-                                asp-items="@Model.CourtTypes">
+                        <select class="form-control select2bs4" asp-for="FormId" asp-items="@Model.Forms">
                             <option></option>
                         </select>
                     </div>
-                    <span asp-validation-for="CourtTypeId" class="text-danger"></span>
+                    <span asp-validation-for="FormId" class="text-danger"></span>
                 </div>
-            </div>
-            <div class="form-group row">
-                <label class="col-md-3 col-form-label">State</label>
-                <div class="col-md-9">
-                    <div class="input-group">
-                        <select name="StateCode" class="form-control select2bs4" id="StateCode" asp-for="StateCode"
-                                asp-items="@Model.States">
-                            <option></option>
-                        </select>
-                    </div>
-                    <span asp-validation-for="StateCode" class="text-danger"></span>
-                </div>
-            </div> *@
-            <div class="form-group row">
-                <label class="col-md-3 col-form-label">@localizer["Template Name"]</label>
-                <div class="col-md-9">
+
+                <label class="col-md-2 col-form-label">@localizer["Template Name"]</label>
+                <div class="col-md-4">
                     <div class="input-group">
                         <input type="text" placeholder="Please enter template name" asp-for="TemplateName" class="form-control" />
                     </div>
@@ -59,11 +44,15 @@
             </div>
 
             <div class="form-group row ">
-                <label class="col-md-12 col-form-label">@localizer["TEMPLATE BODY DETAIL"]</label>
+                <label class="col-md-3 col-form-label">@localizer["TEMPLATE BODY DETAIL"]</label>
+                <a href="/admin/templatebuilder/ViewTag" id="viewTagsBtn" target="_blank" class="col-md-2 btn bg-success">
+                    <i class="fa fa-eye"></i> View Tags
+                </a>
             </div>
             <div class="form-group row">
                 <div class="main-container">
-                    <textarea asp-for="TemplateBody"></textarea>
+                    <textarea asp-for="TemplateBody" id="TemplateBody" name="TemplateBody"></textarea>
+                    <span asp-validation-for="TemplateBody" class="text-danger"></span>
                 </div>
             </div>
             <div class="form-group row">
@@ -75,46 +64,11 @@
 
     <div class="form-group justify-content-between" style="margin-bottom: 0px !important">
         <button type="submit" class="btn btn-success">@ViewBag.BtText</button>
-        <input type="button" class="btn btn-default close-button" id="btnReset" value="Reset" data-dismiss="modal"></button>
+        <input type="button" value="Cancel" class="btn btn-default btn-cancel" data-url="/admin/templatebuilder" />
     </div>
 </form>
 @section Scripts
 {
-    <script src="~/assets/ckeditor/ckeditor.js"></script>
-    <script>
-            $(document).ready(function(){
-                CKEDITOR.replace('TemplateBody');
-                        $("#btnReset").on('click', function () {
-                        CKEDITOR.instances['TemplateBody'].setData();
-                    $("#TemplateName").val('');
-                });
-            });
-
-            $(document).ready(function() {
-            $('#frmTemplateBuilder').submit(function(event) {
-                debugger;
-                event.preventDefault();
-            var url = $("#frmTemplateBuilder").attr("action");
-            var data = $("#frmTemplateBuilder").serialize();
-                $.ajax({
-                    type: 'POST',
-                    //url: '/Admin/TemplateBuilder/OnPostCreateOrEdit?id=' + id, // Adjust the URL accordingly
-                    url:url,
-                    data: data,
-         contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-
-                    success: function(response) {
-                        if (response.success) {
-                            Swal.fire('Success', response.message, 'success');
-                        } else {
-                            Swal.fire('Error', response.message, 'error');
-                        }
-                    },
-                    error: function() {
-                        Swal.fire('Error', 'An unexpected error occurred.', 'error');
-                    }
-                });
-            });
-        });
-    </script>
+    <script src="~/lib/tinymce/tinymce.min.js"></script>
+    <script src="~/js/App/TemplateGenerateForm.js"></script>    
 }

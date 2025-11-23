@@ -4,6 +4,8 @@ using CourtApp.Application.Features.Typeofcasess.Query;
 using CourtApp.Application.Features.CourtType.Command;
 using CourtApp.Application.Features.CourtType.Query;
 using CourtApp.Web.Areas.LawyerDiary.Models;
+using CourtApp.Web.Models;
+using CourtApp.Application.DTOs.Common;
 
 namespace CourtApp.Web.Areas.LawyerDiary.Mappings
 {
@@ -16,6 +18,8 @@ namespace CourtApp.Web.Areas.LawyerDiary.Mappings
             CreateMap<CreateCourtTypeCommand, CourtTypeViewModel>().ReverseMap();
             CreateMap<UpdateCourtTypeCommand, CourtTypeViewModel>().ReverseMap();
             CreateMap<DeleteCourtTypeCommand, CourtTypeViewModel>().ReverseMap();
+
+            CreateMap<LanguageViewModel, LangDto>().ReverseMap();
         }
     }
 }

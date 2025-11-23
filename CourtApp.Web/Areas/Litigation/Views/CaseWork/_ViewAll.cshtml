@@ -2,7 +2,7 @@
 
 <div class="card">
     <div id="viewAll" class="card-body table-responsive">
-        <form asp-controller="CaseWork" method="post" asp-action="Update"  class="d-inline">
+        <form asp-controller="CaseWork" method="post" asp-action="Update" class="d-inline">
             <table class="table table-striped" id="tblPendingWork">
                 <thead>
                     <tr>
@@ -11,6 +11,9 @@
                         </th>
                         <th>
                             @localizer["Case Description"]
+                        </th>
+                        <th>
+                            @localizer["Last Proceeding Date"]
                         </th>
                         <th>
                             @localizer["Last Date of Work"]
@@ -47,6 +50,9 @@
                                         </tr>
                                     }
                                 </table>
+                            </td>
+                            <td>
+                                @Model.PendingWork[i].ProceedingDate.ToString("dd/MM/yyyy")
                             </td>
                             <td>
                                 @Model.PendingWork[i].WorkDate.ToString("dd/MM/yyyy")

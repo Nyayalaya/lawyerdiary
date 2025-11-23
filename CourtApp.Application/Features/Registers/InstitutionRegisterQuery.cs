@@ -47,11 +47,13 @@ namespace CourtApp.Application.Features.Registers
                                from ac in caseAssignments.DefaultIfEmpty()
                                where request.LinkedIds.Contains(c.CreatedBy)
                                || request.LinkedIds.Contains(ac.LawyerId.ToString())
+                               let asignedOrSelf = ac != null && request.LinkedIds.Contains(ac.LawyerId.ToString()) ? "Assigned" : "Self"
+                               let isCaseAssigned = asignedOrSelf == "Self" && ac != null && ac.CaseId == c.Id
                                select new InstitutionResponse
                                {
                                    Id = c.Id,
-                                   Reference = ac != null && request.LinkedIds.Contains(ac.LawyerId.ToString()) ? "Assigned" : "Self",
-                                   //Reference = ac != null && ac.LawyerId == Guid.Parse(request.UserId) ? "Assigned" : "Self",
+                                   Reference = asignedOrSelf,
+                                   IsCaseAssigned = isCaseAssigned,
                                    CaseType = c.CaseType.Name_En,
                                    No = c.CaseNo,
                                    Year = c.CaseYear.ToString(),

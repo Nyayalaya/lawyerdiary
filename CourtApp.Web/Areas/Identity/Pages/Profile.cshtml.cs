@@ -23,6 +23,7 @@ namespace CourtApp.Web.Areas.Identity.Pages
         public List<string> Roles { get; set; }
         public bool IsSuperAdmin { get; set; }
         public string Mobile { get; set; }
+        public string Phone { get; set; }
         public string Email { get; set; }
         public LaywerViewModel LaywerInfo { get; set; }
 
@@ -38,9 +39,9 @@ namespace CourtApp.Web.Areas.Identity.Pages
         public async Task OnGetAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            var usrdt = _identityContext.Lawyers
-                .Where(w => w.Id.Equals(user.Id))
-                .FirstOrDefault();
+            //var usrdt = _identityContext.Lawyers
+            //    .Where(w => w.Id.Equals(user.Id))
+            //    .FirstOrDefault();
             if (user != null)
             {
                 var roles = await _userManager.GetRolesAsync(user);
@@ -54,18 +55,24 @@ namespace CourtApp.Web.Areas.Identity.Pages
                 Email = user.Email;
                 IsSuperAdmin = roles.Contains("SuperAdmin");
                 Roles = roles.ToList();
+                Phone = user.PhoneNumber;
                 LaywerInfo = new LaywerViewModel()
                 {
                     ProfInfo = new ProfessionalInfoViewModel
                     {
-                        EnrollmentNo = usrdt != null ? usrdt.ProfessionalInfo.EnrollmentNo : "",
-                        PracticeSince = usrdt != null ? usrdt.ProfessionalInfo.PracticeSince.ToString() : "",
+                        EnrollmentNo = user != null && user.ProfessionalInfo!=null? user.ProfessionalInfo.EnrollmentNo : "",
+                        BarAssociationNumber = user != null && user.ProfessionalInfo != null ? user.ProfessionalInfo.BarAssociationNumber : "",
+                        PracticeLicenseDate= user != null && user.ProfessionalInfo != null ? user.ProfessionalInfo.PracticeLicenseDate : System.DateTime.Now,
+                        PracticeSince = user != null && user.ProfessionalInfo != null ? user.ProfessionalInfo.PracticeSince.ToString() : "",
                     },
                     AddressInfo = new AddressInfoViewModel()
                     {
-
+                        StreetAddress = user != null&& user.AddressInfo!=null ? user.AddressInfo.StreetAddress : ""
                     },
-                    WorkLocInfo = new WorkInfoViewModel() { }
+                    WorkLocInfo = new WorkInfoViewModel()
+                    {
+                        Address = user != null && user.WorkLocInfo !=null? user.WorkLocInfo.Address : ""
+                    }
                 };
             }
         }

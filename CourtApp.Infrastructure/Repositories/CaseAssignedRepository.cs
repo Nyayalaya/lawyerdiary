@@ -2,6 +2,7 @@
 using CourtApp.Domain.Entities.CaseDetails;
 using Microsoft.Extensions.Caching.Distributed;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -18,9 +19,9 @@ namespace CourtApp.Infrastructure.Repositories
         }
         public IQueryable<AssignCaseEntity> Entities => _repository.Entities;
 
-        public async Task DeleteAsync(AssignCaseEntity entity)
+        public async Task DeleteRangeAsync(List<AssignCaseEntity> entity)
         {
-            await _repository.DeleteAsync(entity);
+            await _repository.DeleteRangeAsync(entity);
         }
 
         public async Task<Guid> InsertAsync(AssignCaseEntity entity)

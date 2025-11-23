@@ -11,6 +11,7 @@ namespace CourtApp.Application.DTOs.Case
         public string CaseNumber { get; set; }
         public string CaseYear { get; set; }
         public DateTime NextHearingDate { get; set; }
+        public DateTime ProceedingDate { get; set; }
         public string CaseStage { get; set; }
         public string FTitleType { get; set; }
         public string FirstTitle { get; set; }
@@ -21,5 +22,8 @@ namespace CourtApp.Application.DTOs.Case
         public string Abbreviation { get; set; }
         public bool IsProceedingDone { get; set; }
         public string Reference { get; set; }
+        public bool IsCaseAssigned { get; set; }
+        public Guid LawyerId { get; set; }
+        public bool HasChild { get; set; }
     }
 }

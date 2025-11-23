@@ -13,5 +13,6 @@ namespace CourtApp.Web.Areas.Report.Models
         public string Year { get; set; }
         public string FirstTitle { get; set; }
         public string SecondTitle { get; set; }
+        public string Reference { get; set; }
     }
 }

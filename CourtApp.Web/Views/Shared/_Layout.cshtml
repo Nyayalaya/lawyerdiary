@@ -1,4 +1,4 @@
-﻿@using CourtApp.Web.Views.Shared.Components.Footer;
+﻿@* @using CourtApp.Web.Views.Shared.Components.Footer;
 @using CourtApp.Web.Views.Shared.Components.Title;
 @using CourtApp.Web.Views.Shared.Components.Sidebar;
 @using CourtApp.Web.Views.Shared.Components.Header;
@@ -35,13 +35,80 @@
         @(await Component.InvokeAsync<LogoutViewComponent>())
         @(await Component.InvokeAsync<FormModalViewComponent>())
         @(await Component.InvokeAsync<ImageModalViewComponent>())
-        @*<partial name="AdminLTE/_LogoutModal" />
-            <partial name="AdminLTE/Modals/_FormModal" />
-            <partial name="AdminLTE/_ImageModal" />*@
+       
     </div>
     <partial name="_Scripts" />
     <partial name="_ValidationScriptsPartial" />
     @await Component.InvokeAsync("Notyf")
     @RenderSection("Scripts", required: false)
+</body>
+</html> *@
+
+@using CourtApp.Web.Views.Shared.Components.Footer
+@using CourtApp.Web.Views.Shared.Components.Title
+@using CourtApp.Web.Views.Shared.Components.Sidebar
+@using CourtApp.Web.Views.Shared.Components.Header
+@using CourtApp.Web.Views.Shared.Components.Logout
+@using CourtApp.Web.Views.Shared.Components.FormModal
+@using CourtApp.Web.Views.Shared.Components.ImageModal
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <meta name="theme-color" content="#0d6efd" />
+    <title>Lawyer Diary </title>
+
+    <partial name="_Styles" />
+
+</head>
+
+<body class="hold-transition sidebar-mini layout-fixed">
+    <!-- Page Loader -->
+    <div id="loader-wrapper" style="display: none;">
+        <div id="loader"></div>
+    </div>
+
+    <div class="wrapper">
+        <!-- Header -->
+        @(await Component.InvokeAsync<HeaderViewComponent>())
+
+        <!-- Sidebar -->
+        @(await Component.InvokeAsync<SidebarViewComponent>())
+
+        <!-- Main Content -->
+        <div class="content-wrapper" id="contentWrapper">
+            <div class="content">
+                <div class="container-fluid">
+                    @(await Component.InvokeAsync<TitleViewComponent>())
+                    @RenderBody()
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer & Modals -->
+        @(await Component.InvokeAsync<FooterViewComponent>())
+        @(await Component.InvokeAsync<LogoutViewComponent>())
+        @(await Component.InvokeAsync<FormModalViewComponent>())
+        @(await Component.InvokeAsync<ImageModalViewComponent>())
+    </div>
+
+    <!-- Scripts -->
+    <partial name="_Scripts" />
+    <partial name="_ValidationScriptsPartial" />
+    @await Component.InvokeAsync("Notyf")
+    @RenderSection("Scripts", required: false)
+    <script>
+        $(document).on('click', '.btn-cancel', function () {
+            let url = $(this).attr('data-url');
+            if (url) {
+                window.location.href = url;
+            } else {
+                window.history.back();
+            }
+        });
+    </script>
 </body>
 </html>

@@ -2,6 +2,37 @@
     ViewData["Title"] = localizer["Institution Register"];
     ViewData["Caption"] = localizer["User's Institution Register"];
 }
+<style>
+    #tblRegister_wrapper .row {
+        align-items: center;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+    }
+
+    #tblRegister_wrapper .col-sm-2 {
+        margin-right: 15px;
+        margin-bottom: 10px;
+    }
+
+    #tblRegister_wrapper .col-sm-3 {
+        margin-right: 15px;
+        margin-bottom: 10px;
+    }
+
+    #tblRegister_wrapper .form-check {
+        margin-right: 10px;
+    }
+
+    #tblRegister_wrapper .customFilter {
+        width: 100%;
+    }
+
+    #tblRegister_wrapper .dataTables_filter {
+        width: 100%;
+        margin-left: 10px;
+    }
+
+</style>
 @model InstitutionRegisterViewMode
 <div class="card">
     <div id="viewAll" class="card-body table-responsive">

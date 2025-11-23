@@ -2,7 +2,7 @@
 {
     public class ApplicantDetailViewModel
     {
-        public int ApplicantNo { get; set; }
+        public string ApplicantNo { get; set; }
         public string ApplicantDetail { get; set; }
     }
 }

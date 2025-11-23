@@ -28,9 +28,9 @@ namespace CourtApp.Application.Features.FormPrint
 
         public async Task<Result<List<ShowCauseNoticeResponse>>> Handle(GetShowCauseNoticeQuery request, CancellationToken cancellationToken)
         {
-            List<int> Titles = new List<int>();
+            List<string> Titles = new List<string>();
             if (request.ApplicantNo != null)
-                Titles = request.ApplicantNo.Split(',').Select(int.Parse).ToList();
+                Titles = request.ApplicantNo.Split(',').ToList();
             var query = _CaseRepo.Entites
                 .Include(c => c.CaseCategory)
                 .Include(t => t.Titles.Where(t => t.TypeId == 2))

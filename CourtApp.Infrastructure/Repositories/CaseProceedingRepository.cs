@@ -55,6 +55,7 @@ namespace CourtApp.Infrastructure.Repositories
             {
                 var data = await _repository
                     .Entities
+                    .Include(c=>c.Case)
                     .Include(t => t.ProcWork)
                     .ThenInclude(s => s.Works)
                     .Where(w => w.CaseId == CaseId && w.ProceedingDate.Value.Date == SelDate.Value.Date)
@@ -65,6 +66,7 @@ namespace CourtApp.Infrastructure.Repositories
             {
                 var data = await _repository
                         .Entities
+                        .Include(c => c.Case)
                         .Include(t => t.ProcWork)
                         .ThenInclude(s => s.Works)
                         .Where(w => w.CaseId == CaseId)
@@ -99,7 +101,7 @@ namespace CourtApp.Infrastructure.Repositories
 
         public async Task<List<CaseProcedingEntity>> GetProceedingByCaseIdAsync(Guid CaseId)
         {
-            var data = await _repository.Entities
+            var data = await _repository.Entities.Where(w=>w.CaseId==CaseId)
                 .Include(w => w.Head)
                 .Include(w => w.SubHead)
                 .Include(w => w.Stage)
@@ -121,6 +123,12 @@ namespace CourtApp.Infrastructure.Repositories
             await _repository.UpdateAsync(Entity);
             await _distributedCache.RemoveAsync(AppCacheKeys.ProcHeadKey);
 
+        }
+
+        public async Task UpdateRangeAsync(List<CaseProcedingEntity> Entities)
+        {
+            await _repository.UpdateRangeAsync(Entities);
+            await _distributedCache.RemoveAsync(AppCacheKeys.ProcHeadKey);
         }
     }
 }

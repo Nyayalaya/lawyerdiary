@@ -1,0 +1,94 @@
+﻿@model CourtFormAddUpdateViewModel
+@using CourtApp.Web.Views.Shared.Components.Culture
+@inject IHtmlLocalizer<SharedResource> localizer
+<div class="card shadow">
+    <div class="card-header">
+        <h5 class="mb-0 text-primary">@localizer["Manage court form template"]</h5>
+    </div>
+    <div class="card-body pt-3">
+        <form id="CourtFormTemplate" method="post" asp-controller="CourtForm"
+              asp-action="OnPostCreateOrEdit"
+              asp-route-Id="@Model.Id">
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Court Type</label>
+                    <select class="form-control select2bs4" asp-for="CourtTypeId" asp-items="@Model.CourtTypes">
+                        <option></option>
+                    </select>
+                    <span asp-validation-for="CourtTypeId" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">State</label>
+                    <select class="form-control select2bs4" asp-for="StateId" asp-items="@Model.States">
+                        <option></option>
+                    </select>
+                    <span asp-validation-for="StateId" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Case Category</label>
+                    <select class="form-control select2bs4" asp-for="CaseCategoryId" asp-items="@Model.CaseCategory">
+                        <option></option>
+                        <option value="00000000-0000-0000-0000-000000000000">All</option>
+                    </select>
+                    <span asp-validation-for="CaseCategoryId" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Case Type</label>
+                    <select class="form-control select2bs4" asp-for="CaseTypeId" asp-items="@Model.CaseTypes">
+                        <option></option>
+                        <option value="00000000-0000-0000-0000-000000000000">All</option>
+                    </select>
+                    <span asp-validation-for="CaseTypeId" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Form Language</label>
+                    <select class="form-control select2bs4" asp-for="LanguageCode" asp-items="@Model.Languages">
+                        <option></option>
+                    </select>
+                    <span asp-validation-for="LanguageCode" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">@localizer["Form Name"]</label>
+                    <input type="text" class="form-control" asp-for="FormName" placeholder="Please enter template name" />
+                    <span asp-validation-for="FormName" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">@localizer["Form Body Detail"]</label>
+                <a href="/lawyerdiary/courtform/ViewTag" target="_blank" class="btn bg-success">
+                    <i class="fa fa-eye"></i> View Tags
+                </a>
+                
+                <textarea asp-for="FormTemplate" id="FormTemplate" name="FormTemplate"></textarea>
+                <span asp-validation-for="FormTemplate" class="text-danger"></span>
+            </div>
+            <!-- Tags Modal -->
+            
+            <div class="text-end">
+                <button type="submit" class="btn btn-success me-2">
+                    <i class="fas fa-save"></i> @localizer["Save"]
+                </button>
+                <button type="button" class="btn btn-secondary close-button" data-dismiss="modal">
+                    <i class="fas fa-times"></i> @localizer["Cancel"]
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@section Scripts
+{
+    <script src="~/lib/tinymce/tinymce.min.js"></script>
+    <script src="~/js/App/CourtForms.js"></script>
+}
+
+

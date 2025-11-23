@@ -4,7 +4,7 @@
         <tr>
             <th>Sr.</th>
             <th>Title</th>
-            <th>Drafting Form</th>
+           
             <th>Linked Template</th>
             <th>Actions</th>
         </tr>
@@ -20,16 +20,13 @@
                     @(++count)
                 </td>
                 <td>
-                    @bt.CaseTitle
+                    @bt.CaseTitle.ToUpper()
                 </td>
-                <td>
-                    @bt.DraftingForm
-                </td>
+               
                 <td>
                     @bt.TemplateName
                 </td>
-                @if ((AuthorizationService.AuthorizeAsync(User, Permissions.CaseDrafting.Delete)).Result.Succeeded || (AuthorizationService.AuthorizeAsync(User, Permissions.CaseDrafting.Edit)).Result.Succeeded)
-                {
+               
                     <td>
                         <a asp-area="Litigation" asp-controller="Drafting" asp-action="Petition" asp-route-id="@bt.Id" title="Edit Drafting">
                             <i class="fa fa-pencil-square-o"></i></a>
@@ -40,7 +37,7 @@
                         </a>
                         
                     </td>
-                }
+             
             </tr>
         }
     </tbody>
@@ -49,7 +46,5 @@
     $(document).ready(function () {
         JqueryDataTable('tblFormCaseMappingDt','Case Drafting Data','0,1,2,3');
     });
-    // $(document).ready(function () {
-    //     $("#tblFormCaseMappingDt").DataTable();
-    // });
+
 </script>

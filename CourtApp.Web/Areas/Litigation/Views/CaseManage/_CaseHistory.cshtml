@@ -26,6 +26,8 @@
         opacity: 1 !important;
     }
 </style>
+
+
 <div class="card">
     <div id="viewAll" class="card-body table-responsive">
         <form asp-controller="Hearing" method="post" asp-action="UpdateCaseDate" class="d-inline">
@@ -63,17 +65,20 @@
                     <tbody>
                         @for (int i = 0; i < Model.Docs.Count(); i++)
                         {
-                            <tr style="border: 1px solid #ddd; background-color: aqua;">
+                            <tr style="border: 1px solid #ddd;">
                                 <td style="border: 1px solid #ddd; padding: 8px;">@(i + 1)</td>
                                 <td style="border: 1px solid #ddd; padding: 8px;">@Model.Docs[i].DocType </td>
                                 <td style="border: 1px solid #ddd; padding: 8px;">@Model.Docs[i].DocDate</td>
                                 <td style="border: 1px solid #ddd; padding: 8px;">@Model.Docs[i].DocName</td>
                                 <td style="border: 1px solid #ddd; padding: 8px;">
-                                    <p>
-                                        <a href="~/@Model.Docs[i].DocFilePath" target="_blank">
-                                            <i class="fa fa-file-pdf" aria-hidden="true"></i>
-                                        </a>
-                                    </p>
+                                    @{
+                                        var downloadLink = $"https://drive.google.com/uc?export=download&id={Model.Docs[i].DocFilePath}";
+                                    }
+                                    <a href="@downloadLink" target="_blank" title="Download File">
+                                        <i class="fas fa-file-archive" aria-hidden="true"></i> <!-- FA 6 -->
+
+                                    </a>
+
                                 </td>
                             </tr>
                         }
@@ -122,8 +127,10 @@
                                                     string st = @Model.ProcHis[p].History[i].WorkDetail[j].Works[k].Status;
                                                     string msg = "Work Pending";
                                                     string dt = @Model.ProcHis[p].History[i].WorkDetail[j].Works[k].Date;
+                                                    string appliedOn = @Model.ProcHis[p].History[i].WorkDetail[j].Works[k].AppliedOn;
                                                     if (st != "") msg = st;
                                                     if (dt != null) msg += " on " + dt;
+                                                    if (!string.IsNullOrEmpty(appliedOn)) msg += " | Applied on " + appliedOn;                                                    
                                                 }
                                                 <td colspan="1" style="border: 1px solid #ddd; padding: 8px;">Last Working Date - @Model.ProcHis[p].History[i].WorkDetail[j].WorkingDate | @msg </td>
                                             </tr>

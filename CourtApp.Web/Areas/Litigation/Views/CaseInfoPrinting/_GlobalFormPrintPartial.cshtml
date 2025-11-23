@@ -1,0 +1,49 @@
+﻿@model List<string>
+
+<style>
+    /* A4 Page Layout */
+    .a4-page {
+        width: 210mm;
+        min-height: 297mm;
+        /* padding: 20mm; */
+        margin: 0 auto;
+       /*  box-sizing: border-box;
+        background: white;
+        border: 1px solid #ccc; */
+        page-break-after: always;
+    }
+
+    .page-break {
+        display: none;
+    }
+
+    @@media print {
+        body, html {
+            margin: 0;
+            padding: 0;
+        }
+
+      
+
+        .page-break {
+            display: block;
+            page-break-before: always;
+        }
+    }
+</style>
+
+
+<div id="printableArea">
+    @for (int i = 0; i < Model.Count; i++)
+    {
+        <div  class="a4-size">
+            @Html.Raw(Model[i])
+        </div>
+
+        @* Extra fallback break for PDF tools that require explicit breaks *@
+        @if (i < Model.Count - 1)
+        {
+            <div class="page-break"></div>
+        }
+    }
+</div>

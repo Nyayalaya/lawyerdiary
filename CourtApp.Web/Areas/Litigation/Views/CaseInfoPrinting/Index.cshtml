@@ -1,178 +1,75 @@
 ﻿@{
-    ViewData["Title"] = localizer["Generate Case Forms"];
+    ViewData["Title"] = localizer["Form Print"];
 }
-<style>
-    /* Force each form to start on a new page */
-    .form-section {
-        page-break-after: always;
-    }
-    .card {
-        width: 100%;
-    }
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-multiselect@1.1.1/dist/css/bootstrap-multiselect.css">
 
-    .card-header {
-        font-weight: bold;
-    }
-
-    .a4-size {
-        width: 210mm;
-        height: 297mm;
-    }
-
-    body {
-        /* 	font-family: 'Ubuntu', sans-serif; */
-        font-weight: bold;
-    }
-
-    /* .select2-container {
-                                            min-width: 400px;
-                                        } */
-
-    .select2-results__option {
-        padding-right: 20px;
-        vertical-align: middle;
-    }
-
-        .select2-results__option:before {
-            content: "";
-            display: inline-block;
-            position: relative;
-            height: 20px;
-            width: 20px;
-            border: 2px solid #e9e9e9;
-            border-radius: 4px;
-            background-color: #fff;
-            margin-right: 20px;
-            vertical-align: middle;
-        }
-
-        .select2-results__option[aria-selected=true]:before {
-            font-family: fontAwesome;
-            content: "\f00c";
-            color: #fff;
-            background-color: #f77750;
-            border: 0;
-            display: inline-block;
-            padding-left: 3px;
-        }
-
-    .select2-container--default .select2-results__option[aria-selected=true] {
-        background-color: #fff;
-    }
-
-    .select2-container--default .select2-results__option--highlighted[aria-selected] {
-        background-color: #eaeaeb;
-        color: #272727;
-    }
-
-    .select2-container--default .select2-selection--multiple {
-        margin-bottom: 10px;
-    }
-
-    .select2-container--default.select2-container--open.select2-container--below .select2-selection--multiple {
-        border-radius: 4px;
-    }
-
-    .select2-container--default.select2-container--focus .select2-selection--multiple {
-        border-color: #f77750;
-        border-width: 2px;
-    }
-
-    .select2-container--default .select2-selection--multiple {
-        border-width: 2px;
-    }
-
-    .select2-container--open .select2-dropdown--below {
-        border-radius: 6px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    }
-
-    .select2-selection .select2-selection--multiple:after {
-        content: 'hhghgh';
-    }
-    /* select with icons badges single*/
-    .select-icon .select2-selection__placeholder .badge {
-        display: none;
-    }
-
-    .select-icon .placeholder {
-        /* 	display: none; */
-    }
-
-    .select-icon .select2-results__option:before,
-    .select-icon .select2-results__option[aria-selected=true]:before {
-        display: none !important;
-        /* content: "" !important; */
-    }
-
-    .select-icon .select2-search--dropdown {
-        display: none;
-    }
-
-    .applicant-number {
-        float: right;
-        border: 1px solid black;
-        height: 30px;
-        width: 30px;
-        text-align: center;
-    }
-
-    
-</style>
 @model FmpViewModel
-<section class="bg-light pt-5 pb-5 shadow-sm">
-    <div class="container">
-        <!-- Filter Section -->
-        <div class="row mb-3">
-            <div class="col-lg-3">
-                <label class="global-font">Select Cases (<span style="color:red">*</span>)</label>
-                <select class="form-control select2bs4" asp-for="@Model.CaseIds"
-                        asp-items="@Model.Cases" multiple>
-                    <option></option>
-                </select>
-            </div>
-            <div class="col-lg-3">
-                <label class="global-font">Select Title</label>
-                <select class="form-control select2bs4" asp-for="@Model.TitleIds" asp-items="@Model.Titles">
-                    <option></option>
-                </select>
-            </div>
-            <div class="col-lg-3">
-                <label class="global-font">Select Form Type (<span style="color:red">*</span>)</label>
-                <select class="form-control select2bs4" asp-for="@Model.FormTypeId" asp-items="@Model.FormTypes">
-                    <option></option>
-                </select>
-            </div>
-
-
-            <div class="col-lg-3 d-flex align-items-end">
-                <a id="btnSearch" class="btn bg-success mr-2">
-                    <i class="fa fa-search"></i> Generate
-                </a>
-                <a id="reload" class="btn btn-primary text-white">
-                    <i class="fa fas fa-reset"></i> Reset
-                </a>
-            </div>
+<div class="card shadow">
+    <!-- Search Panel -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header">
+            <h6 class="mb-0 text-primary">@localizer["Search Detail for generating the form"]</h6>
         </div>
+        <div class="card-body pt-3">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Select Case <span class="text-danger">*</span></label>
+                    <select class="form-control" multiple asp-for="CaseIds"
+                            data-placeholder="Select Cases"
+                            asp-items="@Model.Cases">
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Select Title</label>
+                    <select class="form-control" asp-for="TitleIds" multiple
+                            data-placeholder="Select Titles"
+                            asp-items="@Model.Titles">
+                    </select>
+                </div>
 
-        <!-- Output Section -->
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h3 class="mb-0" id="lblHeader"></h3>
-                        <a href="#" id="btnPrint" class="btn btn-primary">Print</a>
-                    </div>
+                <div class="col-md-3">
+                    <label class="form-label">Select Form Type <span class="text-danger">*</span></label>
+                    <select class="form-control select2bs4"  asp-for="FormTypeId" 
+                    asp-items=@Model.FormTypes>
+                        <option value="">-- Select --</option>
+                    </select>
+                </div>
 
-                    <div class="card-body">
-                        <div id="viewAll" class="table-responsive"></div>
+
+                <div class="col-md-3 d-flex align-items-end justify-content-end">
+                    <div class="d-flex w-100 gap-2">
+                        <a id="btnSearch" class="btn btn-success">
+                            <i class="fa fa-search"></i> Generate
+                        </a> &nbsp;
+                        <a id="reload" class="btn btn-primary">
+                            <i class="fa fa-undo"></i> Reset
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</section>
+
+    <!-- Output Section -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h4 class="mb-0 text-primary" id="lblHeader">Output Section</h4>
+            <a href="#" id="btnPrint" class="btn btn-outline-primary">
+                <i class="fa fa-print"></i> Print
+            </a>
+        </div>
+        <div class="card-body">
+            <div id="viewAll" class="table-responsive">
+                <!-- Table or dynamic content here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+
 @section Scripts
 {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-multiselect@1.1.1/dist/js/bootstrap-multiselect.min.js"></script>
+
     <script src="~/js/formprint.js"></script>
 }

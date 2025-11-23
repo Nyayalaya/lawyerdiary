@@ -19,7 +19,7 @@ namespace CourtApp.Domain.Entities.CaseDetails
     
     public class CaseApplicantDetailEntity
     {
-        public int ApplicantNo { get; set; }
+        public string ApplicantNo { get; set; }
         public string ApplicantDetail { get; set; }
     }
 }

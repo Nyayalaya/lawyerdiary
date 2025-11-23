@@ -2,6 +2,7 @@
 using CourtApp.Infrastructure.DbContexts;
 using CourtApp.Infrastructure.Identity.Models;
 using CourtApp.Web.Abstractions;
+using CourtApp.Web.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -123,14 +124,19 @@ namespace CourtApp.Web.Areas.Identity.Pages.Account
             if (result.Succeeded)
             {
                 _logger.LogInformation("User logged in.");
-                _notyf.Success($"Logged in as {userName}.");
+                _notyf.Success($"Logged in as {user.UserName}.");
 
+                // Get user roles and normalize
                 var userRoleNames = await _userManager.GetRolesAsync(user);
-                var normalizedUserRoles = userRoleNames.Select(r => r.ToUpper()).ToList();
+                var normalizedUserRoles = userRoleNames.Select(r => r.ToUpperInvariant()).ToList();
 
-                var existingClaims = await _userManager.GetClaimsAsync(user);
+                // Fetch existing claims (excluding role claims to avoid duplicates)
+                var existingClaims = (await _userManager.GetClaimsAsync(user))
+                    .Where(c => c.Type != ClaimTypes.Role)
+                    .ToList();
 
-                List<Guid> linkedIds = new();
+                // Resolve linked lawyer IDs based on role
+                List<Guid> linkedIds;
                 Guid userIdGuid = Guid.Parse(user.Id);
 
                 if (normalizedUserRoles.Contains("LAWYER"))
@@ -140,7 +146,7 @@ namespace CourtApp.Web.Areas.Identity.Pages.Account
                         .Select(s => s.Id)
                         .ToListAsync();
                 }
-                else //if (normalizedUserRoles.Contains("ASSOCIATE") || normalizedUserRoles.Contains("CLERK"))
+                else
                 {
                     linkedIds = await _identityDbContext.LawyerUsers
                         .Where(w => w.Id == userIdGuid)
@@ -148,23 +154,46 @@ namespace CourtApp.Web.Areas.Identity.Pages.Account
                         .ToListAsync();
                 }
 
-                linkedIds.Add(userIdGuid);
-                string lawyerIdsCsv = string.Join(",", linkedIds);
-                string userRoles = string.Join(",", normalizedUserRoles);
-                var allClaims = new List<Claim>(existingClaims)
+                linkedIds.Add(userIdGuid); // Add self
+                string lawyerIdsCsv = string.Join(",", linkedIds.Distinct()); // Avoid duplicates
+
+                // Build new claims list
+                var newClaims = new List<Claim>
                                 {
-                                    new Claim(ClaimTypes.NameIdentifier, user.Id),
-                                    new Claim(ClaimTypes.Name, user.UserName),
-                                    new Claim("LinkedIds", lawyerIdsCsv),
-                                    new Claim("Roles", userRoles)
+                                    new Claim(AppClaimType.NameIdentifier, user.Id),
+                                    new Claim(AppClaimType.Name, user.UserName),
+                                    new Claim(AppClaimType.GivenName, user.FirstName),
+                                    new Claim(AppClaimType.Surname, user.LastName),
+                                    new Claim(AppClaimType.Email,user.Email),
+                                    new Claim(AppClaimType.MobilePhone,user.Mobile),
+                                    new Claim(AppClaimType.StreetAddress,user.AddressInfo!=null?user.AddressInfo.StreetAddress:""),
+                                    new Claim(AppClaimType.OfficeAddress,user.WorkLocInfo!=null?user.WorkLocInfo.Address:""),
+                                    new Claim(AppClaimType.EnrollmentNo,user.ProfessionalInfo.EnrollmentNo),
+                                    new Claim(AppClaimType.LinkedIds, lawyerIdsCsv),
                                 };
+                
 
-                await _signInManager.SignOutAsync(); // Ensures a clean sign-in context
+                // Add role claims (one per role)
+                foreach (var role in userRoleNames.Distinct())
+                {
+                    newClaims.Add(new Claim(AppClaimType.Role, role));
+                }
 
-                var identity = new ClaimsIdentity(allClaims, IdentityConstants.ApplicationScheme); // ✅ Use correct scheme
+                // Merge with existing (non-role) claims
+                var allClaims = existingClaims
+                    .Where(c => newClaims.All(nc => nc.Type != c.Type || nc.Value != c.Value)) // avoid exact duplicates
+                    .Concat(newClaims)
+                    .ToList();
+
+                // Sign out existing session
+                await _signInManager.SignOutAsync();
+
+                // Create identity and sign in
+                var identity = new ClaimsIdentity(allClaims, IdentityConstants.ApplicationScheme);
                 var principal = new ClaimsPrincipal(identity);
 
                 await HttpContext.SignInAsync(IdentityConstants.ApplicationScheme, principal);
+
                 return LocalRedirect(returnUrl);
             }
 

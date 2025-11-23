@@ -1,5 +1,4 @@
-﻿using CourtApp.Domain.Entities.LawyerDiary;
-using System;
+﻿using System;
 using System.Collections.Generic;
 namespace CourtApp.Domain.Entities.CaseDetails
 {

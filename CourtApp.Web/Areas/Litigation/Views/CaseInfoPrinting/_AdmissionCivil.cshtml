@@ -1,20 +1,9 @@
 ﻿@model FmpNoticeAdmissionViewModel
-<style>
-    .a4-size {
-        width: 210mm;
-        height: 297mm;
-    }
 
-    #rectangle {
-        width: 10px;
-        height: 10px;
-        border: 1px;
-    }
-</style>
 <div id="printableArea">
     @foreach (var cd in Model.Cases)
     {
-        <div style="width:800px; padding-left:100px;page-break-after: always;" class="a4-size">
+        <div style="page-break-after: always;" class="a4-size">
             <center style="font-size:26px;">
                 No. 6<br />
                 Notice to Respondent of the Day Fixed for <br />
@@ -24,16 +13,16 @@
                 </strong>
                 <br />
             </center>
-            In the Court :- High Court of Jdicature for Rajasthan, Bench at &nbsp;@cd.Bench<br />
+            In the Court :- High Court of Judicature for Rajasthan, Bench at &nbsp;@cd.Bench<br />
             <span style="float:left">Appellant &ensp;<strong>@cd.Applent</strong></span><br />
             <span style="float:right;margin-right:100px;">Respondent &ensp;<strong>@cd.Respondent</strong></span><br />
-            <br /><br />
+            <br />
             &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; Claim for <strong>@cd.CaseType</strong>&ensp; No...<strong>@cd.NoYear</strong> <br />
-            Appeal against the Decision at the Court <i><strong>@cd.AgainstCourt</strong></i><br /><br />
+            Appeal against the Decision at the Court <i><strong>@cd.AgainstCourt</strong></i><br />
             <span style="float:right;;margin-right:100px;">Date: &ensp; @cd.Date</span>
             <br />
             In civil original case No <i><strong>@cd.CivilCaseType @cd.CivilNoYear</strong></i>
-            <br /><br />
+            <br />
             To,
             <div style="float:right; border:1px solid black; height:30px; width:30px; text-align:center;">
                 @cd.TitleNo
@@ -41,18 +30,18 @@
             <br />
             @cd.CompleteTitle
             <br />
-            <br />
+            
             <div style="width:100%; line-height:40px; font-size:16px; text-align:justify">
                 &ensp;&ensp;&ensp;&ensp;&ensp; Take notice that an appeal from the decree of .....................  in this case has been <br />
                 presented by  .....................................and registered in this Court, and the Day .......of 20...... , has been fixed by this Court for the hearing of this Appeal. <br />
                 If no appearance is made on your behalf by yourself, your pleader or by some one by law authorised  to act for in this appeal,
-                it will be hear and decided in your absence. <br /><br /><br />
+                it will be hear and decided in your absence. <br /><br />
                 Given under my hand and the seal of this court this .........................................day of ........................ 20   .<br /><br />
                 <br />
-                <br />
+               
                 <span style="float:left">Seal</span>
                 <span style="float:right;margin-right:50px;">Judge</span>
-                <br /><br />
+                <br />
                 <hr />
                 Note- If a stay of Execution has been ordered, intimation should be given of the fact on this notice.
                 <hr />

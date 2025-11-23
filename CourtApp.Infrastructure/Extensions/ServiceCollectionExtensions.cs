@@ -2,10 +2,12 @@
 using CourtApp.Application.Interfaces.CacheRepositories.FormBuilder;
 using CourtApp.Application.Interfaces.Contexts;
 using CourtApp.Application.Interfaces.Repositories;
+using CourtApp.Application.Interfaces.Repositories.Accounting;
 using CourtApp.Application.Interfaces.Repositories.FormBuilder;
 using CourtApp.Infrastructure.CacheRepositories;
 using CourtApp.Infrastructure.DbContexts;
 using CourtApp.Infrastructure.Repositories;
+using CourtApp.Infrastructure.Shared.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -16,7 +18,8 @@ namespace CourtApp.Infrastructure.Extensions
     {
         public static void AddPersistenceContexts(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddAutoMapper(Assembly.GetExecutingAssembly());
+            
+            services.AddAutoMapper(cfg => { }, Assembly.GetExecutingAssembly());
             services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
         }
 
@@ -93,7 +96,7 @@ namespace CourtApp.Infrastructure.Extensions
 
             services.AddTransient<ICourtBenchRepository, CourtBenchRepository>();
             services.AddTransient<ICaseAgainstRepository, CaseAgainstRepository>();
-            services.AddTransient<ICaseProceedingRepository, CaseProceedingRepository>();
+            services.AddScoped<ICaseProceedingRepository, CaseProceedingRepository>();
             services.AddTransient<ICaseWorkRepository, CaseWorkRepository>();
             services.AddTransient<IDOTypeCacheRepository, DOTypeCacheRepository>();
             services.AddTransient<IDOTypeRepository, DOTypeRepository>();
@@ -134,7 +137,18 @@ namespace CourtApp.Infrastructure.Extensions
             services.AddTransient<ICaseDraftingRepository, CaseDraftingRepository>();
 
             services.AddTransient<ICaseAssignedRepository, CaseAssignedRepository>();
+            services.AddScoped<ICaseHelperRepository, CaseHelperRepository>();
             #endregion
+
+            #region Language & Court Form Print
+            services.AddTransient<ILanguageRepository, LanguageRepository>();
+            services.AddTransient<ICourtFormTypeRepository, CourtFormTypeRepository>();
+            #endregion
+
+            #region Laywer Billing Detail
+            services.AddTransient<IBillingDetailRepository, BillingDetailRepository>();
+            #endregion
+
         }
     }
 }

@@ -4,7 +4,7 @@
         <tr>
             <th>Sr.</th>
             <th>Template</th>
-           @*  <th>Doc</th> *@
+            @*  <th>Doc</th> *@
             <th>Actions</th>
         </tr>
     </thead>
@@ -21,23 +21,22 @@
                 <td>
                     @bt.TemplateName
                 </td>
-                @* <td>
-                    @{
-                        string path = bt.TemplatePath + bt.TemplateName;
-                    }
-                    <a href="~/@path" target="_blank">
-                        <i class="fa fa-file-pdf" aria-hidden="true"></i>
-                    </a>
-                </td> *@
-                @if ((AuthorizationService.AuthorizeAsync(User, Permissions.TempDesign.Delete)).Result.Succeeded || (AuthorizationService.AuthorizeAsync(User, Permissions.TempDesign.Edit)).Result.Succeeded)
-                {
-                    <td>
-                        <a asp-area="admin" asp-controller="TemplateBuilder" title="Edit the template" asp-action="OnGetCreateOrEdit" asp-route-id="@bt.Id">
-                            <i class="fa fa-pencil-square-o"></i>
-                        </a>
-                        <a title="Map the template dynamic fields" onclick="jQueryModalGet('/Admin/TemplateBuilder/MapFields?id=@bt.Id','Map Form With Template Tags')"><i class="fa fa-map-o"></i></a>                       
-                    </td>
-                }
+                <td text-right">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Action
+                        </button>
+                        <div class="dropdown-menu shadow animated--grow-in">
+                            <a asp-area="admin" asp-controller="TemplateBuilder" title="Edit the template" asp-action="OnGetCreateOrEdit" asp-route-id="@bt.Id" class="dropdown-item" title="View Case Detail">
+                                <i class="fas fa-pencil-alt text-warning"></i> @localizer["Edit"]
+                            </a>
+                            
+                            <form id="form_delete_@bt.Id" asp-area="admin" asp-controller="templatebuilder" method="post" asp-action="OnPostDelete" asp-route-id="@bt.Id" onsubmit="return jQueryModalDelete(this)" class="d-inline">
+                                <a href="javascript:$('#form_delete_@bt.Id').submit();" class="dropdown-item"><i class="fas fa-trash-alt"></i> @localizer["Delete"]</a>
+                            </form>
+                        </div>
+                    </div>
+                </td>
             </tr>
         }
     </tbody>

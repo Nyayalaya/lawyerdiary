@@ -1,0 +1,67 @@
+﻿@page
+@model BillingDetailModel
+@{
+	ViewData["Title"] = "Manage Billing Detail";
+	ViewData["ActivePage"] = ManageNavPages.Billing;
+}
+
+<div class="row">
+	<div class="col-md-12">
+		<div class="card shadow border-0">
+			<div class="card-header bg-light">
+				<h6 class="mb-0 text-primary">@localizer["Manage Billing Detail"]</h6>
+			</div>
+			<div class="card-body pt-3">
+				<partial name="_StatusMessage" model="Model.StatusMessage" />
+
+				<form id="profile-form" method="post" enctype="multipart/form-data">
+					<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+					<div class="row g-3">
+						<div class="col-md-6">
+							<label asp-for="Input.BankName" class="form-label"></label>
+							<input asp-for="Input.BankName" class="form-control" />
+							<span asp-validation-for="Input.BankName" class="text-danger small"></span>
+						</div>
+
+						<div class="col-md-6">
+							<label asp-for="Input.AccountNo" class="form-label"></label>
+							<input asp-for="Input.AccountNo" class="form-control" />
+							<span asp-validation-for="Input.AccountNo" class="text-danger small"></span>
+						</div>
+
+						<div class="col-md-6">
+							<label asp-for="Input.Branch" class="form-label"></label>
+							<input asp-for="Input.Branch" class="form-control" />
+							<span asp-validation-for="Input.Branch" class="text-danger small"></span>
+						</div>
+
+						<div class="col-md-6">
+							<label asp-for="Input.IfscCode" class="form-label"></label>
+							<input asp-for="Input.IfscCode" class="form-control" />
+							<span asp-validation-for="Input.IfscCode" class="text-danger small"></span>
+						</div>
+
+						<div class="col-md-6">
+							<label asp-for="Input.PanNumber" class="form-label"></label>
+							<input asp-for="Input.PanNumber" class="form-control" />
+							<span asp-validation-for="Input.PanNumber" class="text-danger small"></span>
+						</div>
+
+						<div class="col-md-6">
+							<label asp-for="Input.GstNo" class="form-label"></label>
+							<input asp-for="Input.GstNo" class="form-control" />
+							<span asp-validation-for="Input.GstNo" class="text-danger small"></span>
+						</div>
+					</div>
+
+
+					<div class="mt-4">
+						<button id="update-profile-button" type="submit" class="btn btn-success">
+							<i class="fas fa-check me-1"></i> @localizer["Save"]
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>

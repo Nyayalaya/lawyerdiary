@@ -1,13 +1,18 @@
 ﻿@model BringTodayCaseViewModel
-
+<style>
+    .custom-green td {
+        color: green !important;
+        background-color: honeydew !important;
+    }
+</style>
 <div class="card">
     <div id="viewAll" class="card-body table-responsive">
-        <form asp-controller="Hearing" method="post" asp-action="AssignWorkCase"
-              class="d-inline" return=jQueryModalGet(this)>
+        <form asp-controller="Hearing" method="post" asp-action="AssignWorkCase" class="d-inline">
             <div class="row">
                 <div class="col-md-12">
-                    <table id="tblTHearingCaseDetail" class="table table-striped"
-                           width="100%" cellspacing="0">
+                    <div class="mb-3" id="customTableActions">
+                    </div>
+                    <table id="tblTHearingCaseDetail" class="table table-striped" width="100%" cellspacing="0">
                         <thead>
                             <tr>
                                 <th>Sno.</th>
@@ -34,7 +39,7 @@
                                     col = "green";
                                 }
                                 else col = "";
-                                <tr style="color:@col">
+                                <tr class="@(Model.CaseList[i].IsProceedingDone ? "custom-green" : "")">
                                     <td style="width:5%">
                                         <input type="hidden" asp-for="@Model.CaseList[i].Id" />
                                         @(count = count + 1)
@@ -51,6 +56,12 @@
                                     <td style="width:10%">
                                         <input type="hidden" asp-for="@Model.CaseList[i].CaseNumber" />
                                         @Model.CaseList[i].CaseNumber
+                                        <small>
+                                            @if (Model.CaseList[i].HasChild)
+                                            {
+                                                <span class="badge badge-success">@localizer["Parent Case"]</span>
+                                            }
+                                        </small>
                                     </td>
                                     <td style="width:5%">
                                         <input type="hidden" asp-for="@Model.CaseList[i].CaseYear" />
@@ -66,48 +77,21 @@
                                     </td>
                                     <td>
                                         <div class="form-check m-1">
-                                            <input asp-for="@Model.CaseList[i].Selected" class="form-check-input" />
+                                            @if (!Model.CaseList[i].IsProceedingDone && !Model.CaseList[i].HasChild)
+                                            {
+                                                <input asp-for="@Model.CaseList[i].Selected" class="form-check-input" />
+                                            }
                                         </div>
                                     </td>
                                     <td class="text-right">
-                                        <div class="btn-group">
-                                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                Action
-                                            </button>
-                                            <div class="dropdown-menu shadow animated--grow-in">
-                                                <a onclick="jQueryModalGet('/Litigation/casemanage/OnGetCaseHistory?CaseId=@Model.CaseList[i].Id', 'See History')"
-                                                   class="dropdown-item" title="See History"><i class="fa fa-history"></i> Case  History</a>
-
-                                                <a class="dropdown-item" title="Click for case proceeding" onclick="jQueryModalGet('/Litigation/hearing/CaseProceeding?CaseId=@Model.CaseList[i].Id', 'Case Proceeding')"> 
-                                                    <i class="fa fa-plus-square"></i> Case Proceeding</a>
-
-                                                <a onclick="jQueryModalGet('/Litigation/casemanage/GetFileUploadModel?CaseId=@Model.CaseList[i].Id&w=mc&reft=@Model.CaseList[i].Reference', 'Upload Document')"
-                                                   class="dropdown-item" title="Upload Document"><i class="fas fa-file-alt"></i>  Upload Document</a>
-
-                                                <a asp-area="Litigation" asp-controller="casemanage" asp-action="GetCaseDetail"
-                                                   asp-route-id="@Model.CaseList[i].Id" asp-route-reft="@Model.CaseList[i].Reference" class="dropdown-item" title="View Case Detail">
-                                                   <i class="fa fa-eye"></i>  Case Detail</a>
-
-                                                @if ((AuthorizationService.AuthorizeAsync(User, "CasePanel.ManageCase.Delete")).Result.Succeeded && @Model.CaseList[i].Reference.ToLower() != "assigned")
-                                                {
-                                                    <form id="form_delete_@Model.CaseList[i].Id" asp-area="Litigation"
-                                                          asp-controller="casemanage" method="post"
-                                                          asp-action="OnPostDelete" asp-route-id="@Model.CaseList[i].Id" onsubmit="return jQueryModalDelete(this)">
-                                                        <a href="javascript:$('#form_delete_@Model.CaseList[i].Id').submit();" class="dropdown-item"><i class="fas fa-trash-alt"></i>  Delete</a>
-                                                    </form>
-                                                }
-                                                @if (@Model.CaseList[i].Reference.ToLower() == "self")
-                                                {
-                                                    <a onclick="jQueryModalGet('/Litigation/casemanage/OnGetAssignCase?CaseId=@Model.CaseList[i].Id', 'Assigned case to other lawyer')"
-                                                       class="dropdown-item" title="Assigned case to other lawyer"><i class="fa fa-tasks" aria-hidden="true"></i> Assigned Case</a>
-                                                }
-                                            </div>
-                                        </div>
+                                        @{
+                                            var actionModel = new CaseActionViewModel();
+                                            actionModel.CaseId = @Model.CaseList[i].Id;
+                                            actionModel.Reference = @Model.CaseList[i].Reference;
+                                            actionModel.IsCaseAssigned = @Model.CaseList[i].IsCaseAssigned;
+                                        }
+                                        <partial name="_CaseGroupActionPartial" model="@actionModel"></partial>
                                     </td>
-                                    @*  <td style="width:6%">
-                                        <a onclick="jQueryModalGet('/Litigation/casemanage/OnGetCaseHistory?CaseId=@Model.CaseList[i].Id', 'See History')" title="Case History"> <i class="fa fa-history"></i></a>
-                                        <a onclick="jQueryModalGet('/Litigation/hearing/CaseProceeding?CaseId=@Model.CaseList[i].Id', 'Case Proceeding')" title="Add Proceeding/work detail for the case"> <i class="fa fa-plus-square"></i></a> 
-                                    </td> *@
                                 </tr>
                             }
                         </tbody>
@@ -118,48 +102,91 @@
     </div>
 </div>
 <script>
-    $(document).ready(function () {
-        $('#tblTHearingCaseDetail').DataTable({
-            language: {"emptyTable": "There are no pending works!"},
-            dom: 'Bfrtip',// B (buttons), f (filter), t (table), p (pagination)
-            buttons:[
-                    {
-                        extend: 'excelHtml5',
-                        text: 'Export',
-                        title: 'Today Case Hearing',
-                        filename: function () {
-                            var date = new Date();
-                            return 'Today Case Hearing' +"_"+ date.toISOString().split('T')[0];
-                        },
-                        exportOptions: {
-                            columns: [0,1,2,3,4,5,6]
-                        }
-                    },
-                    {
-                        text: 'Update Common Proceeding',
-                        action: function (e, dt, node, config) {
-                                var selectedCaseIds = [];
-                                // Find all checked checkboxes in the table and collect their associated CaseId
-                                $("#tblTHearingCaseDetail tbody input[type='checkbox']:checked").each(function () {
-                                        var caseId = $(this).closest("tr").find("input[type='hidden']").val();
-                                        if (caseId) {
-                                        selectedCaseIds.push(caseId);
-                                        }
-                                });
+        $(document).ready(function () {
 
-                                if (selectedCaseIds.length === 0) {
-                                    Swal.fire("Error!", "Please select at least one case.", "error");
-                                    return;
-                                }
+        var table = $('#tblTHearingCaseDetail').DataTable({
+            paging: true,
+            searching: true,
+            ordering: false,
+            pageLength: 10,
+            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+            language: {
+                emptyTable: "No cases found.",
+                lengthMenu: "Show _MENU_ entries",
+                search: "Search:"
+            }
+        });
 
-                                // Convert selectedCaseIds array to a comma-separated string
-                                var caseIdsString = selectedCaseIds.join(',');
+        // ✅ Persistent storage for selected IDs
+        var selectedCaseIds = new Set();
 
-                                // Call modal with the selected CaseIds
-                                    jQueryModalGet('/Litigation/hearing/BulkProceeding?CaseIds=' + caseIdsString, 'Case Proceedings');
+        // 🔹 Checkbox change event — works for all pages via event delegation
+        $('#tblTHearingCaseDetail').on('change', 'input[type="checkbox"]', function () {
+            var caseId = $(this).closest("tr").find("input[type='hidden'][name*='.Id']").val();
+            if ($(this).is(':checked')) {
+                selectedCaseIds.add(caseId);
+            } else {
+                selectedCaseIds.delete(caseId);
+            }
+        });
 
-                                }
-                    }]
+        // 🔹 Restore checked state when table redraws (pagination/search)
+        table.on('draw', function () {
+            $('#tblTHearingCaseDetail input[type="checkbox"]').each(function () {
+                var caseId = $(this).closest("tr").find("input[type='hidden'][name*='.Id']").val();
+                $(this).prop('checked', selectedCaseIds.has(caseId));
             });
+        });
+
+        // ✅ Function to get all selected IDs
+        function getSelectedCaseIds() {
+            return Array.from(selectedCaseIds);
+        }
+
+        // 🔹 Buttons
+        var bringTodatBtn = $('<button class="btn btn-sm btn-success mr-2"><i class="fa fa-calendar"></i> Bring Today</button>');
+        var exportBtn = $('<button class="btn btn-sm btn-outline-success mr-2">Export to Excel</button>');
+        var updateBtn = $('<button class="btn btn-sm btn-outline-primary">Update Common Proceeding</button>');
+
+        bringTodatBtn.on('click', function (event) {
+            event.preventDefault();
+            jQueryModalGet('/Litigation/hearing/GetCaseHearing', 'Bring Today');
+        });
+
+        exportBtn.on('click', function (event) {
+            event.preventDefault();
+            table.button('.buttons-excel').trigger();
+        });
+
+        updateBtn.on('click', function (event) {
+            event.preventDefault();
+            var ids = getSelectedCaseIds();
+            if (ids.length === 0) {
+                Swal.fire("Error!", "Please select at least one case.", "error");
+                return;
+            }
+            jQueryModalGet('/Litigation/hearing/BulkProceeding?CaseIds=' + ids.join(','), 'Case Proceedings');
+        });
+
+        $('#customTableActions').append(bringTodatBtn, exportBtn, updateBtn);
+
+        new $.fn.dataTable.Buttons(table, {
+            buttons: [
+                {
+                    extend: 'excelHtml5',
+                    title: 'Today Case Hearing',
+                    filename: 'Today_Case_Hearing_' + new Date().toISOString().split('T')[0],
+                    className: 'd-none',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4, 5, 6]
+                    }
+                }
+            ]
+        });
+
+        table.buttons(0, null).container().appendTo(document.body);
     });
+
+
 </script>
+@* <script src="~/js/Litigation/BringToday.js"></script> *@

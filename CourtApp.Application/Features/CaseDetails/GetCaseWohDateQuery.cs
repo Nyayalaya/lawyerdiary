@@ -1,4 +1,5 @@
 ﻿using AspNetCoreHero.Results;
+using CourtApp.Application.DTOs.Case;
 using CourtApp.Application.DTOs.CaseDetails;
 using CourtApp.Application.Extensions;
 using CourtApp.Application.Interfaces.Repositories;
@@ -6,6 +7,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,52 +23,79 @@ namespace CourtApp.Application.Features.CaseDetails
     public class GetCaseWohDateQueryHandler : IRequestHandler<GetCaseWohDateQuery, PaginatedResult<GetCaseInfoDto>>
     {
         private readonly IUserCaseRepository _repository;
-        public GetCaseWohDateQueryHandler(IUserCaseRepository _repository)
+        private readonly ICaseHelperRepository caseHelper;
+        public GetCaseWohDateQueryHandler(IUserCaseRepository _repository, ICaseHelperRepository caseHelper)
         {
             this._repository = _repository;
+            this.caseHelper = caseHelper;
         }
         public async Task<PaginatedResult<GetCaseInfoDto>> Handle(GetCaseWohDateQuery request, CancellationToken cancellationToken)
         {
-            var today = DateTime.Today.Date;
-            var cases = await _repository.Entites
-                        .Include(c => c.CourtType)
-                        .Include(c => c.CaseType)
-                        .Include(c => c.CaseStage)
-                        .Include(c => c.CourtBench)
-                        .Where(c => request.LinkedIds.Contains(c.CreatedBy) && c.DisposalDate == null)
-                        .Select(e => new
-                        {
-                            Case = e,
-                            LatestNextDate = e.CaseProcEntities
-                                                .OrderByDescending(o => o.NextDate.Value)
-                                                .Select(s => (DateTime?)s.NextDate.Value)
-                                                .FirstOrDefault()
-                        })
-                        .Where(x => !x.Case.NextDate.HasValue // if next date is not present.
-                                    || (x.Case.NextDate.HasValue
-                                            && x.LatestNextDate.HasValue
-                                            && x.LatestNextDate.Value > x.Case.NextDate.Value
-                                            ? x.LatestNextDate.Value : x.Case.NextDate.Value) < today
+            // Step 1: Get all case IDs which have child cases
+            var parentCaseIdsWithChildren = new HashSet<Guid>(
+                _repository.Entites.AsNoTracking()
+                    .Where(c => c.LinkedCaseId != null)
+                    .Select(c => c.LinkedCaseId.Value)
+                    .Distinct()
+                    .ToList()
+            );
+            // Step 2: Main query
+            var baseQuery = (from c in _repository.Entites.AsNoTracking().Where(d => d.DisposalDate == null)
+                             where request.LinkedIds.Contains(c.CreatedBy)
+                             let caseLastProceedingDate = c.CaseProcEntities.Any()
+                                 ? c.CaseProcEntities
+                                     .OrderByDescending(d => d.ProceedingDate)
+                                     .Select(s => new { s.ProceedingDate, s.NextDate })
+                                     .FirstOrDefault()
+                                 : null
+                             let prcDate = caseLastProceedingDate != null ? caseLastProceedingDate.ProceedingDate : (DateTime?)null
+                             let nextProcDate = caseLastProceedingDate != null ? caseLastProceedingDate.NextDate : (DateTime?)null
+                             let latestNextDate = (nextProcDate != null && prcDate != null && nextProcDate >= prcDate
+                                 ? nextProcDate
+                                 : prcDate).GetValueOrDefault()
+                             let caseFirstDate = c.NextDate != null ? c.NextDate.Value.ToString("dd/MM/yyyy") : ""
+                             let caseLatestNextDate = (prcDate == null && nextProcDate == null) && c.NextDate != null
+                                 ? caseFirstDate
+                                 : latestNextDate.ToString("dd/MM/yyyy")
+                             // Use HashSet lookup to mark if case has children
+                             let hasChild = parentCaseIdsWithChildren.Contains(c.Id)
+                             select new GetCaseInfoDto
+                             {
+                                 Id = c.Id,
+                                 No = c.CaseNo,
+                                 Year = c.CaseYear.ToString(),
+                                 CourtType = c.CourtType.CourtType.ToString(),
+                                 CaseType = c.CaseType.Name_En,
+                                 Court = c.CourtBench.CourtBench_En.ToUpper(),
+                                 CaseStage = c.CaseStage.CaseStage.ToUpper(),
+                                 DisposalDate = c.DisposalDate,
+                                 CaseDetail = (c.FirstTitle + " V/S " + c.SecondTitle).ToUpper(),
+                                 NextDate = caseLatestNextDate,
+                                 ProceedingDate = prcDate.HasValue ? prcDate.Value.ToString("dd/MM/yyyy") : "",
+                                 IsCaseHavingChild = hasChild
+                             })
+                            .OrderByDescending(o => o.Year)
+                            .AsQueryable();
 
-                              )
-                        .Select(x => new GetCaseInfoDto
-                        {
-                            Id = x.Case.Id,
-                            No = x.Case.CaseNo,
-                            Year = x.Case.CaseYear.ToString(),
-                            CaseType = x.Case.CaseType.Name_En,
-                            Court = x.Case.CourtBench.CourtBench_En,
-                            CaseStage = x.Case.CaseStage.CaseStage,
-                            DisposalDate = x.Case.DisposalDate,
-                            CaseDetail = x.Case.FirstTitle + " V/S " + x.Case.SecondTitle,
-                            NextDate = x.LatestNextDate.HasValue
-                                        ? x.LatestNextDate.Value.ToString()
-                                        : (x.Case.NextDate.HasValue ?
-                                            x.Case.NextDate.Value.ToString() : "")
-                        })
-                        .OrderByDescending(o => o.Year)
-                        .ToPaginatedListAsync(request.PageNumber, request.PageSize);
-            return cases;
+            //this query gives the CaseIds next date greater than current date.
+            var casesIdsGrtToday = baseQuery
+                                    .AsEnumerable()
+                                    .Where(np =>
+                                        !string.IsNullOrEmpty(np.NextDate) &&
+                                        DateTime.TryParseExact(np.NextDate, "dd/MM/yyyy",
+                                                               CultureInfo.InvariantCulture,
+                                                               DateTimeStyles.None, out var parsedDate) &&
+                                        parsedDate > DateTime.Now)
+                                    .Select(s => s.Id)
+                                    .ToList();
+
+            //Exclude those case which has next date today.
+            var finalResult = baseQuery.Where(w => !casesIdsGrtToday.Contains(w.Id));
+
+            int pageSize = request.PageSize == -1 ? baseQuery.Count() : request.PageSize;
+            var pagedResult = await finalResult.ToPaginatedListAsync(request.PageNumber, pageSize);
+            // Step 4: Return updated paged result
+            return pagedResult;
         }
     }
 }

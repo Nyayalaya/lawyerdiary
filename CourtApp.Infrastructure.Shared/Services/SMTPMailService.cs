@@ -25,23 +25,24 @@ namespace CourtApp.Infrastructure.Shared.Services
         {
             try
             {
+                var fromAddress = new MailAddress(_mailSettings.From, _mailSettings.DisplayName);
+                var toAddress = new MailAddress(request.To);
                 var smtpClient = new SmtpClient(_mailSettings.Host)
                 {
+                    Host = _mailSettings.Host,
                     Port = _mailSettings.Port,
+                    EnableSsl = _mailSettings.EnableSsl,
+                    UseDefaultCredentials = false,
                     Credentials = new NetworkCredential(_mailSettings.UserName, _mailSettings.Password),
-                    EnableSsl = true,
                     Timeout = 300000
                 };
-                var mailMessage = new MailMessage
+                using var mailMessage = new MailMessage(fromAddress, toAddress)
                 {
-                    From = new MailAddress(_mailSettings.From),
                     Subject = string.IsNullOrWhiteSpace(request.Subject) ? "" : request.Subject.Trim(),
                     Body = request.Body,
                     IsBodyHtml = true,
                 };
-                mailMessage.To.Add(request.To);
                 await smtpClient.SendMailAsync(mailMessage);
-                smtpClient.Dispose();
             }
             catch (Exception ex)
             {

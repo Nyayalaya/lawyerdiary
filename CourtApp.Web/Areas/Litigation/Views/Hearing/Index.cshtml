@@ -6,11 +6,11 @@
 <div class="card">
     <div class="col-sm-12" style="padding:20px">
         <div class="form-group row">
-            <div class="col-sm-3">
+            @* <div class="col-sm-3">
                 <a id="btnBirngToday" onclick="jQueryModalGet('/Litigation/hearing/GetCaseHearing','Bring Today')" class="btn bg-success">
                     <i class="fa fa-calendar"></i> Bring Today
                 </a>
-            </div>
+            </div>  *@
             <div class="col-sm-3">
                 <input type="date" id="SelData" asp-for="@Model.HearingDate" class="form-control" />
             </div>
@@ -20,10 +20,11 @@
     </div>
 </div>
 @section Scripts
-{
-    <script src="~/js/site.js"></script>
+{    
     <script>
         $(document).ready(function () {
+
+              $("#tblTHearingCaseDetail").DataTable();
             loadData();
             $('#reload').on('click', function () {
                 loadData();

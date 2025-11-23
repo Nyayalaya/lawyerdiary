@@ -1,4 +1,4 @@
-<div class="d-sm-flex align-items-center justify-content-between">
+@* <div class="d-sm-flex align-items-center justify-content-between">
     <h1 class="h3 mb-0 text-gray-800">@ViewBag.Title</h1>
     <a style="display:none" id="hypButton"
        onclick="jQueryModalGet('@ViewBag.Url', '@ViewBag.PopupTitle')"
@@ -20,4 +20,38 @@
     <h6 class="h6 mb-0 text-gray-800">@ViewBag.Caption</h6>
     <h6 class="h6 mb-0 text-red text-bold text-right">@ViewBag.Note</h6>
 </div>
-<p></p>
+<p></p> *@
+
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-3">
+    <h1 class="h5 text-primary mb-2 mb-md-0">@ViewBag.Title</h1>
+    <div class="d-flex gap-2">
+        <a id="hypCopy"
+           onclick="jQueryModalGet('/litigation/casemanage/CopyCaseDetail', 'Copy Case Detail')"
+           class="btn btn-outline-warning d-none d-md-inline-flex align-items-center"
+           style="min-width: 140px;display:none !important;">
+            <i class="fa fa-plus-square me-2"></i>Copy case
+        </a>
+
+        <a id="hypButton"
+           onclick="jQueryModalGet('@ViewBag.Url', '@ViewBag.PopupTitle')"
+           class="btn btn-outline-success d-none d-md-inline-flex align-items-center"
+           style="min-width: 140px;display:none !important;">
+            <i class="fa fa-plus-square me-2"></i>@ViewBag.Text
+        </a>
+        <a asp-area="Litigation"
+           asp-controller="casemanage"
+           asp-action="CreateOrUpdate" asp-route-id=""
+           asp-route-from="repeat"
+           id="hypRepeatButton"
+           class="btn btn-outline-success d-none d-md-inline-flex align-items-center"
+           title="Get Last entered case detail"
+           style="min-width: 140px;display:none !important;">
+            <i class="fa fa-repeat me-2" aria-hidden="true"></i>Repeat
+        </a>
+    </div>
+</div>
+
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-3 border-top pt-3">
+    <h6 class="h6 text-secondary mb-2 mb-md-0">@ViewBag.Caption</h6>
+    <h6 class="h6 text-danger fw-semibold text-end mb-0">@ViewBag.Note</h6>
+</div>

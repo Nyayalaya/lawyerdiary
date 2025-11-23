@@ -1,5 +1,6 @@
 ﻿using CourtApp.Domain.Entities.CaseDetails;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -10,6 +11,6 @@ namespace CourtApp.Application.Interfaces.Repositories
         IQueryable<AssignCaseEntity> Entities { get; }
         Task<Guid> InsertAsync(AssignCaseEntity entity);
         Task UpdateAsync(AssignCaseEntity entity);
-        Task DeleteAsync(AssignCaseEntity entity);
+        Task DeleteRangeAsync(List<AssignCaseEntity> entity);
     }
 }

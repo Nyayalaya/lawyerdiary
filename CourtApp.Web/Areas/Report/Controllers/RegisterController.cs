@@ -83,7 +83,9 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 LinkedIds = User.GetUserLinkedIds(),
                 ClientId = ClientId,
                 ReferalBy = ReferalBy,
-                Status = Status
+                Status = Status,
+                PageNumber = 1,
+                PageSize = 10000,
             });
             InstitutionRegisterViewMode model = new InstitutionRegisterViewMode();
             List<InstituteModel> inmd = new List<InstituteModel>();
@@ -92,6 +94,8 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 foreach (var d in response.Data)
                 {
                     InstituteModel rd = new InstituteModel();
+                    rd.IsCaseAssigned = d.IsCaseAssigned;
+                    rd.LawyerId = d.LawyerId;
                     rd.Reference = d.Reference;
                     rd.Id = d.Id;
                     rd.Court = d.Court;
@@ -150,7 +154,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             {
                 PageNumber = 1,
                 PageSize = 10000,
-                FromDt = Convert.ToDateTime("2024-05-01"),
+                FromDt = Convert.ToDateTime("2023-05-01"),
                 ToDt = DateTime.Now,
                 SearchType = s,
                 LinkedIds = User.GetUserLinkedIds(),
@@ -192,7 +196,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                     {
                         var result = await _mediator.Send(new UpdateCopyingStatusCommand
                         { CaseId = CopyingCaseId, Status = 2 });
-                        if (result.Succeeded) _notify.Information($"Case Work with ID {result.Data} Updated.");
+                        if (result.Succeeded) _notify.Information(result.Message);
                         else _notify.Error(result.Message);
                     }
                 }
@@ -208,7 +212,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             {
                 PageNumber = 1,
                 PageSize = 10000,
-                FromDt = Convert.ToDateTime("2024-05-01"),
+                FromDt = Convert.ToDateTime("2000-01-01"),
                 ToDt = DateTime.Now,
                 LinkedIds = User.GetUserLinkedIds()
             });
@@ -219,14 +223,16 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 foreach (var d in response.Data)
                 {
                     InstituteModel rd = new InstituteModel();
-                    rd.Reference = d.Reference;
+                    rd.IsCaseAssigned = d.IsCaseAssigned;
+                    rd.Reference = d.Reference.ToUpper();
+                    rd.LawyerId = d.LawyerId;
                     rd.Id = d.Id;
-                    rd.Court = d.Court;
-                    rd.CaseType = d.CaseType;
+                    rd.Court = d.Court.ToUpper();
+                    rd.CaseType = d.CaseType.ToUpper();
                     rd.Year = d.Year == "0" ? "" : d.Year;
                     rd.No = d.No;
-                    rd.FirstTitle = d.FirstTitle;
-                    rd.SecondTitle = d.SecondTitle;
+                    rd.FirstTitle = d.FirstTitle.ToUpper();
+                    rd.SecondTitle = d.SecondTitle.ToUpper();
                     rd.InsititutionDate = d.InsititutionDate;
                     inmd.Add(rd);
                 }

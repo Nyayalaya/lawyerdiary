@@ -29,17 +29,19 @@ namespace CourtApp.Application.Features.FormPrint
             var Results = from c in _CaseRepo.Entites.Where(w => request.CaseIds.Contains(w.Id))
                           join t in _TitleRepo.Titles on c.Id equals t.CaseId into CompTitles
                           from ct in CompTitles.DefaultIfEmpty()
+                          let caseApplicant = ct.TypeId == 1 ? ct.CaseApplicants.ToList() : null
                           select new NoticeOfAdmissionResponse
                           {
                               Applent = c.FirstTitle,
                               Respondent = c.SecondTitle,
                               NoYear = c.CaseNo + "/" + c.CaseYear,
+                              CaseCategory = c.CaseCategory.Name_En,
                               CaseType = c.CaseType.Name_En,
                               CivilNoYear = c.CaseNo,
                               AgainstCourt = "",
                               Bench = c.CourtBench.CourtBench_En,
-                              //CompleteTitle = ct.Title,
-                              TitleNo = 1,
+                              CompleteTitle = ct.CaseApplicants.FirstOrDefault().ApplicantDetail,
+                              TitleNo = ct.CaseApplicants.FirstOrDefault().ApplicantNo,
                               Date = DateTime.UtcNow.Date.ToString("dd/MM/yyyy")
                           };
 

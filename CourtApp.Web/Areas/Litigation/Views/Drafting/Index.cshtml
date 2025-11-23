@@ -4,15 +4,15 @@
 }
 <div class="card">
     <div class="col-sm-12" style="padding:20px">
-        @if ((AuthorizationService.AuthorizeAsync(User, Permissions.CaseDrafting.Create)).Result.Succeeded)
-        {
+        @* @if ((AuthorizationService.AuthorizeAsync(User, Permissions.CaseDrafting.Create)).Result.Succeeded)
+        { *@
            @*  <a onclick="jQueryModalGet('/Litigation/Drafting/OnGetCreateOrEdit','Add Petition Detail')" class="btn bg-success">
                 <i class="fa fa-plus-square"></i> Add Petition
             </a> *@
             <a asp-area="Litigation" asp-controller="Drafting" asp-action="Petition" class="btn bg-success">
                 <i class="fa fa-plus-square"></i> Add Petition
             </a>
-        }
+        @* } *@
 
         <a id="reload" class="btn btn-primary text-white">
             <i class="fa fas fa-bolt"></i>
