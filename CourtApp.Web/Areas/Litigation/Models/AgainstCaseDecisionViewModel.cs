@@ -60,6 +60,7 @@ namespace CourtApp.Web.Areas.Litigation.Models
         public string OfficerName { get; set; }        
         public string Cadre { get; set; }
         public string CourtDistrict { get; set; }
-        
+        public string CisNoYear { get; set; }
+
     }
 }

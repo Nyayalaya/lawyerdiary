@@ -112,9 +112,11 @@
         </dt>
         <dd class="col-sm-4">
             @{
-                string caseyear = (Model.CaseNo + "/" + Model.CaseYear);
+                string caseYear = string.IsNullOrWhiteSpace(Model.CaseNo)
+                ? Model.CaseYear.ToString()
+                : $"{Model.CaseNo}/{Model.CaseYear}";
             }
-            @caseyear
+            @caseYear
         </dd>
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.CaseCategory)
@@ -136,9 +138,11 @@
         </dt>
         <dd class="col-sm-4">
             @{
-                string cisno = (Model.CisNo + "/" + Model.CisYear);
+                string cisYear = string.IsNullOrWhiteSpace(Model.CisNo)
+                ? Model.CisYear.ToString()
+                : $"{Model.CisNo}/{Model.CisYear}";
             }
-            @caseyear
+            @cisYear
         </dd>
     </dl>
 
@@ -283,7 +287,9 @@
             </dt>
             <dd class="col-sm-4">
                 @{
-                    string lcisno = (Model.LinkCaseInfo.CisNo + "/" + Model.LinkCaseInfo.CisYear);
+                    string lcisno = Model.LinkCaseInfo?.CisYear == "0"
+                    ? ""
+                    : $"{Model.LinkCaseInfo?.CisNo}/{Model.LinkCaseInfo?.CisYear}";
                 }
                 @lcisno
             </dd>

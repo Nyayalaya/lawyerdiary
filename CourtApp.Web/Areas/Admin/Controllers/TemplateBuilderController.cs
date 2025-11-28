@@ -1,4 +1,5 @@
-﻿using CourtApp.Application.Features.FormBuilder;
+﻿using AspNetCoreHero.Results;
+using CourtApp.Application.Features.FormBuilder;
 using CourtApp.Web.Abstractions;
 using CourtApp.Web.Areas.Admin.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +21,7 @@ namespace CourtApp.Web.Areas.Admin.Controllers
 
         public async Task<IActionResult> LoadAll()
         {
-            var response = await _mediator.Send(new GetTemplateInfoQuery());
+            var response = await _mediator.Send(new GetTemplateInfoQuery() { PageNumber = 1, PageSize = 500 });
             if (response.Succeeded)
             {
                 var viewModel = _mapper.Map<List<TemplateDlViewModel>>(response.Data);
@@ -31,79 +32,76 @@ namespace CourtApp.Web.Areas.Admin.Controllers
 
         public async Task<IActionResult> OnGetCreateOrEdit(Guid id, TemplateViewModel ViewModel)
         {
+
             if (id == Guid.Empty)
             {
-                ViewModel = new TemplateViewModel();
                 ViewBag.BtText = "Save";
+                ViewModel.Forms = await GetForms();
                 return View("_CreateOrEdit", ViewModel);
             }
-            else
+
+            var response = await _mediator.Send(new GetTemplateInfoByIdQuery { Id = id });
+
+            if (!response.Succeeded)
+                return null;
+
+            var data = response.Data;
+            var viewModel = new TemplateViewModel
             {
-                var response = await _mediator.Send(new GetTemplateInfoByIdQuery() { Id = id });
-                if (response.Succeeded)
-                {
-                    string FilePath = response.Data.TemplatePath;
-                    string FileName = response.Data.TemplateName;
-                    var dt = new TemplateViewModel();
-                    string TempName = FileName.Split('.')[0];
-                    dt.TemplateName = TempName;
-                    //string TemplateBody = ReadTemplate(FilePath, FileName);
-                    dt.TemplateBody = response.Data.TemplateBody;
-                    dt.Id = id;
-                    ViewBag.BtText = "Update";
-                    return View("_CreateOrEdit", dt);
-                }
-            }
-            return null;
+                Id = id,
+                Forms = await GetForms(),
+                FormId=data.FormId,
+                TemplateName = data.TemplateName,
+                TemplateBody = data.TemplateBody
+            };
+
+            ViewBag.BtText = "Update";
+            return View("_CreateOrEdit", viewModel);
+
         }
 
         [HttpPost]
         public async Task<IActionResult> OnPostCreateOrEdit(Guid id, TemplateViewModel ViewModel)
         {
+            var templateTags = GetTags(ViewModel.TemplateBody)
+                                .Distinct()
+                                .Select(tag => new TemplateTags { Tag = tag })
+                                .ToList();
+            IResult result;
+            string successMessage;
             if (id == Guid.Empty)
             {
-                List<string> Tags = GetTags(ViewModel.TemplateBody);
-                //string FilePath = SaveTemplate(ViewModel);
-                //string docPath = FilePath.Split(';')[0];
-                //string docName = FilePath.Split(';')[1];
-                List<TemplateTags> templateTags = new List<TemplateTags>();
-                foreach (string tag in Tags)
-                    templateTags.Add(new TemplateTags() { Tag = tag });
-                var result = await _mediator.Send(new CreateTemplateInfoCommand()
+                var command = new CreateTemplateInfoCommand
                 {
+                    FormId=ViewModel.FormId,
                     TemplateName = ViewModel.TemplateName,
-                    //TemplatePath = "documents/Templates/",
                     Tags = templateTags,
-                    TemplateBody=ViewModel.TemplateBody
-                });
-                if (result.Succeeded)
-                    return Json(new { success = true, message = "Template info saved successfully." });
-                else
-                    return Json(new { success = false, message = "Failed to save template info." });
+                    TemplateBody = ViewModel.TemplateBody
+                };
+
+                result = await _mediator.Send(command);
+                successMessage = "Template info saved successfully.";
             }
             else
             {
-                List<string> Tags = GetTags(ViewModel.TemplateBody);
-                //string FilePath = SaveTemplate(ViewModel);
-                //string docPath = FilePath.Split(';')[0];
-                //string docName = FilePath.Split(';')[1];
-                List<TemplateTags> templateTags = new List<TemplateTags>();
-                foreach (string tag in Tags)
-                    templateTags.Add(new TemplateTags() { Tag = tag });
-                var result = await _mediator.Send(new UpdateTemplateInfoCommand()
+                var command = new UpdateTemplateInfoCommand
                 {
-                    Id =id,
+                    Id = id,
+                    FormId=ViewModel.FormId,
                     TemplateName = ViewModel.TemplateName,
-                    //TemplatePath = "documents/Templates/",
                     Tags = templateTags,
                     TemplateBody = ViewModel.TemplateBody
-                });
-                if (result.Succeeded)
-                    return Json(new { success = true, message = "Template info updated successfully." });
-                else
-                    return Json(new { success = false, message = "Failed to save template info." });
+                };
 
-            }           
+                result = await _mediator.Send(command);
+                successMessage = "Template info updated successfully.";
+            }
+
+            if (!result.Succeeded)
+                successMessage = result.Message;
+
+            _notify.Success(successMessage);
+            return RedirectToAction("index");
         }
 
         [HttpPost]
@@ -178,7 +176,7 @@ namespace CourtApp.Web.Areas.Admin.Controllers
         private List<string> GetTags(string TemplateBody)
         {
             List<string> tg = new List<string>();
-            //Regex regex = new Regex(@"#(.*?)#");
+
             Regex regex = new Regex(@"#([^\s,#]*)#");
             MatchCollection matches = regex.Matches(TemplateBody);
             foreach (Match match in matches)
@@ -197,7 +195,7 @@ namespace CourtApp.Web.Areas.Admin.Controllers
             ViewModel.Forms = await GetForms();
             if (response.Succeeded)
             {
-                var tempFields = response.Data.Tags.Where(w=>! w.Tag.Contains("DB"));
+                var tempFields = response.Data.Tags.Where(w => !w.Tag.Contains("DB"));
                 var mpf = new List<Mapping>();
                 foreach (var field in tempFields)
                     mpf.Add(new Mapping() { Tag = field.Tag });
@@ -246,5 +244,19 @@ namespace CourtApp.Web.Areas.Admin.Controllers
 
         }
         #endregion
+
+
+        public async Task<IActionResult> ViewTagAsync(Guid formId)
+        {
+            var tagsDataResult = await _mediator.Send(new GetFormBuilderCachedByIdQuery() { Id = formId,AccessFrom="MST" });
+
+            if (tagsDataResult.Failed)
+                return View("_templateTags",null); 
+           
+            Dictionary<string, string> dic = tagsDataResult.Data.FieldDetails
+                .ToDictionary(s => s.Name, s => s.Tag);
+            
+            return View("_templateTags", dic);
+        }
     }
 }

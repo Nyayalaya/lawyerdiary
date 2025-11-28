@@ -89,6 +89,13 @@ namespace CourtApp.Application.Features.CaseProceeding
 
             // ✅ Step 3: Create Main Entity
             var entity = await _Repository.GetByIdAsync(request.CaseId, null);
+            if (entity.Case != null)
+            {
+                var nextDate = entity.NextDate;
+                if (request.NextDate < nextDate)
+                    return await Result<Guid>.FailAsync("Next hearing date must be greater than or equals to last proceeding date!");
+            }
+
             entity.NextDate = request.NextDate;
             entity.ProceedingDate = request.ProceedingDate;
             entity.HeadId = request.HeadId;
@@ -128,56 +135,11 @@ namespace CourtApp.Application.Features.CaseProceeding
                     };
                     await _Repository.UpdateAsync(ch);
                 }
-
-                //caseProceedings = childProcs.Select(it => new CaseProcedingEntity
-                //{
-                //    CaseId = it.CaseId,
-                //    HeadId = request.HeadId,
-                //    SubHeadId = request.SubHeadId,
-                //    StageId = request.StageId,
-                //    NextDate = request.NextDate,
-                //    ProceedingDate = request.ProceedingDate,
-                //    ProcWork = new ProceedingWorkEntity
-                //    {
-                //        LastWorkingDate = proceedings?.WorkingDate,
-                //        Works = procWorks
-                //    }
-                //}).ToList();
             }
             //caseProceedings.Add(entity);
             await _Repository.UpdateRangeAsync(caseProceedings);
             await _unitOfWork.Commit(cancellationToken);
             return Result<Guid>.Success(Guid.Empty);
-
-            //var ProcDetail = await _ProcRepo.GetByIdAsync(request.HeadId);
-            //if (ProcDetail != null && ProcDetail.Abbreviation == "DISP")
-            //{
-            //    var CaseDetail = await _CaseRepo.GetByIdAsync(request.CaseId);
-            //    CaseDetail.DisposalDate = request.ProceedingDate;
-            //    await _CaseRepo.UpdateAsync(CaseDetail);
-            //}
-            //var entity = await _Repository.GetByIdAsync(request.CaseId, null);
-            ////var childCases = await GetAllChildrenAsync(request.CaseId, request.UserId);
-            //if (entity != null)
-            //{
-            //    entity.NextDate = request.NextDate;
-            //    entity.HeadId = request.HeadId;
-            //    entity.SubHeadId = request.SubHeadId;
-            //    entity.StageId = request.StageId;
-            //    entity.ProceedingDate = request.ProceedingDate;
-            //    entity.ProcWork = _mapper.Map<ProceedingWorkEntity>(request.ProcWork);
-            //    await _Repository.UpdateAsync(entity);
-            //    await _unitOfWork.Commit(cancellationToken);
-            //    return Result<Guid>.Success(entity.Id);
-            //}
-            //else
-            //{
-            //    var obj = _mapper.Map<CaseProcedingEntity>(request);
-            //    obj.ProceedingDate = entity.NextDate != null ? entity.NextDate.Value : null;
-            //    await _Repository.AddAsync(obj);
-            //    await _unitOfWork.Commit(cancellationToken);
-            //    return Result<Guid>.Success(obj.Id); ;
-            //}
         }
 
         // ✅ Convert to an async method for better performance

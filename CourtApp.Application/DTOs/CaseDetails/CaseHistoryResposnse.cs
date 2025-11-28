@@ -44,5 +44,6 @@ namespace CourtApp.Application.DTOs.CaseDetails
         public string Work { get; set; }
         public string Status { get; set; }
         public string Date { get; set; }
+        public string AppliedOn { get; set; }
     }
 }

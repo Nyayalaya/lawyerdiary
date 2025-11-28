@@ -28,17 +28,19 @@ namespace CourtApp.Application.Features.FormBuilder
     public class UpdateCaseDraftingDetailCommandHanlder : IRequestHandler<UpdateCaseDraftingDetailCommand, Result<Guid>>
     {
         private readonly ICaseDraftingRepository repository;
+        private readonly ITemplateInfoRepository templateInfoRepository;
         private IUnitOfWork _UoW { get; set; }
         private readonly IMapper _mapper;
         private readonly IAuthenticatedUserService _userService;
         public UpdateCaseDraftingDetailCommandHanlder(ICaseDraftingRepository repository
             , IUnitOfWork _UoW, IMapper _mapper,
-            IAuthenticatedUserService _userService)
+            IAuthenticatedUserService _userService, ITemplateInfoRepository templateInfoRepository  )
         {
             this.repository = repository;
             this._mapper = _mapper;
             this._UoW = _UoW;
             this._userService = _userService;
+            this.templateInfoRepository = templateInfoRepository;
         }
         public async Task<Result<Guid>> Handle(UpdateCaseDraftingDetailCommand request, CancellationToken cancellationToken)
         {
@@ -49,9 +51,10 @@ namespace CourtApp.Application.Features.FormBuilder
                 return Result<Guid>.Fail($"Record is not found.");
             else
             {
+                var templateInfo = await templateInfoRepository.GetByIdAsync(request.TemplateId);
                 CaseFormDt.CaseId = request.CaseId;
                 CaseFormDt.TemplateId = request.TemplateId;
-                CaseFormDt.DraftingFormId = request.DraftingFormId;
+                CaseFormDt.FormId = templateInfo.FormId;
                 CaseFormDt.FieldDetails = _mapper.Map<List<FormFieldValueEntity>>(request.FieldDetails);
                 
                 await repository.UpdateAsync(CaseFormDt);

@@ -1,6 +1,7 @@
 ﻿using CourtApp.Application.Interfaces.Repositories;
 using CourtApp.Application.Interfaces.Shared;
 using CourtApp.Infrastructure.DbContexts;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +24,11 @@ namespace CourtApp.Infrastructure.Repositories
         {
             try
             {
+                return await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+            catch (DbUpdateException ex)
+            {
+                Console.WriteLine(ex.Message);
                 return await _dbContext.SaveChangesAsync(cancellationToken);
             }
             catch (Exception ex)

@@ -100,5 +100,15 @@
     <partial name="_ValidationScriptsPartial" />
     @await Component.InvokeAsync("Notyf")
     @RenderSection("Scripts", required: false)
+    <script>
+        $(document).on('click', '.btn-cancel', function () {
+            let url = $(this).attr('data-url');
+            if (url) {
+                window.location.href = url;
+            } else {
+                window.history.back();
+            }
+        });
+    </script>
 </body>
 </html>

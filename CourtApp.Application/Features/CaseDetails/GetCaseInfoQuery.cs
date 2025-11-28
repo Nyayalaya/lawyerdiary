@@ -62,7 +62,7 @@ namespace CourtApp.Application.Features.CaseDetails
                 bool isDateSearch = DateTime.TryParseExact(search, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate);
                 int parsedYear;
                 bool isYearSearch = int.TryParse(search, out parsedYear);
-                predicate = predicate.And(c =>                    
+                predicate = predicate.And(c =>
                     c.CaseNo.ToLower().Contains(search) ||
                     c.FirstTitle.ToLower().Contains(search) ||
                     c.SecondTitle.ToLower().Contains(search) ||
@@ -75,38 +75,45 @@ namespace CourtApp.Application.Features.CaseDetails
             try
             {
                 var baseQuery = (from c in _repository.Entites.Where(predicate)
-                                  join ac in _assignRepo.Entities
-                                  on c.Id equals ac.CaseId into caseAssignments
-                                  from ac in caseAssignments.DefaultIfEmpty()
-                                  where request.LinkedIds.Contains(c.CreatedBy)
-                                  || request.LinkedIds.Contains(ac.LawyerId.ToString()) // Check if user is the creator or assigned lawyer
-                                  let asignedOrSelf = ac != null && request.LinkedIds.Contains(ac.LawyerId.ToString()) ? "Assigned" : "Self"
-                                  let isCaseAssigned = asignedOrSelf == "Self" && ac != null && ac.CaseId == c.Id
-                                  let AssignedLawyerId = asignedOrSelf == "Self" && ac != null ? ac.LawyerId : Guid.Empty
-                                  select new GetCaseInfoDto
-                                  {
-                                      Id = c.Id,
-                                      Reference = asignedOrSelf.ToUpper(),
-                                      IsCaseAssigned = isCaseAssigned,
-                                      LawyerId = AssignedLawyerId,
-                                      No = c.CaseNo,
-                                      Year = c.CaseYear.ToString(),
-                                      CourtType = c.CourtType.CourtType.ToString(),
-                                      CaseType = c.CaseType.Name_En,
-                                      Court = c.CourtBench.CourtBench_En.ToUpper(),
-                                      CaseStage = c.CaseStage.CaseStage.ToUpper(),
-                                      DisposalDate = c.DisposalDate,
-                                      CaseDetail = (c.FirstTitle + " V/S " + c.SecondTitle).ToUpper(),
-                                      NextDate = c.CaseProcEntities
-                                          .OrderByDescending(o => o.NextDate.Value) // Order by latest date
-                                          .Select(s => s.NextDate.Value.ToString("dd-MM-yyyy"))
-                                          .FirstOrDefault() ?? (c.NextDate.HasValue ? c.NextDate.Value.ToString("dd-MM-yyyy") : "")
-                                  })
+                                 join ac in _assignRepo.Entities
+                                 on c.Id equals ac.CaseId into caseAssignments
+                                 from ac in caseAssignments.DefaultIfEmpty()
+                                 where request.LinkedIds.Contains(c.CreatedBy)
+                                 || request.LinkedIds.Contains(ac.LawyerId.ToString()) // Check if user is the creator or assigned lawyer
+                                 let asignedOrSelf = ac != null && request.LinkedIds.Contains(ac.LawyerId.ToString()) ? "Assigned" : "Self"
+                                 let isCaseAssigned = asignedOrSelf == "Self" && ac != null && ac.CaseId == c.Id
+                                 let AssignedLawyerId = asignedOrSelf == "Self" && ac != null ? ac.LawyerId : Guid.Empty
+                                 let caseLastProceedingDate = c.CaseProcEntities.Any() ?
+                                                       c.CaseProcEntities
+                                                       .OrderByDescending(d => d.ProceedingDate)
+                                                       .Select(s => new { s.ProceedingDate, s.NextDate })
+                                                       .FirstOrDefault() : null
+                                 let prcDate = caseLastProceedingDate != null ? caseLastProceedingDate.ProceedingDate : (DateTime?)null
+                                 let nextProcDate = caseLastProceedingDate != null ? caseLastProceedingDate.NextDate : (DateTime?)null
+                                 let latestNextDate = (nextProcDate != null && prcDate!=null && nextProcDate >= prcDate ? nextProcDate : prcDate).Value
+                                 let caseFirstDate = c.NextDate != null ? c.NextDate.Value.ToString("dd-MM-yyyy") : ""
+                                 let caseLatestNextDate = (prcDate == null && nextProcDate == null) && c.NextDate != null ? caseFirstDate : latestNextDate.ToString("dd-MM-yyyy")
+                                 select new GetCaseInfoDto
+                                 {
+                                     Id = c.Id,
+                                     Reference = asignedOrSelf.ToUpper(),
+                                     IsCaseAssigned = isCaseAssigned,
+                                     LawyerId = AssignedLawyerId,
+                                     No = c.CaseNo,
+                                     Year = c.CaseYear.ToString(),
+                                     CourtType = c.CourtType.CourtType.ToString(),
+                                     CaseType = c.CaseType.Name_En,
+                                     Court = c.CourtBench.CourtBench_En.ToUpper(),
+                                     CaseStage = c.CaseStage.CaseStage.ToUpper(),
+                                     DisposalDate = c.DisposalDate,
+                                     CaseDetail = (c.FirstTitle + " V/S " + c.SecondTitle).ToUpper(),
+                                     NextDate = caseLatestNextDate
+                                 })
                    .OrderByDescending(o => o.Year)
                    .AsQueryable();
 
                 // Optional: apply sorting before pagination
-              if (!string.IsNullOrEmpty(request.SortColumn))
+                if (!string.IsNullOrEmpty(request.SortColumn))
                 {
                     switch (request.SortColumn)
                     {

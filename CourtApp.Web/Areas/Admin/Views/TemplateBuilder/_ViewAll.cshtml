@@ -21,14 +21,22 @@
                 <td>
                     @bt.TemplateName
                 </td>
-
-                <td>                    
-                    <a asp-area="admin" asp-controller="TemplateBuilder" title="Edit the template" asp-action="OnGetCreateOrEdit" asp-route-id="@bt.Id">
-                        <i class="fas fa-pencil-alt text-warning"></i>
-                    </a>
-                    <a title="Map the template dynamic fields" onclick="jQueryModalGet('/Admin/TemplateBuilder/MapFields?id=@bt.Id','Map Form With Template Tags')"><i class="fa fa-map"></i></a>
+                <td text-right">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Action
+                        </button>
+                        <div class="dropdown-menu shadow animated--grow-in">
+                            <a asp-area="admin" asp-controller="TemplateBuilder" title="Edit the template" asp-action="OnGetCreateOrEdit" asp-route-id="@bt.Id" class="dropdown-item" title="View Case Detail">
+                                <i class="fas fa-pencil-alt text-warning"></i> @localizer["Edit"]
+                            </a>
+                            
+                            <form id="form_delete_@bt.Id" asp-area="admin" asp-controller="templatebuilder" method="post" asp-action="OnPostDelete" asp-route-id="@bt.Id" onsubmit="return jQueryModalDelete(this)" class="d-inline">
+                                <a href="javascript:$('#form_delete_@bt.Id').submit();" class="dropdown-item"><i class="fas fa-trash-alt"></i> @localizer["Delete"]</a>
+                            </form>
+                        </div>
+                    </div>
                 </td>
-
             </tr>
         }
     </tbody>

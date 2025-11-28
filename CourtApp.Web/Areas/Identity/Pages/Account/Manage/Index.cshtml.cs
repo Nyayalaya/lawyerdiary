@@ -3,6 +3,7 @@ using CourtApp.Domain.Entities.LawyerDiary;
 using CourtApp.Infrastructure.DbContexts;
 using CourtApp.Infrastructure.Identity.Models;
 using CourtApp.Web.Extensions;
+using CourtApp.Web.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace CourtApp.Web.Areas.Identity.Pages.Account.Manage
@@ -308,11 +310,44 @@ namespace CourtApp.Web.Areas.Identity.Pages.Account.Manage
             if (isUserUpdated)
             {
                 await _userManager.UpdateAsync(user);
+                // Update claims
+                await UpdateClaimsAsync(user);
+
             }
 
-            await _signInManager.RefreshSignInAsync(user);
+            await _signInManager.SignInAsync(user, isPersistent: false);
             StatusMessage = "Your profile has been updated";
             return RedirectToPage();
+        }
+
+        private async Task UpdateClaimsAsync(ApplicationUser user)
+        {
+            var existingClaims = await _userManager.GetClaimsAsync(user);
+
+            // Helper method to update or add claim
+            async Task SetClaim(string type, string value)
+            {
+                var oldClaim = existingClaims.FirstOrDefault(c => c.Type == type);
+
+                if (oldClaim == null)
+                {
+                    // Add new claim if missing
+                    await _userManager.AddClaimAsync(user, new Claim(type, value ?? ""));
+                }
+                else if (oldClaim.Value != value)
+                {
+                    // Replace claim value if changed
+                    await _userManager.ReplaceClaimAsync(user, oldClaim, new Claim(type, value ?? ""));
+                }
+            }
+
+            // === Update your claims here ===
+            await SetClaim(AppClaimType.GivenName, user.FirstName);
+            await SetClaim(AppClaimType.Surname, user.LastName);
+            await SetClaim(AppClaimType.MobilePhone, user.Mobile);
+            await SetClaim(AppClaimType.StreetAddress, user.AddressInfo?.StreetAddress);
+            await SetClaim(AppClaimType.EnrollmentNo, user.ProfessionalInfo?.EnrollmentNo);
+            await SetClaim(AppClaimType.Email, user.Email);
         }
 
     }

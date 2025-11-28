@@ -79,14 +79,23 @@ namespace CourtApp.Application.Features.CaseProceeding
                 }
             }
 
-            // ✅ Step 2: Create Main Entity
+            // ✅ Step 3: Create Main Entity
+            var caseProcDetail = await _Repository.GetByIdAsync(request.CaseId, null);
+            if (caseProcDetail?.Case != null)
+            {
+                var nextDate = caseProcDetail.Case.NextDate;
+                if (request.NextDate < nextDate)
+                    return await Result<Guid>.FailAsync("Next proceeding date must be greater than the first next date!");
+            }
+
+            // ✅ Step 3: Create Main Entity
             var entity = _mapper.Map<CaseProcedingEntity>(request);
             entity.ProceedingDate = request.ProceedingDate;
             entity.CreatedOn = DateTime.UtcNow;
 
             List<CaseProcedingEntity> caseProceedings = new List<CaseProcedingEntity>();
 
-            // ✅ Step 3: Process MCasIds (if available)
+            // ✅ Step 4: Process MCasIds (if available)
             if (request.MCasIds != null && request.MCasIds.Count > 0)
             {
                 caseProceedings = request.MCasIds.Select(id => new CaseProcedingEntity
@@ -108,7 +117,7 @@ namespace CourtApp.Application.Features.CaseProceeding
             }
             else
             {
-                // ✅ Step 4: Fetch Child Cases if No MCasIds
+                // ✅ Step 5: Fetch Child Cases if No MCasIds
                 var childCases = await GetAllChildrenAsync(request.CaseId, request.UserId);
                 if (childCases.Any())
                 {
@@ -132,8 +141,6 @@ namespace CourtApp.Application.Features.CaseProceeding
             }
 
             // ✅ Step 5: Insert All Entities Efficiently
-            //if (request.CaseId != Guid.Empty)
-              //  caseProceedings.Add(entity); // Always insert the main entity
 
             if (caseProceedings.Any())
             {

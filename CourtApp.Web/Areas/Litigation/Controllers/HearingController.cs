@@ -21,7 +21,6 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
         public IActionResult Index(string SelectedDate)
         {
             var model = new BringTodayCaseViewModel();
-            //var SelectedDate = TempData["SelectedDate"] != null ? TempData["SelectedDate"].ToString() : "";
             model.HearingDate = SelectedDate != null ? Convert.ToDateTime(SelectedDate) : DateTime.Now;
             return View(model);
         }
@@ -248,6 +247,8 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                     var result = await _mediator.Send(up);
                     if (result.Succeeded)
                         _notify.Success($"Case proceeding updated successfull!");
+                    else
+                        _notify.Warning(result.Message);
                 }
                 else
                 {
@@ -261,6 +262,8 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                     var result = await _mediator.Send(cmd);
                     if (result.Succeeded)
                         _notify.Success($"Case proceeding done successfull!");
+                    else
+                        _notify.Warning(result.Message);
                 }
             }
             return RedirectToAction("Index", new { SelectedDate = TempData["SelectedDate"].ToString() });

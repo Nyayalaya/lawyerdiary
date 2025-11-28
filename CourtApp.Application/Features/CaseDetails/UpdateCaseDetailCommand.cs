@@ -70,14 +70,17 @@ namespace CourtApp.Application.Features.CaseDetails
                 return Result<Guid>.Fail("Case detail not found.");
 
             // 🔁 Check for existing case with same CaseNo and CaseYear (but different ID)
-            var duplicateCase = await _repository.Entites
-                .Where(x => x.CaseNo == request.CaseNo
-                         && x.CaseYear == request.CaseYear
-                         && x.CourtTypeId == request.CourtTypeId
-                         && x.Id != request.Id)
-                .FirstOrDefaultAsync();
+            var courtId = request.BenchId ?? request.CourtId ?? Guid.Empty;
+            string caseNo = string.IsNullOrEmpty(request.CaseNo) ? "" : request.CaseNo;
+            var duplicateCaseExists = await _repository.Entites.AnyAsync(x =>
+                                    x.CaseNo == caseNo &&
+                                    x.CaseYear == request.CaseYear &&
+                                    x.CourtTypeId == request.CourtTypeId &&
+                                    x.CourtBenchId == courtId &&
+                                    x.CaseTypeId == request.CaseTypeId &&
+                                    x.Id != request.Id);
 
-            if (duplicateCase != null)
+            if (duplicateCaseExists)
                 return Result<Guid>.Fail("This Case Number already exists for the given year. " +
                     "Case detail not updated.");
 
@@ -87,13 +90,16 @@ namespace CourtApp.Application.Features.CaseDetails
             detail.ClientId = request.ClientId ?? null;
             detail.AppearenceID = request.AppearenceID;
             detail.CourtTypeId = request.CourtTypeId;
-            detail.CourtBenchId = request.BenchId ?? request.CourtId ?? Guid.Empty;
+            detail.CourtBenchId = courtId;
             detail.CourtDistrictId = request.CourtDistrictId != Guid.Empty ? request.CourtDistrictId : null;
             detail.ComplexId = request.ComplexId != Guid.Empty ? request.ComplexId : null;
             detail.CaseCategoryId = request.CaseCategoryId;
             detail.CaseStageId = request.CaseStageId ?? null;
             detail.CaseYear = request.CaseYear ?? 0;
-            detail.NextDate = request.NextDate ?? DateTime.MinValue;
+
+            if (request.NextDate != null)
+                detail.NextDate = request.NextDate ?? DateTime.MinValue;
+
             detail.CnrNumber = request.CnrNumber;
             detail.CisNumber = request.CisNumber;
             detail.CisYear = request.CisYear;
@@ -107,7 +113,8 @@ namespace CourtApp.Application.Features.CaseDetails
             detail.LinkedCaseId = request.LinkedCaseId ?? null;
 
             // 👥 Handle Against Case Details
-            if (request.AgainstCaseDetails?.Any(a => a.StateId != null) == true)
+            var hasAgainstDetails = request.AgainstCaseDetails?.Any(a => a.StateId != null) == true;
+            if (hasAgainstDetails)
             {
                 if (detail.CaseAgainstEntities.Any())
                 {
@@ -156,105 +163,10 @@ namespace CourtApp.Application.Features.CaseDetails
                     }).ToList();
                 }
             }
-
             await _repository.UpdateAsync(detail);
             await _uow.Commit(cancellationToken);
             return Result<Guid>.Success(detail.Id);
 
-
-            /* Older code before implement the case exist condition.
-            var detail = await _repository.GetByIdAsync(request.Id);
-            if (detail == null)
-                return Result<Guid>.Fail($"Case detail Not Found.");
-            else
-            {
-                detail.InstitutionDate = request.InstitutionDate;
-                detail.StateId = request.StateId;
-                detail.ClientId = request.ClientId != null ? request.ClientId.Value : null;
-                detail.AppearenceID = request.AppearenceID;
-                detail.CourtTypeId = request.CourtTypeId;
-                detail.CourtBenchId = request.BenchId != null ? request.BenchId.Value : request.CourtId.Value;
-                detail.CourtDistrictId = request.CourtDistrictId != Guid.Empty ? request.CourtDistrictId : null;
-                detail.ComplexId = request.ComplexId != Guid.Empty ? request.ComplexId : null;
-                detail.CaseCategoryId = request.CaseCategoryId;
-                detail.CaseStageId = request.CaseStageId != null ? request.CaseStageId.Value : null;
-                detail.CaseYear = request.CaseYear != null ? request.CaseYear.Value : 0;
-                detail.NextDate = request.NextDate != null ? request.NextDate.Value : DateTime.MinValue;
-                detail.CnrNumber = request.CnrNumber;
-                detail.CisNumber = request.CisNumber;
-                detail.CisYear = request.CisYear;
-                detail.CaseYear = request.CaseYear != null ? request.CaseYear.Value : 0;
-                detail.CaseNo = request.CaseNo;
-                detail.CaseCategoryId = request.CaseCategoryId;
-                detail.CaseTypeId = request.CaseTypeId;
-                detail.STitleId = request.STitleId;
-                detail.FTitleId = request.FTitleId;
-                detail.FirstTitle = request.FirstTitle;
-                detail.SecondTitle = request.SecondTitle;
-                detail.StrengthId = request.StrengthId != null ? request.StrengthId.Value : 0;
-                detail.CaseTypeId = request.CaseTypeId;
-                detail.LinkedCaseId = request.LinkedCaseId != null ? request.LinkedCaseId.Value : null;
-
-                var againstDt = detail.CaseAgainstEntities.FirstOrDefault();
-                var IsAgstCases = request.AgainstCaseDetails
-                    .Where(w => w.StateId != null)
-                    .Select(s => s.StateId).Count();
-                if (IsAgstCases > 0)
-                    if (againstDt != null && request.AgainstCaseDetails.Count > 0)
-                    {
-                        foreach (var item in request.AgainstCaseDetails)
-                        {
-                            againstDt.ImpugedOrderDate = item.ImpugedOrderDate.Value;
-                            againstDt.StateId = item.StateId.Value;
-                            againstDt.CourtTypeId = item.CourtTypeId.Value;
-                            againstDt.CourtBenchId = item.BenchId != null ? item.BenchId.Value : item.CourtId.Value;
-                            againstDt.CaseYear = item.CaseYear.Value;
-                            againstDt.CaseNo = item.CaseNo;
-                            againstDt.CaseCategoryId = item.CaseCategoryId.Value;
-                            againstDt.CaseTypeId = item.CaseTypeId.Value;
-                            againstDt.StrengthId = item.StrengthId != null ? item.StrengthId.Value : 0;
-                            againstDt.OfficerName = item.OfficerName;
-                            againstDt.CisYear = item.CisYear != null ? item.CisYear.Value : 0;
-                            againstDt.CisNo = item.CisNo;
-                            againstDt.CaseId = request.Id;
-                            againstDt.CadreId = item.CadreId != null ? item.CadreId.Value : Guid.Empty;
-                            againstDt.CnrNo = item.CnrNo;
-                            againstDt.CourtDistrictId = item.CourtDistrictId != Guid.Empty ? item.CourtDistrictId : null;
-                            againstDt.ComplexId = item.ComplexId != Guid.Empty ? item.ComplexId : null;
-                        }
-                    }
-                    else
-                    {
-                        List<CaseDetailAgainstEntity> ag = new List<CaseDetailAgainstEntity>();
-                        foreach (var item in request.AgainstCaseDetails)
-                        {
-                            CaseDetailAgainstEntity agDt = new CaseDetailAgainstEntity();
-                            agDt.ImpugedOrderDate = item.ImpugedOrderDate.Value;
-                            agDt.CourtBenchId = item.BenchId != null ? item.BenchId.Value : item.CourtId.Value;
-                            agDt.StateId = item.StateId.Value;
-                            agDt.CourtTypeId = item.CourtTypeId.Value;
-                            agDt.CaseYear = item.CaseYear.Value;
-                            agDt.CaseNo = item.CaseNo;
-                            agDt.CaseCategoryId = item.CaseCategoryId.Value;
-                            agDt.CaseTypeId = item.CaseTypeId != null ? item.CaseTypeId.Value : Guid.Empty;
-                            agDt.StrengthId = item.StrengthId != null ? item.StrengthId.Value : 0;
-                            agDt.OfficerName = item.OfficerName;
-                            agDt.CisYear = item.CisYear.Value;
-                            agDt.CisNo = item.CisNo;
-                            agDt.CaseId = request.Id;
-                            agDt.CadreId = item.CadreId != null ? item.CadreId.Value : Guid.Empty;
-                            agDt.CnrNo = item.CnrNo;
-                            agDt.CourtDistrictId = item.CourtDistrictId != Guid.Empty ? item.CourtDistrictId : null;
-                            agDt.ComplexId = item.ComplexId != Guid.Empty ? item.ComplexId : null;
-                            ag.Add(agDt);
-                        }
-                        detail.CaseAgainstEntities = ag;
-                    }
-                await _repository.UpdateAsync(detail);
-                await _uow.Commit(cancellationToken);
-                return Result<Guid>.Success(detail.Id);
-            }
-            */
         }
     }
 }

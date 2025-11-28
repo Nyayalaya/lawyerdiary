@@ -73,12 +73,12 @@
                                 <td style="border: 1px solid #ddd; padding: 8px;">
                                     @{
                                         var downloadLink = $"https://drive.google.com/uc?export=download&id={Model.Docs[i].DocFilePath}";
-                                    }              
+                                    }
                                     <a href="@downloadLink" target="_blank" title="Download File">
                                         <i class="fas fa-file-archive" aria-hidden="true"></i> <!-- FA 6 -->
 
                                     </a>
-                                   
+
                                 </td>
                             </tr>
                         }
@@ -127,8 +127,10 @@
                                                     string st = @Model.ProcHis[p].History[i].WorkDetail[j].Works[k].Status;
                                                     string msg = "Work Pending";
                                                     string dt = @Model.ProcHis[p].History[i].WorkDetail[j].Works[k].Date;
+                                                    string appliedOn = @Model.ProcHis[p].History[i].WorkDetail[j].Works[k].AppliedOn;
                                                     if (st != "") msg = st;
                                                     if (dt != null) msg += " on " + dt;
+                                                    if (!string.IsNullOrEmpty(appliedOn)) msg += " | Applied on " + appliedOn;                                                    
                                                 }
                                                 <td colspan="1" style="border: 1px solid #ddd; padding: 8px;">Last Working Date - @Model.ProcHis[p].History[i].WorkDetail[j].WorkingDate | @msg </td>
                                             </tr>

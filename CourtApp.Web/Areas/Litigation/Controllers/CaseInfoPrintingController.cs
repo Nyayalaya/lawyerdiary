@@ -182,7 +182,9 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 ["#DecisionDate#"] = caseInfo.DisposalDate ?? caseInfo.NextDate ?? "",
                 ["#LawyerName#"] = CurrentUser.FirstName + " " + CurrentUser.LastName,
                 ["#LawyerMobile#"] = CurrentUser.Mobile,
-                ["#LawyerAddress#"] = CurrentUser.Address
+                ["#LawyerAddress#"] = CurrentUser.Address,
+                ["#LawyerEmail#"] = CurrentUser.Email,
+                ["#LawyerEnrollment#"] = CurrentUser.EnrollmentNo,
             };
 
             foreach (var (key, value) in replacements)

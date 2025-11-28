@@ -25,6 +25,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -372,34 +373,26 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
         }
 
         [HttpPost]
-        public async Task<JsonResult> OnPostDelete(Guid id)
+        public async Task<IActionResult> DeleteCase(Guid id)
         {
-            var deleteCommand = await _mediator.Send(new DeleteCaseDetailCommand { Id = id });
-            if (deleteCommand.Succeeded)
+            try
             {
-                _notify.Information($"Case with Id {id} is deleted.");
-                var response = await _mediator.Send(new GetCaseInfoQuery()
+                var deleteResult = await _mediator.Send(new DeleteCaseDetailCommand { Id = id });
+
+                if (!deleteResult.Succeeded)
                 {
-                    LinkedIds = User.GetUserLinkedIds(),
-                    PageSize = 10000,
-                    PageNumber = 1
-                });
-                if (response.Succeeded)
-                {
-                    var viewModel = _mapper.Map<List<GetCaseInfoViewModel>>(response.Data);
-                    var html = await _viewRenderer.RenderViewToStringAsync("_ViewAll", viewModel);
-                    return new JsonResult(new { isValid = true, html = html });
+                    _notify.Error(deleteResult.Message ?? "Failed to delete case.");
+                    return Json(new { succeeded = false, message = deleteResult.Message });
                 }
-                else
-                {
-                    _notify.Error(response.Message);
-                    return null;
-                }
+
+                _notify.Information($"Case with ID {id} has been deleted successfully.");
+                return Json(new { succeeded = true, message = "Case deleted successfully." });
             }
-            else
+            catch (Exception ex)
             {
-                _notify.Error(deleteCommand.Message);
-                return null;
+                _logger.LogError(ex, "Error deleting case with ID {CaseId}", id);
+                _notify.Error("An unexpected error occurred while deleting the case.");
+                return Json(new { succeeded = false, message = "Unexpected error occurred." });
             }
         }
         #endregion
@@ -858,14 +851,88 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             return null;
         }
         [HttpPost]
-        public async Task<JsonResult> UpdateHearingDate(List<UpdateHearingDtViewModel> casedts)
+        public JsonResult UpdateHearingDate(List<UpdateHearingDtViewModel> casedts)
         {
-            var response = await _mediator.Send(new UpdateCaseHearingDatesCommand()
+            var format = "dd/MM/yyyy";
+            var culture = CultureInfo.InvariantCulture;
+
+            var splitCases = casedts.Select(x =>
+            {
+                string reason = "";
+                bool isValid = true;
+
+                // If ProcDt is null or empty, it's considered valid
+                if (!string.IsNullOrWhiteSpace(x.ProcDt))
+                {
+                    if (DateTime.TryParseExact(x.ProcDt, format, culture, DateTimeStyles.None, out var procDate))
+                    {
+                        if (x.HearingDt < procDate)
+                        {
+                            isValid = false;
+                            reason = "Hearing date is earlier than proceeding date";
+                        }
+                    }
+                    else
+                    {
+                        isValid = false;
+                        reason = "Invalid proceeding date format";
+                    }
+                }
+
+                return new
+                {
+                    Case = x,
+                    IsValid = isValid,
+                    Reason = reason
+                };
+            }).ToList();
+
+            // Separate valid and invalid cases
+            var invalidCases = splitCases.Where(x => !x.IsValid).Select(x => x.Case).ToList();
+            var validCases = splitCases.Where(x => x.IsValid).Select(x => x.Case).ToList();
+
+            // Case: There are invalid dates
+            if (invalidCases.Any())
+            {
+                return Json(new
+                {
+                    Success = false,
+                    Message = "Next hearing date must be equal to or greater than the last proceeding date for the cases -",
+                    InvalidCaseNos = invalidCases.Select(x => x.CaseNoYear),
+                    ValidCases = validCases
+                });
+            }
+
+            // Case: All are invalid
+            if (validCases.Count==0)
+            {
+                return Json(new
+                {
+                    Success = false,
+                    Message = "You have not selected a valid next date. Cannot update!",
+                    NoValidCase = true
+                });
+            }
+
+            // Proceed to update only valid cases
+            var response = _mediator.Send(new UpdateCaseHearingDatesCommand
             {
                 UserId = CurrentUser.Id,
-                CasesHearingDt = _mapper.Map<List<CaseHearingDto>>(casedts)
-            });
-            return Json(response);
+                CasesHearingDt = _mapper.Map<List<CaseHearingDto>>(validCases)
+            }).Result;
+
+            if (response.Failed)
+            {
+                return Json(new
+                {
+                    Success = false,
+                    response.Message,
+                    NoValidCase = true
+                });
+            }
+
+            return Json(new { Success = true });
+
         }
         #endregion
 

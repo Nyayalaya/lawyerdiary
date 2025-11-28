@@ -195,9 +195,16 @@ namespace CourtApp.Infrastructure.DbContexts
                     k.ToJson();
                 }
                 );
+
+            builder.Entity<CourtTypeEntity>().OwnsMany(
+               j => j.Languages, k =>
+               {
+                   k.ToJson();
+               }
+               );
             #endregion
 
-            
+
         }
     }
 }

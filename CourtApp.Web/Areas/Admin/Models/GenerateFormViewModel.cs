@@ -10,6 +10,7 @@ namespace CourtApp.Web.Areas.Admin.Models
         public Guid Id { get; set; }
         [Required]
         public string FormName { get; set; }
+        public string Mode { get; set; }
         public FormViewModel Form { get; set; }
     }
     public class FormViewModel
@@ -26,6 +27,7 @@ namespace CourtApp.Web.Areas.Admin.Models
         public int Type { get; set; }
         public SelectList Types { get; set; }
         public string DefaultVal { get; set; }
+        public string Tag { get; set; }
         //public bool IsRequire { get; set; }
         //public int DispOrder { get; set; }
         //public string Placeholder { get; set; }

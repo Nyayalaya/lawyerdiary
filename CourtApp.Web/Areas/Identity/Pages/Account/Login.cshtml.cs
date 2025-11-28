@@ -2,6 +2,7 @@
 using CourtApp.Infrastructure.DbContexts;
 using CourtApp.Infrastructure.Identity.Models;
 using CourtApp.Web.Abstractions;
+using CourtApp.Web.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -159,20 +160,23 @@ namespace CourtApp.Web.Areas.Identity.Pages.Account
                 // Build new claims list
                 var newClaims = new List<Claim>
                                 {
-                                    new Claim(ClaimTypes.NameIdentifier, user.Id),
-                                    new Claim(ClaimTypes.Name, user.UserName),
-                                    new Claim("LinkedIds", lawyerIdsCsv),
-                                    new Claim(ClaimTypes.MobilePhone,user.Mobile),
-                                    new Claim(ClaimTypes.StreetAddress,user.AddressInfo!=null?user.AddressInfo.StreetAddress:""),
-                                    new Claim("OfficeAddress",user.WorkLocInfo!=null?user.WorkLocInfo.Address:""),
-                                    new Claim("FirstName",user.FirstName),
-                                    new Claim("LastName",user.LastName)                                   
+                                    new Claim(AppClaimType.NameIdentifier, user.Id),
+                                    new Claim(AppClaimType.Name, user.UserName),
+                                    new Claim(AppClaimType.GivenName, user.FirstName),
+                                    new Claim(AppClaimType.Surname, user.LastName),
+                                    new Claim(AppClaimType.Email,user.Email),
+                                    new Claim(AppClaimType.MobilePhone,user.Mobile),
+                                    new Claim(AppClaimType.StreetAddress,user.AddressInfo!=null?user.AddressInfo.StreetAddress:""),
+                                    new Claim(AppClaimType.OfficeAddress,user.WorkLocInfo!=null?user.WorkLocInfo.Address:""),
+                                    new Claim(AppClaimType.EnrollmentNo,user.ProfessionalInfo.EnrollmentNo),
+                                    new Claim(AppClaimType.LinkedIds, lawyerIdsCsv),
                                 };
+                
 
                 // Add role claims (one per role)
                 foreach (var role in userRoleNames.Distinct())
                 {
-                    newClaims.Add(new Claim(ClaimTypes.Role, role));
+                    newClaims.Add(new Claim(AppClaimType.Role, role));
                 }
 
                 // Merge with existing (non-role) claims
@@ -191,54 +195,6 @@ namespace CourtApp.Web.Areas.Identity.Pages.Account
                 await HttpContext.SignInAsync(IdentityConstants.ApplicationScheme, principal);
 
                 return LocalRedirect(returnUrl);
-
-                //_logger.LogInformation("User logged in.");
-                //_notyf.Success($"Logged in as {userName}.");
-
-                //var userRoleNames = await _userManager.GetRolesAsync(user);
-                //var normalizedUserRoles = userRoleNames.Select(r => r.ToUpper()).ToList();
-
-                //var existingClaims = await _userManager.GetClaimsAsync(user);
-
-                //List<Guid> linkedIds = new();
-                //Guid userIdGuid = Guid.Parse(user.Id);
-
-                //if (normalizedUserRoles.Contains("LAWYER"))
-                //{
-                //    linkedIds = await _identityDbContext.LawyerUsers
-                //        .Where(w => w.LawyerId == user.Id)
-                //        .Select(s => s.Id)
-                //        .ToListAsync();
-                //}
-                //else //if (normalizedUserRoles.Contains("ASSOCIATE") || normalizedUserRoles.Contains("CLERK"))
-                //{
-                //    linkedIds = await _identityDbContext.LawyerUsers
-                //        .Where(w => w.Id == userIdGuid)
-                //        .Select(s => Guid.Parse(s.LawyerId))
-                //        .ToListAsync();
-                //}
-
-                //linkedIds.Add(userIdGuid);
-                //string lawyerIdsCsv = string.Join(",", linkedIds);
-                //var allClaims = new List<Claim>(existingClaims)
-                //                {
-                //                    new Claim(ClaimTypes.NameIdentifier, user.Id),
-                //                    new Claim(ClaimTypes.Name, user.UserName),
-                //                    new Claim("LinkedIds", lawyerIdsCsv)
-                //                };
-
-                //// ✅ Add proper role claims
-                //foreach (var role in normalizedUserRoles)
-                //{
-                //    allClaims.Add(new Claim(ClaimTypes.Role, role));
-                //}
-
-                //await _signInManager.SignOutAsync();
-
-                //var identity = new ClaimsIdentity(allClaims, IdentityConstants.ApplicationScheme);
-                //var principal = new ClaimsPrincipal(identity);
-                //await HttpContext.SignInAsync(IdentityConstants.ApplicationScheme, principal);
-                //return LocalRedirect(returnUrl);
             }
 
             if (result.RequiresTwoFactor)

@@ -7,6 +7,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,89 +31,71 @@ namespace CourtApp.Application.Features.CaseDetails
         }
         public async Task<PaginatedResult<GetCaseInfoDto>> Handle(GetCaseWohDateQuery request, CancellationToken cancellationToken)
         {
+            // Step 1: Get all case IDs which have child cases
+            var parentCaseIdsWithChildren = new HashSet<Guid>(
+                _repository.Entites.AsNoTracking()
+                    .Where(c => c.LinkedCaseId != null)
+                    .Select(c => c.LinkedCaseId.Value)
+                    .Distinct()
+                    .ToList()
+            );
+            // Step 2: Main query
+            var baseQuery = (from c in _repository.Entites.AsNoTracking().Where(d => d.DisposalDate == null)
+                             where request.LinkedIds.Contains(c.CreatedBy)
+                             let caseLastProceedingDate = c.CaseProcEntities.Any()
+                                 ? c.CaseProcEntities
+                                     .OrderByDescending(d => d.ProceedingDate)
+                                     .Select(s => new { s.ProceedingDate, s.NextDate })
+                                     .FirstOrDefault()
+                                 : null
+                             let prcDate = caseLastProceedingDate != null ? caseLastProceedingDate.ProceedingDate : (DateTime?)null
+                             let nextProcDate = caseLastProceedingDate != null ? caseLastProceedingDate.NextDate : (DateTime?)null
+                             let latestNextDate = (nextProcDate != null && prcDate != null && nextProcDate >= prcDate
+                                 ? nextProcDate
+                                 : prcDate).GetValueOrDefault()
+                             let caseFirstDate = c.NextDate != null ? c.NextDate.Value.ToString("dd/MM/yyyy") : ""
+                             let caseLatestNextDate = (prcDate == null && nextProcDate == null) && c.NextDate != null
+                                 ? caseFirstDate
+                                 : latestNextDate.ToString("dd/MM/yyyy")
+                             // Use HashSet lookup to mark if case has children
+                             let hasChild = parentCaseIdsWithChildren.Contains(c.Id)
+                             select new GetCaseInfoDto
+                             {
+                                 Id = c.Id,
+                                 No = c.CaseNo,
+                                 Year = c.CaseYear.ToString(),
+                                 CourtType = c.CourtType.CourtType.ToString(),
+                                 CaseType = c.CaseType.Name_En,
+                                 Court = c.CourtBench.CourtBench_En.ToUpper(),
+                                 CaseStage = c.CaseStage.CaseStage.ToUpper(),
+                                 DisposalDate = c.DisposalDate,
+                                 CaseDetail = (c.FirstTitle + " V/S " + c.SecondTitle).ToUpper(),
+                                 NextDate = caseLatestNextDate,
+                                 ProceedingDate = prcDate.HasValue ? prcDate.Value.ToString("dd/MM/yyyy") : "",
+                                 IsCaseHavingChild = hasChild
+                             })
+                            .OrderByDescending(o => o.Year)
+                            .AsQueryable();
 
-            var today = DateTime.Today;
+            //this query gives the CaseIds next date greater than current date.
+            var casesIdsGrtToday = baseQuery
+                                    .AsEnumerable()
+                                    .Where(np =>
+                                        !string.IsNullOrEmpty(np.NextDate) &&
+                                        DateTime.TryParseExact(np.NextDate, "dd/MM/yyyy",
+                                                               CultureInfo.InvariantCulture,
+                                                               DateTimeStyles.None, out var parsedDate) &&
+                                        parsedDate > DateTime.Now)
+                                    .Select(s => s.Id)
+                                    .ToList();
 
-            // Step 1: Load and filter cases with their latest proceeding
-            var rawCases = await _repository.Entites
-                .Include(c => c.CourtType)
-                .Include(c => c.CaseType)
-                .Include(c => c.CaseStage)
-                .Include(c => c.CourtBench)
-                .Include(c => c.CaseProcEntities)
-                .Where(c =>
-                    request.LinkedIds.Contains(c.CreatedBy) &&
-                    c.DisposalDate == null
-                )
-                .ToListAsync();
+            //Exclude those case which has next date today.
+            var finalResult = baseQuery.Where(w => !casesIdsGrtToday.Contains(w.Id));
 
-            // Step 2: Filter and project manually in-memory
-            var filteredCases = rawCases
-                .Select(c => new
-                {
-                    Case = c,
-                    LatestProceeding = c.CaseProcEntities
-                        .OrderByDescending(p => p.NextDate)
-                        .Select(p => new
-                        {
-                            p.NextDate,
-                            p.ProceedingDate
-                        })
-                        .FirstOrDefault()
-                })
-                .Where(x =>
-                    (x.LatestProceeding == null && x.Case.NextDate < today) ||
-                    (x.LatestProceeding != null && !x.LatestProceeding.NextDate.HasValue && x.Case.NextDate < today) ||
-                    (x.LatestProceeding != null && x.LatestProceeding.NextDate.HasValue &&
-                        (
-                            (x.LatestProceeding.NextDate > x.Case.NextDate
-                                ? x.LatestProceeding.NextDate
-                                : x.Case.NextDate
-                            ) < today
-                        )
-                    )
-                )
-                .ToList(); // Now fully materialized, safe for async
-
-            // Step 3: Project to DTO with async call
-            var items = new List<GetCaseInfoDto>();
-
-            foreach (var x in filteredCases)
-            {
-                var dto = new GetCaseInfoDto
-                {
-                    Id = x.Case.Id,
-                    No = x.Case.CaseNo,
-                    Year = x.Case.CaseYear.ToString(),
-                    CaseType = x.Case.CaseType?.Name_En,
-                    Court = x.Case.CourtBench?.CourtBench_En,
-                    CaseStage = x.Case.CaseStage?.CaseStage,
-                    DisposalDate = x.Case.DisposalDate,
-                    CaseDetail = $"{x.Case.FirstTitle} V/S {x.Case.SecondTitle}",
-                    ProceedingDate = x.LatestProceeding?.ProceedingDate?.ToString("dd/MM/yyyy") ?? "",
-                    NextDate = x.LatestProceeding?.NextDate?.ToString("dd/MM/yyyy") ??
-                               (x.Case.NextDate.HasValue ? x.Case.NextDate.Value.ToString("dd/MM/yyyy") : ""),
-                    IsCaseHavingChild = await caseHelper.IsCaseHavingChildAsync(x.Case.Id)
-                };
-                items.Add(dto);
-            }
-
-            // Step 4: Order and paginate
-            var orderedCases = items
-                .OrderByDescending(x => int.TryParse(x.Year, out var y) ? y : 0)
-                .ToList();
-
-            var pagedResult = orderedCases
-                .Skip((request.PageNumber - 1) * request.PageSize)
-                .Take(request.PageSize)
-                .ToList(); // or .ToPaginatedList() if your helper supports it
-
-            return PaginatedResult<GetCaseInfoDto>.Success(
-               pagedResult,
-               orderedCases.Count(),
-               request.PageNumber,
-               request.PageSize
-           );
+            int pageSize = request.PageSize == -1 ? baseQuery.Count() : request.PageSize;
+            var pagedResult = await finalResult.ToPaginatedListAsync(request.PageNumber, pageSize);
+            // Step 4: Return updated paged result
+            return pagedResult;
         }
     }
 }

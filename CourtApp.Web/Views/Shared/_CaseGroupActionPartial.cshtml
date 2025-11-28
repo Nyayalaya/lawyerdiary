@@ -24,6 +24,11 @@
 
             <a onclick="jQueryModalGet('@Url', '@PlaceHolderText')"
                class="dropdown-item" title="@PlaceHolderText"><i class="fa fa-tasks" aria-hidden="true"></i> @ButtonText</a>
+
+            <a href="javascript:void(0);" onclick="deleteCase('@Model.CaseId')" title="Delete Case" class="dropdown-item">
+                <i class="fa fa-trash" style="font-size: 18px; color: red;" aria-hidden="true"> Delete </i>
+            </a>
+
         }
     </div>
 </div>

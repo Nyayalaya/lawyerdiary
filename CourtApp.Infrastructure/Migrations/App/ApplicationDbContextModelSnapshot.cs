@@ -17,7 +17,7 @@ namespace CourtApp.Infrastructure.Migrations.App
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.2")
+                .HasAnnotation("ProductVersion", "9.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -1061,7 +1061,7 @@ namespace CourtApp.Infrastructure.Migrations.App
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<Guid>("DraftingFormId")
+                    b.Property<Guid>("FormId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("LastModifiedBy")
@@ -1077,7 +1077,7 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                     b.HasIndex("CaseId");
 
-                    b.HasIndex("DraftingFormId");
+                    b.HasIndex("FormId");
 
                     b.HasIndex("TemplateId");
 
@@ -1154,6 +1154,9 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("timestamp without time zone");
+
+                    b.Property<Guid>("FormId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("text");
@@ -1733,7 +1736,7 @@ namespace CourtApp.Infrastructure.Migrations.App
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<DateTime>("Dob")
+                    b.Property<DateTime?>("Dob")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Email")
@@ -1813,6 +1816,38 @@ namespace CourtApp.Infrastructure.Migrations.App
                     b.HasIndex("CourtTypeId");
 
                     b.ToTable("m_nature", "ld");
+                });
+
+            modelBuilder.Entity("CourtApp.Domain.Entities.LawyerDiary.OppositCouncilEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CaseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<Guid>("LawyerId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LawyerId");
+
+                    b.ToTable("OppositCouncilEntity");
                 });
 
             modelBuilder.Entity("CourtApp.Domain.Entities.LawyerDiary.ProceedingHeadEntity", b =>
@@ -2623,9 +2658,9 @@ namespace CourtApp.Infrastructure.Migrations.App
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("CourtApp.Domain.Entities.FormBuilder.FormBuilderEntity", "DraftingForm")
+                    b.HasOne("CourtApp.Domain.Entities.FormBuilder.FormBuilderEntity", "Form")
                         .WithMany()
-                        .HasForeignKey("DraftingFormId")
+                        .HasForeignKey("FormId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -2644,8 +2679,8 @@ namespace CourtApp.Infrastructure.Migrations.App
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("integer");
 
-                            b1.Property<Guid>("Key")
-                                .HasColumnType("uuid");
+                            b1.Property<string>("Tag")
+                                .HasColumnType("text");
 
                             b1.Property<string>("Value")
                                 .HasColumnType("text");
@@ -2662,9 +2697,9 @@ namespace CourtApp.Infrastructure.Migrations.App
 
                     b.Navigation("Case");
 
-                    b.Navigation("DraftingForm");
-
                     b.Navigation("FieldDetails");
+
+                    b.Navigation("Form");
 
                     b.Navigation("Template");
                 });
@@ -2710,6 +2745,9 @@ namespace CourtApp.Infrastructure.Migrations.App
                                         .HasColumnType("text");
 
                                     b2.Property<string>("Placeholder")
+                                        .HasColumnType("text");
+
+                                    b2.Property<string>("Tag")
                                         .HasColumnType("text");
 
                                     b2.Property<int>("Type")
@@ -2910,6 +2948,36 @@ namespace CourtApp.Infrastructure.Migrations.App
                     b.Navigation("State");
                 });
 
+            modelBuilder.Entity("CourtApp.Domain.Entities.LawyerDiary.CourtTypeEntity", b =>
+                {
+                    b.OwnsMany("CourtApp.Domain.Entities.Common.LangEntity", "Languages", b1 =>
+                        {
+                            b1.Property<Guid>("CourtTypeEntityId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer");
+
+                            b1.Property<string>("Code")
+                                .HasColumnType("text");
+
+                            b1.Property<string>("Name")
+                                .HasColumnType("text");
+
+                            b1.HasKey("CourtTypeEntityId", "__synthesizedOrdinal");
+
+                            b1.ToTable("m_court_type", "ld");
+
+                            b1.ToJson("Languages");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CourtTypeEntityId");
+                        });
+
+                    b.Navigation("Languages");
+                });
+
             modelBuilder.Entity("CourtApp.Domain.Entities.LawyerDiary.LDBookEntity", b =>
                 {
                     b.HasOne("CourtApp.Domain.Entities.LawyerDiary.BookTypeEntity", "BookType")
@@ -2938,6 +3006,17 @@ namespace CourtApp.Infrastructure.Migrations.App
                         .IsRequired();
 
                     b.Navigation("CourtType");
+                });
+
+            modelBuilder.Entity("CourtApp.Domain.Entities.LawyerDiary.OppositCouncilEntity", b =>
+                {
+                    b.HasOne("CourtApp.Domain.Entities.LawyerDiary.LawyerMasterEntity", "Lawyer")
+                        .WithMany("OppositeCounsels")
+                        .HasForeignKey("LawyerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Lawyer");
                 });
 
             modelBuilder.Entity("CourtApp.Domain.Entities.LawyerDiary.ProceedingSubHeadEntity", b =>
@@ -3035,6 +3114,11 @@ namespace CourtApp.Infrastructure.Migrations.App
             modelBuilder.Entity("CourtApp.Domain.Entities.LawyerDiary.CourtMasterEntity", b =>
                 {
                     b.Navigation("CourtBenches");
+                });
+
+            modelBuilder.Entity("CourtApp.Domain.Entities.LawyerDiary.LawyerMasterEntity", b =>
+                {
+                    b.Navigation("OppositeCounsels");
                 });
 
             modelBuilder.Entity("CourtApp.Domain.Entities.LawyerDiary.PublisherEntity", b =>

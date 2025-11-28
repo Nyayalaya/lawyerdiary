@@ -1,119 +1,16 @@
 ﻿@{
-    ViewData["Title"] = localizer["Lawyer Dashboard"];    
+    ViewData["Title"] = localizer["Lawyer Dashboard"];
 }
 @model DashboardViewModel
 @using Newtonsoft.Json
 
-<style>
-    body {
-        background-color: #f8f9fa;
-        font-family: 'Segoe UI', sans-serif;
-    }
-
-    .card-button {
-        border-radius: 10px;
-    }
-
-    .card-summary {
-        color: white;
-        padding: 20px;
-        border-radius: 10px;
-        font-weight: bold;
-    }
-
-        .card-summary.blue {
-            background-color: #007bff;
-        }
-
-        .card-summary.orange {
-            background-color: #fd7e14;
-        }
-
-        .card-summary.teal {
-            background-color: #20c997;
-        }
-
-        .card-summary.cyan {
-            background-color: #17a2b8;
-        }
-
-        .card-summary.red {
-            background-color: red;
-        }
-
-        .card-summary.yellow {
-            background-color: greenyellow;
-        }
-
-    .section-title {
-        font-weight: 600;
-        margin-bottom: 10px;
-    }
-
-    .add-case-btn {
-        background-color: #007bff;
-        color: white;
-        border: none;
-    }
-</style>
+<link href="~/css/dashboard.css" rel="stylesheet" />
 @if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
 {
     <div class="container-fluid">
         <div class="row">
             Coming soon!
-            @* <div class="col-sm-4">
-                <div class="card border-primary">
-                    <div class="card-header text-uppercase text-center"><strong>today's hearing</strong></div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-10 text-uppercase text-left">total cases</div>
-                            <div class="col-md-2 font-weight-bolder bg-orange text-center">9</div>
-                        </div>
-                        <div class="row" style="margin-block:auto">
-                            <div class="col-md-10 text-uppercase text-left">pending cases</div>
-                            <div class="col-md-2 font-weight-bolder bg-lightblue text-center">9</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-10 text-uppercase text-left">closed cases</div>
-                            <div class="col-md-2 font-weight-bolder bg-gradient-red text-center">9</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-4">
-                <div class="card">
-                    <div class="card-header text-uppercase text-center"><strong>Next week Hearing</strong></div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-10 text-uppercase text-left">Total hearing</div>
-                            <div class="col-md-2 font-weight-bolder bg-orange text-center">9</div>
-                        </div>
-                        <div class="row" style="margin-block:auto">
-                            <div class="col-md-10 text-uppercase text-left">new cases</div>
-                            <div class="col-md-2 font-weight-bolder bg-lightblue text-center">9</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-4">
-                <div class="card border-primary">
-                    <div class="card-header text-uppercase text-center"><strong>Cases</strong></div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-10 text-uppercase text-left">total cases</div>
-                            <div class="col-md-2 font-weight-bolder bg-orange text-center">9</div>
-                        </div>
-                        <div class="row" style="margin-block:auto">
-                            <div class="col-md-10 text-uppercase text-left">pending cases</div>
-                            <div class="col-md-2 font-weight-bolder bg-lightblue text-center">9</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-10 text-uppercase text-left">closed cases</div>
-                            <div class="col-md-2 font-weight-bolder bg-gradient-red text-center">9</div>
-                        </div>
-                    </div>
-                </div>
-            </div> *@
+            
 
         </div>
     </div>
@@ -138,7 +35,7 @@ else
                 <div class="card-summary red text-center">Today's Hearing<br><span class="fs-3">@Model.TodayHearing</span></div>
             </div>
             <div class="col-md-2">
-                <div class="d-flex flex-column gap-2">                   
+                <div class="d-flex flex-column gap-2">
                     <a onclick="jQueryModalGet('/client/manageclient/CreateOrEdit','Add New Client')"
                        class="btn bg-primary w-100">
                         <i class="fa fa-plus-square"></i> Add Client
@@ -154,7 +51,7 @@ else
         </div>
 
         <div class="row mt-4">
-            <div class="col-md-6" >
+            <div class="col-md-6">
                 <h5 class="section-title">Cases vs Disposed Cases</h5>
                 <canvas id="barChart" style="width: 100%; height: 100%;"></canvas>
             </div>
@@ -184,25 +81,12 @@ else
             </div> *@
         </div>
 
-        @* <div class="row mt-4">
-
-            <div class="col-md-6">
-                <h5 class="section-title">Pending Work</h5>
-                <table class="table table-bordered">
-                    <thead><tr><th>Case ID</th><th>Task</th><th>Due Date</th></tr></thead>
-                    <tbody>
-                        <tr><td>PQR v. Davis</td><td>Draft Motion</td><td>Apr 25</td></tr>
-                        <tr><td>GHI v. Brown</td><td>Review Docs</td><td>Apr 24</td></tr>
-                        <tr><td>LMN v. Doe</td><td>Draft Motion</td><td>Apr 19</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div> *@
+        
     </div>
 
 }
 @section Scripts
-{    
+{
     <script>
         window.monthlyCaseData = @Html.Raw(Json.Serialize(Model.MonthlyCaseStatuses));
         window.caseStatusData = @Html.Raw(Json.Serialize(Model.StatusSummaries));

@@ -27,11 +27,20 @@ namespace CourtApp.Application.Features.CourtType.Query
         public async Task<Result<List<GetCourtTypeResponse>>> Handle(GetCourtTypeQuery request, CancellationToken cancellationToken)
         {
             var courtTypeList = await _courtType.GetCachedListAsync();
-            var mappedCourtTpe = _mapper.Map<List<GetCourtTypeResponse>>(courtTypeList);
-            var mct = mappedCourtTpe.Select(s => new GetCourtTypeResponse
-            { Id = s.Id, CourtType = s.CourtType.ToUpper(), Abbreviation = s.Abbreviation })
-                .OrderBy(o => o.CourtType.ToUpper()).ToList();
-            return Result<List<GetCourtTypeResponse>>.Success(mct);
+
+            var mappedCourtTypes = courtTypeList.Select(ct => new GetCourtTypeResponse
+            {
+                Id = ct.Id,
+                CourtType = ct.CourtType.ToUpper(),
+                Abbreviation = ct.Abbreviation,
+                // 👉 Get first language record safely
+                CourtType_Hn = ct.Languages?
+                                 .FirstOrDefault()?.Name
+            })
+            .OrderBy(o => o.CourtType)
+            .ToList();
+
+            return Result<List<GetCourtTypeResponse>>.Success(mappedCourtTypes);
         }
     }
 }

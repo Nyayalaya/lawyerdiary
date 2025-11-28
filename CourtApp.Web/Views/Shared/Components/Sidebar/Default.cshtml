@@ -165,12 +165,12 @@
                                     <p>@localizer["Court forms"]</p>
                                 </a>
                             </li>
-                            <li class="nav-item">
+                            @* <li class="nav-item">
                                 <a is-active-route asp-area="LawyerDiary" asp-controller="CourtFee" asp-action="index" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>@localizer["Court Fee"]</p>
                                 </a>
-                            </li>
+                            </li> *@
                         </ul>
                     </li>
                 }
@@ -385,7 +385,7 @@
                     </li>
                 }
 
-                @if (canAccessTools)
+                @* @if (canAccessTools)
                 {
                     <li class="nav-item has-treeview">
                         <a href="#" class="nav-link">
@@ -428,7 +428,7 @@
                         </ul>
                     </li>
                 }
-
+ *@
 
             </ul>
         </nav>

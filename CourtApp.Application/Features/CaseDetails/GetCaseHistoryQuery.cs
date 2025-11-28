@@ -89,7 +89,9 @@ namespace CourtApp.Application.Features.CaseDetails
                                 ? (WDetails[w.Id].Status == 1
                                     ? WDetails[w.Id].AppliedOn.ToString("dd/MM/yyyy")
                                     : (WDetails[w.Id].Status == 2 ? WDetails[w.Id].ReceivedOn.ToString("dd/MM/yyyy") : null))
-                                : null
+                                : null,
+                            AppliedOn=WDetails.ContainsKey(w.Id)
+                                    ? (WDetails[w.Id].Status == 2 ? WDetails[w.Id].AppliedOn.ToString("dd/MM/yyyy") : null):null
                         })
                         .ToList();
 
@@ -122,7 +124,8 @@ namespace CourtApp.Application.Features.CaseDetails
                                         WorkType = w.WorkType,
                                         Work = w.WorkName,
                                         Status=w.WorkStatus==1?"Work Done":w.WorkStatus==2?"Copy Recieved":"",
-                                        Date=w.WorkDoneDate
+                                        Date=w.WorkDoneDate,
+                                        AppliedOn=w.AppliedOn
                                     })
                                     .ToList()
                             }
