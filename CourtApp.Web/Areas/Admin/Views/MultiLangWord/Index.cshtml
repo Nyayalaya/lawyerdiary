@@ -1,0 +1,70 @@
+﻿@model List<MultiLangDictViewModel>
+
+@{
+    ViewData["Title"] = "Multi-Language Dictionary";
+}
+
+
+
+<table class="table table-bordered table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>Keyword (EN)</th>
+            <th>Hindi (hi)</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var row in Model)
+        {
+            var hindiValue = row.Translations.ContainsKey("hi")
+            ? row.Translations["hi"]
+            : ""; // show blank if no value
+
+            <tr data-id="@row.Id">
+                <td>@row.KeyWord</td>
+                <td>
+                    <input type="text"
+                           class="form-control lang-input"
+                           data-lang="hi"
+                           value="@hindiValue" />
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<button id="saveBtn" class="btn btn-success mt-2">Save All</button>
+
+<script>
+    $(document).ready(function () {
+
+        // Save all Hindi translations
+        $('#saveBtn').click(function () {
+            var data = [];
+
+            $('tbody tr').each(function () {
+                var id = $(this).data('id');
+                var hindi = $(this).find('.lang-input[data-lang="hi"]').val();
+
+                data.push({
+                    id: id,
+                    translations: { hi: hindi }
+                });
+            });
+
+            $.ajax({
+                url: '@Url.Action("Save")',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function (response) {
+                    alert(response.message);
+                },
+                error: function (xhr) {
+                    alert('Error saving: ' + xhr.responseText);
+                }
+            });
+        });
+    });
+</script>

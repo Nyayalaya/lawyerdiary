@@ -1,7 +1,9 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CourtApp.Domain.Entities.FormBuilder
 {
+    
     public class FieldDetailsEntity
     {
         public Guid Key { get; set; }

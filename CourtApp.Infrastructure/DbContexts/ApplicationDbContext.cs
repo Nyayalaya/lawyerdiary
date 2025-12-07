@@ -78,6 +78,7 @@ namespace CourtApp.Infrastructure.DbContexts
         public DbSet<LanguageEntity> LanguageEntities { get; set; }
         public DbSet<CourtFormTypeEntity> CourtFormTypeEntities { get; set; }
         public DbSet<BillingDetailEntity> BillingDetails { get; set; }
+        public DbSet<MultiLangDictEntity> MultiLangDictEntities { get; set; }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
         {
@@ -198,6 +199,12 @@ namespace CourtApp.Infrastructure.DbContexts
 
             builder.Entity<CourtTypeEntity>().OwnsMany(
                j => j.Languages, k =>
+               {
+                   k.ToJson();
+               }
+               );
+            builder.Entity<MultiLangDictEntity>().OwnsMany(
+               j => j.MultiLangs, k =>
                {
                    k.ToJson();
                }

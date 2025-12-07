@@ -15,7 +15,7 @@ namespace CourtApp.Domain.Entities.FormBuilder
         [Column(Order = 3)]
         public FormFieldsEntity FieldsDetails { get; set; }
     }
-
+    
     public class FormFieldsEntity
     {
         public List<FieldDetailsEntity> Fields { get; set; }

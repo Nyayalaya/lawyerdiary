@@ -1,5 +1,8 @@
-﻿namespace CourtApp.Domain.Entities.FormBuilder
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace CourtApp.Domain.Entities.FormBuilder
 {
+    
     public class FieldSizeEntity
     {
         public string Min { get; set; }

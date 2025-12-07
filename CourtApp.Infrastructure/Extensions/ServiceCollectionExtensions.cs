@@ -1,8 +1,10 @@
 ﻿using CourtApp.Application.Interfaces.CacheRepositories;
+using CourtApp.Application.Interfaces.CacheRepositories.Common;
 using CourtApp.Application.Interfaces.CacheRepositories.FormBuilder;
 using CourtApp.Application.Interfaces.Contexts;
 using CourtApp.Application.Interfaces.Repositories;
 using CourtApp.Application.Interfaces.Repositories.Accounting;
+using CourtApp.Application.Interfaces.Repositories.Common;
 using CourtApp.Application.Interfaces.Repositories.FormBuilder;
 using CourtApp.Infrastructure.CacheRepositories;
 using CourtApp.Infrastructure.DbContexts;
@@ -142,6 +144,8 @@ namespace CourtApp.Infrastructure.Extensions
 
             #region Language & Court Form Print
             services.AddTransient<ILanguageRepository, LanguageRepository>();
+            services.AddTransient<IMultiLangWordCacheRepository, MultiLangDictCacheRepository>();
+            services.AddTransient<IMultiLangWordRepository, MultiLangWordRepository>();
             services.AddTransient<ICourtFormTypeRepository, CourtFormTypeRepository>();
             #endregion
 

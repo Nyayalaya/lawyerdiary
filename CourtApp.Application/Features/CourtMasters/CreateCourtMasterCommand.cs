@@ -3,6 +3,7 @@ using AutoMapper;
 using CourtApp.Application.DTOs.CourtMaster;
 using CourtApp.Application.Interfaces.CacheRepositories;
 using CourtApp.Application.Interfaces.Repositories;
+using CourtApp.Application.Interfaces.Repositories.Common;
 using CourtApp.Domain.Entities.LawyerDiary;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

@@ -47,7 +47,6 @@
     <Folder Include="Features\Client\" />
     <Folder Include="Features\LawyerDiary\" />
     <Folder Include="Features\Litigation\" />
-    <Folder Include="Interfaces\CacheRepositories\Common\" />
     <Folder Include="Interfaces\CacheRepositories\LawyerDiary\" />
     <Folder Include="Interfaces\CacheRepositories\Litigation\" />
     <Folder Include="Interfaces\CacheRepositories\Client\" />
