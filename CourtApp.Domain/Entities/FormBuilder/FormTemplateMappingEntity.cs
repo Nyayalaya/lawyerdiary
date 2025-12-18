@@ -12,6 +12,7 @@ namespace CourtApp.Domain.Entities.FormBuilder
         public Guid FormId { get; set; }
         public List<MappingEntity> FieldsMapping { get; set; }
     }
+    
     public class MappingEntity
     {
         public string Tag { get; set; }

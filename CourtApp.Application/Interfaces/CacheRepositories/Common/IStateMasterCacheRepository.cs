@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CourtApp.Entities.Common;
 
-namespace CourtApp.Application.Interfaces.CacheRepositories
+namespace CourtApp.Application.Interfaces.CacheRepositories.Common
 {
     public interface IStateMasterCacheRepository
     {

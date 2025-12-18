@@ -1,8 +1,13 @@
 ﻿using CourtApp.Application.Features.FormBuilder;
 using CourtApp.Application.Features.FormPrint;
+using CourtApp.Infrastructure.DbContexts;
+using CourtApp.Infrastructure.Identity.Models;
 using CourtApp.Web.Abstractions;
+using CourtApp.Web.Areas.Admin.Models;
 using CourtApp.Web.Areas.Litigation.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -13,6 +18,14 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
     [Area("Litigation")]
     public class DraftingController : BaseController<DraftingController>
     {
+        private readonly IdentityContext _identityDbContext;
+        private readonly UserManager<ApplicationUser> _userManager;
+        public DraftingController(IdentityContext identityDbContext,
+            UserManager<ApplicationUser> userManager)
+        {
+            _identityDbContext = identityDbContext;
+            _userManager = userManager;
+        }
         public IActionResult Index()
         {
             return View();
@@ -190,6 +203,13 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             var agDetail = caseInfo?.AgainstCourtDetail;
             var applicant = caseInfo?.SecondPartyDetails.Select(s => s.ApplicantNo).FirstOrDefault();
 
+            var associates = GetAssociateAsync();
+            foreach (var associate in associates.Result)
+            {
+                string associateName = associate.FirstName + " " + associate.LastName;
+                string mobileNo = associate.Mobile;
+            }
+
             var replacements = new Dictionary<string, string>
             {
                 ["#InstitutionDate#"] = caseInfo.InstitutionDate ?? "",
@@ -245,5 +265,35 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             return template;
         }
 
+
+        private async Task<List<UserViewModel>> GetAssociateAsync()
+        {
+
+            var otherLoggedUsers = new HashSet<string> { "ASSOCIATE", "CLERK" };
+            var operatorIds = await _identityDbContext.LawyerUsers
+                .Where(o => o.LawyerId == CurrentUser.Id)
+                .Select(o => new { o.Id, o.DateOfJoining })
+                .ToListAsync();
+            var operatorIdSet = new HashSet<string>(operatorIds.Select(o => o.Id.ToString()));
+            var model = await _userManager.Users
+                .Where(user => user.Id != CurrentUser.Id
+                    && otherLoggedUsers.Contains(user.UserType)
+                    && operatorIdSet.Contains(user.Id))
+                .Select(user => new UserViewModel
+                {
+                    Role = user.UserType,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    Mobile = user.Mobile,
+                    EmailConfirmed = user.EmailConfirmed,
+                    ProfileImgPath = "",
+                    ProfilePicture = user.ProfilePicture,
+                    Id = user.Id,
+                    IsActive = user.IsActive
+                })
+                .ToListAsync();
+            return model;
+        }
     }
 }

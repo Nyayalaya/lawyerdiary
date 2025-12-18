@@ -1,4 +1,3 @@
-using CourtApp.Application.Interfaces.CacheRepositories;
 using AspNetCoreHero.Results;
 using AutoMapper;
 using MediatR;
@@ -6,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
+using CourtApp.Application.Interfaces.CacheRepositories.Common;
 
 namespace CourtApp.Application.Features.Queries.States
 {

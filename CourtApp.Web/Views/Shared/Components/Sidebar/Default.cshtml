@@ -166,11 +166,17 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a is-active-route asp-area="Admin" asp-controller="MultiLangWord" asp-action="index" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>@localizer["Word Translation"]</p>
+                                </a>
+                            </li>
+                            @* <li class="nav-item">
                                 <a is-active-route asp-area="LawyerDiary" asp-controller="CourtFee" asp-action="index" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>@localizer["Court Fee"]</p>
                                 </a>
-                            </li>
+                            </li> *@
                         </ul>
                     </li>
                 }

@@ -4,10 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using CourtApp.Entities.Common;
 
-namespace CourtApp.Application.Interfaces.CacheRepositories
+namespace CourtApp.Application.Interfaces.Repositories.Common
 {
-    public interface IDsitrictMasterCacheRepository
+    public interface IDistrictMasterRepository
     {
+        IQueryable<DistrictEntity> Entities{get;}
         Task<List<DistrictEntity>> GetDistrictListByStateAsync(int StateCode);
+        DistrictEntity GetDistrictById(int Id);
     }
 }

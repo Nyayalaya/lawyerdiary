@@ -9,6 +9,7 @@
     <PackageReference Include="audit-trail" Version="1.1.6" />
     <PackageReference Include="AutoMapper" Version="15.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.8">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -26,7 +27,6 @@
     <ProjectReference Include="..\CourtApp.Domain\CourtApp.Domain.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Migrations\Identity\" />
-    <Folder Include="Migrations\App\" />
+    <Folder Include="Migrations\" />
   </ItemGroup>
 </Project>

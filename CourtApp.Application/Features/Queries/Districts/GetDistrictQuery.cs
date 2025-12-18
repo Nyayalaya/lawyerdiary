@@ -1,6 +1,6 @@
 using AspNetCoreHero.Results;
 using AutoMapper;
-using CourtApp.Application.Interfaces.Repositories;
+using CourtApp.Application.Interfaces.Repositories.Common;
 using MediatR;
 using System.Collections.Generic;
 using System.Linq;

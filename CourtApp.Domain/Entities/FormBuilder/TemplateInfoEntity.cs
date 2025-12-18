@@ -13,6 +13,7 @@ namespace CourtApp.Domain.Entities.FormBuilder
         public string TemplateBody { get; set; }
         public List<TemplateTagsEntity> Tags { get; set; }
     }
+    
     public class TemplateTagsEntity
     {
         public string Tag { get; set; }

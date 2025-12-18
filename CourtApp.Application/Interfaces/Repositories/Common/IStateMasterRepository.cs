@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CourtApp.Entities.Common;
 
-namespace CourtApp.Application.Interfaces.Repositories
+namespace CourtApp.Application.Interfaces.Repositories.Common
 {
     public interface IStateMasterRepository
     {

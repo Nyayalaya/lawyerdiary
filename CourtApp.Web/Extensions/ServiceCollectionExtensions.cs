@@ -75,8 +75,8 @@ namespace CourtApp.Web.Extensions
             }
             else
             {
-                services.AddDbContext<IdentityContext>(options => options.UseNpgsql(configuration.GetConnectionString("DbCnnection")), ServiceLifetime.Transient);
-                services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("DbCnnection")));
+                services.AddDbContext<IdentityContext>(options => options.UseNpgsql(configuration.GetConnectionString("Postgres")), ServiceLifetime.Transient);
+                services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("Postgres")));
             }
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
