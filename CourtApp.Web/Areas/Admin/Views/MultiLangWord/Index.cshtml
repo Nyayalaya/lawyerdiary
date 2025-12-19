@@ -1,12 +1,9 @@
 ﻿@model List<MultiLangDictViewModel>
-
 @{
     ViewData["Title"] = "Multi-Language Dictionary";
 }
 
-
-
-<table class="table table-bordered table-hover">
+<table class="table table-bordered table-hover" id="tblConversionData">
     <thead class="table-dark">
         <tr>
             <th>Keyword (EN)</th>
@@ -27,6 +24,7 @@
                     <input type="text"
                            class="form-control lang-input"
                            data-lang="hi"
+                           data-original="@hindiValue"
                            value="@hindiValue" />
                 </td>
             </tr>
@@ -35,36 +33,75 @@
 </table>
 
 <button id="saveBtn" class="btn btn-success mt-2">Save All</button>
+@section Scripts
+{
 
-<script>
-    $(document).ready(function () {
+    <script>
+                    var table;
 
-        // Save all Hindi translations
-        $('#saveBtn').click(function () {
-            var data = [];
+        $(document).ready(function () {
 
-            $('tbody tr').each(function () {
-                var id = $(this).data('id');
-                var hindi = $(this).find('.lang-input[data-lang="hi"]').val();
+            if (!$.fn.DataTable.isDataTable('#tblConversionData')) {
+                table = $('#tblConversionData').DataTable({
+                    pageLength: 10,
+                    stateSave: true,
+                    ordering: false
+                });
+            } else {
+                table = $('#tblConversionData').DataTable();
+            }
 
-                data.push({
-                    id: id,
-                    translations: { hi: hindi }
+            $('#saveBtn').off('click').on('click', function () {
+
+                var data = [];
+
+                table.rows().every(function () {
+                    var row = $(this.node());
+                    var id = row.data('id');
+
+                    var input = row.find('.lang-input[data-lang="hi"]');
+                    var original = input.data('original') ?? '';
+                    var current = input.val() ?? '';
+
+                    if (original !== current) {
+                        data.push({
+                            id: id,
+                            translations: { hi: current }
+                        });
+                    }
+                });
+
+                if (data.length === 0) {
+                    Swal.fire({
+                        title: "There are no change in the data!",
+                        icon: "warning"
+                    });
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("Save")',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(data),
+                    success: function (response) {
+
+                        Swal.fire({
+                            title: response.message,
+                            icon: "success"
+                        });
+
+                        table.rows().every(function () {
+                            var row = $(this.node());
+                            row.find('.lang-input[data-lang="hi"]')
+                                .data('original', function () {
+                                    return $(this).val();
+                                });
+                        });
+                    }
                 });
             });
-
-            $.ajax({
-                url: '@Url.Action("Save")',
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(data),
-                success: function (response) {
-                    alert(response.message);
-                },
-                error: function (xhr) {
-                    alert('Error saving: ' + xhr.responseText);
-                }
-            });
         });
-    });
-</script>
+    </script>
+}
+

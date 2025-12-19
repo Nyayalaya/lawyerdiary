@@ -49,7 +49,7 @@ namespace CourtApp.Infrastructure.CacheRepositories
         /// </summary>
         public async Task<List<MultiLangDictEntity>> GetListByLanCodeAsync(string langCode)
         {
-            string cacheKey = MultiLangDictCacheKey.ByLanguage(langCode);
+            string cacheKey =langCode==null?MultiLangDictCacheKey.All: MultiLangDictCacheKey.ByLanguage(langCode);
 
             var entities = await _distributedCache.GetAsync<List<MultiLangDictEntity>>(cacheKey);
             if (entities == null)
