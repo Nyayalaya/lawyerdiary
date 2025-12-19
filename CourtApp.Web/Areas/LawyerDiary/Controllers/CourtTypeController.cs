@@ -2,6 +2,7 @@
 using CourtApp.Application.Features.CourtType.Query;
 using CourtApp.Web.Abstractions;
 using CourtApp.Web.Areas.LawyerDiary.Models;
+using CourtApp.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -34,7 +35,14 @@ namespace CourtApp.Web.Areas.LawyerDiary.Controllers
 
             if (id == Guid.Empty)
             {
-                var ViewModel = new CourtTypeViewModel();
+
+                var ViewModel = new CourtTypeViewModel
+                {
+                    Language = new List<LanguageViewModel>
+                    {
+                        new() { Code = "hi" }
+                    }
+                };
                 return new JsonResult(new { isValid = true, html = await _viewRenderer.RenderViewToStringAsync("_CreateOrEdit", ViewModel) });
             }
             else

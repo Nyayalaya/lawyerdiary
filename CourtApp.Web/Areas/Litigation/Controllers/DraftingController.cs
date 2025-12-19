@@ -152,7 +152,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 {
                     var dt = response.Data;
                     var Cases = new List<Guid> { dt.CaseId };
-                    var caseDataResult = await _mediator.Send(new GetFormPrintDataQuery { CaseIds = Cases });
+                    var caseDataResult = await _mediator.Send(new GetFormPrintDataQuery { CaseIds = Cases,Lang="hi" });
                     if (!caseDataResult.Succeeded || caseDataResult.Data == null)
                         return BadRequest("Unable to retrieve case details.");
 

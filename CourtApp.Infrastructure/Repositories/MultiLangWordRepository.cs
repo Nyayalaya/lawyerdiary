@@ -25,17 +25,68 @@ namespace CourtApp.Infrastructure.Repositories
         public IQueryable<MultiLangDictEntity> Entities => _repository.Entities;
 
         public async Task<List<Guid>> BulkInsertAsync(List<MultiLangDictEntity> dictEntities)
-        {           
+        {
             if (dictEntities == null || dictEntities.Count == 0)
                 return new List<Guid>();
-            foreach (var entity in dictEntities)
+
+            // 1️⃣ Normalize + distinct incoming keywords ONCE
+            var incomingNormalized = dictEntities
+                .Where(x => !string.IsNullOrWhiteSpace(x.KeyWord))
+                .Select(x => x.KeyWord.Trim().ToUpperInvariant())
+                .Distinct()
+                .ToList();
+
+            if (incomingNormalized.Count == 0)
+                return new List<Guid>();
+
+            // 2️⃣ Fetch existing keywords (normalized)
+            var existingNormalized = await _repository.Entities
+                .AsNoTracking()
+                .Where(x => incomingNormalized.Contains(x.KeyWord.Trim().ToUpper()))
+                .Select(x => x.KeyWord.Trim().ToUpper())
+                .ToListAsync();
+
+            // 3️⃣ Convert to HashSet for O(1) lookup
+            var existingSet = existingNormalized.ToHashSet();
+
+            // 4️⃣ Filter only missing entities
+            var newEntities = dictEntities
+                .Where(x => !string.IsNullOrWhiteSpace(x.KeyWord))
+                .Select(x => new
+                {
+                    Entity = x,
+                    Normalized = x.KeyWord.Trim().ToUpperInvariant()
+                })
+                .Where(x => !existingSet.Contains(x.Normalized))
+                .GroupBy(x => x.Normalized)
+                .Select(g =>
+                {
+                    var entity = g.First().Entity;
+                    entity.KeyWord = entity.KeyWord.Trim();
+                    return entity;
+                })
+                .ToList();
+
+
+            if (newEntities.Count == 0)
+                return new List<Guid>();
+
+            // 4️⃣ Ensure IDs
+            foreach (var entity in newEntities)
             {
                 if (entity.Id == Guid.Empty)
                     entity.Id = Guid.NewGuid();
+
+                entity.KeyWord = entity.KeyWord.Trim();
             }
-            await _repository.AddRange(dictEntities); 
+
+            // 5️⃣ Bulk insert
+            await _repository.AddRange(newEntities);
+
+            // 6️⃣ Invalidate cache ONCE
             await _distributedCache.RemoveAsync(MultiLangDictCacheKey.All);
-            return dictEntities.Select(x => x.Id).ToList();
+
+            return newEntities.Select(x => x.Id).ToList();
         }
 
         public async Task DeleteAsync(MultiLangDictEntity dictEntity)
@@ -58,7 +109,7 @@ namespace CourtApp.Infrastructure.Repositories
             // If language code is empty → RETURN ALL records
             if (string.IsNullOrWhiteSpace(langCode))
             {
-                return await _repository.Entities
+                return await _repository.Entities.Where(x=>!x.MultiLangs.Any())
                             .OrderBy(x => x.MultiLangs.Any())  // false → null/empty first
                             .ThenBy(x => x.KeyWord)
                             .ToListAsync();
@@ -83,6 +134,7 @@ namespace CourtApp.Infrastructure.Repositories
         {
             if (entities == null || !entities.Any())
                 return new List<Guid>();
+            await _distributedCache.RemoveAsync(MultiLangDictCacheKey.All);
             await _repository.UpdateRangeAsync(entities);
             return entities.Select(e => e.Id).ToList();
         }

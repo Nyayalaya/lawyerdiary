@@ -6,8 +6,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Features\LawyerDiary\**" />
+    <Compile Remove="Features\Litigation\**" />
     <Compile Remove="Features\Queries\Cases\**" />
+    <EmbeddedResource Remove="Features\LawyerDiary\**" />
+    <EmbeddedResource Remove="Features\Litigation\**" />
     <EmbeddedResource Remove="Features\Queries\Cases\**" />
+    <None Remove="Features\LawyerDiary\**" />
+    <None Remove="Features\Litigation\**" />
     <None Remove="Features\Queries\Cases\**" />
   </ItemGroup>
 
@@ -45,8 +51,6 @@
     <Folder Include="DTOs\APIRes\" />
     <Folder Include="DTOs\Work\" />
     <Folder Include="Features\Client\" />
-    <Folder Include="Features\LawyerDiary\" />
-    <Folder Include="Features\Litigation\" />
     <Folder Include="Interfaces\CacheRepositories\LawyerDiary\" />
     <Folder Include="Interfaces\CacheRepositories\Litigation\" />
     <Folder Include="Interfaces\CacheRepositories\Client\" />
