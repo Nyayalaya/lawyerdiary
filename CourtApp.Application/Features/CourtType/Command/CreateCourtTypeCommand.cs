@@ -5,7 +5,6 @@ using CourtApp.Application.Interfaces.Repositories;
 using CourtApp.Application.Interfaces.Repositories.Common;
 using CourtApp.Domain.Entities.Common;
 using CourtApp.Domain.Entities.LawyerDiary;
-using KT3Core.Areas.Global.Classes;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -59,10 +58,6 @@ namespace CourtApp.Application.Features.CourtType.Command
 
             await _Repository.InsertAsync(entity);
             await _unitOfWork.Commit(cancellationToken);
-            // -------------------------------
-            // Dictionary keyword handling
-            // (delegated to BulkInsertAsync)
-            // -------------------------------
 
             var keywords = request.CourtType
                 .Split(' ', StringSplitOptions.RemoveEmptyEntries)
@@ -79,42 +74,6 @@ namespace CourtApp.Application.Features.CourtType.Command
             }
 
             return Result<Guid>.Success(entity.Id);
-
-
-
-            //// Build dynamic predicate
-            //var predicate = PredicateBuilder.True<CourtTypeEntity>();
-
-            //if (!string.IsNullOrWhiteSpace(request.Abbreviation))
-            //    predicate = predicate.And(b => b.Abbreviation.ToLower().Trim() == request.Abbreviation.ToLower().Trim());
-
-            //if (!string.IsNullOrWhiteSpace(request.CourtType))
-            //    predicate = predicate.And(b => b.CourtType.ToLower().Trim() == request.CourtType.ToLower().Trim());
-
-            //// Check for duplicates
-            //var isExists = await _Repository.CourtTypeEntities
-            //    .Where(predicate)
-            //    .AsNoTracking()
-            //    .FirstOrDefaultAsync();
-
-            //if (isExists != null)
-            //    return Result<Guid>.Fail($"{request.CourtType} already exists.");
-
-            //// Insert new record
-            //var entity = _mapper.Map<CourtTypeEntity>(request);
-            //entity.Languages = _mapper.Map<List<LangEntity>>(request.Language);
-            //await _Repository.InsertAsync(entity);
-            //await _unitOfWork.Commit(cancellationToken);
-
-            //var CourtDatas = request.CourtType.Split(" ", StringSplitOptions.RemoveEmptyEntries);
-            //var dt = CourtDatas.Select(s => new MultiLangDictEntity
-            //{
-            //    KeyWord = s
-            //}).ToList();
-            //var dictData = _multiRepo.BulkInsertAsync(dt);
-
-            //return Result<Guid>.Success(entity.Id);
-
         }
     }
 }

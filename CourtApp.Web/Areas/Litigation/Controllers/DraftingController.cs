@@ -106,7 +106,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             {
                 try
                 {
-                    if (id == Guid.Empty && TempData.ContainsKey("RecordExists") == false)
+                    if (id == Guid.Empty )
                     {
                         var Command = _mapper.Map<CreateCaseDraftingDetailCommand>(ViewModel);
                         var result = await _mediator.Send(Command);
@@ -116,7 +116,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                         {
                             ViewModel.StatusMessage = result.Message;
                             ModelState.AddModelError(string.Empty, result.Message);
-                            TempData["RecordExists"] = true;
+                            //TempData["RecordExists"] = true;
                         }
                     }
                     else
@@ -143,7 +143,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             }
         }
 
-        public async Task<IActionResult> GetReport(Guid id)
+        public async Task<IActionResult> GetReport(Guid id,string langCode)
         {
             if (id != Guid.Empty)
             {
@@ -152,7 +152,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 {
                     var dt = response.Data;
                     var Cases = new List<Guid> { dt.CaseId };
-                    var caseDataResult = await _mediator.Send(new GetFormPrintDataQuery { CaseIds = Cases,Lang="hi" });
+                    var caseDataResult = await _mediator.Send(new GetFormPrintDataQuery { CaseIds = Cases,Lang= langCode });
                     if (!caseDataResult.Succeeded || caseDataResult.Data == null)
                         return BadRequest("Unable to retrieve case details.");
 

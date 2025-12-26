@@ -12,6 +12,7 @@ namespace CourtApp.Domain.Entities.FormBuilder
         public Guid CaseId { get; set; }        
         public Guid TemplateId { get; set; }
         public Guid FormId { get; set; }
+        public string LangCode { get; set; } = "en";
         public List<FormFieldValueEntity> FieldDetails { get; set; }
         public virtual CaseDetailEntity Case { get; set; }
         public virtual FormBuilderEntity Form { get; set; }

@@ -22,6 +22,7 @@ namespace CourtApp.Application.Features.FormBuilder
         public Guid CaseId { get; set; }
         public Guid TemplateId { get; set; }
         public Guid DraftingFormId { get; set; }
+        public string LangCode { get; set; } = "en";
         public List<TemplateFields> FieldDetails { get; set; }
     }
 
@@ -55,6 +56,7 @@ namespace CourtApp.Application.Features.FormBuilder
                 CaseFormDt.CaseId = request.CaseId;
                 CaseFormDt.TemplateId = request.TemplateId;
                 CaseFormDt.FormId = templateInfo.FormId;
+                CaseFormDt.LangCode = request.LangCode;
                 CaseFormDt.FieldDetails = _mapper.Map<List<FormFieldValueEntity>>(request.FieldDetails);
                 
                 await repository.UpdateAsync(CaseFormDt);

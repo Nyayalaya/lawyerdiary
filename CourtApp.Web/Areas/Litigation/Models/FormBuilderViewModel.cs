@@ -15,6 +15,7 @@ namespace CourtApp.Web.Areas.Litigation.Models
         public Guid CaseId { get; set; }
         public SelectList Cases { get; set; }
         public List<FormProperties> FieldDetails { get; set; }
+        public string LangCode { get; set; } = "en";
 
         [TempData]
         public string StatusMessage { get; set; }

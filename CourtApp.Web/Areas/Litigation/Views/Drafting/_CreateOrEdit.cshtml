@@ -20,35 +20,31 @@
         padding: 0 10px;
         border-bottom: none;
     }
+
+    /* English default */
+    .english-input {
+        font-family: "Segoe UI", Arial, sans-serif;
+    }
+
+    /* Hindi Devanagari */
+    .hindi-input {
+        font-family: "Noto Sans Devanagari", Mangal, Kokila, sans-serif;
+        font-size: 16px;
+    }
+    .card-body {
+        padding:0;
+    }
+
 </style>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari&display=swap" rel="stylesheet">
+
+
+
 @model FormBuilderViewModel
 <form id="create-form" method="post" asp-controller="Drafting" asp-action="OnPostCreateOrEdit"
       asp-route-id="@Model.Id" enctype="multipart/form-data">
-    @* <partial name="_StatusMessage" model="Model.StatusMessage" /> *@
     <div class="row">
         <div class="col-md-12">
-           @*  <div class="form-group row">
-                <label class="col-md-2 col-form-label">@localizer["Drafting Form"]</label>
-                <div class="col-md-4">
-                    <div class="input-group" id="Template">
-                        <select asp-for="DraftingFormId" asp-items="@Model.DraftingForms"
-                                class="form-control select2bs4">
-                            <option></option>
-                        </select>
-                    </div>
-                    <span asp-validation-for="DraftingFormId" class="text-danger"></span>
-                </div>
-
-                <label class="col-md-2 col-form-label">@localizer["Associate Template"]</label>
-                <div class="col-md-4">
-                    <div class="input-group">
-                        <select asp-for="TemplateId" asp-items="@Model.Templates" class="form-control select2bs4"><option></option></select>
-                    </div>
-                    <span asp-validation-for="TemplateId" class="text-danger"></span>
-                </div>
-                
-            </div> *@
-
             <div class="form-group row">
                 <label class="col-md-2 col-form-label">@localizer["Case Title"]</label>
                 <div class="col-md-4">
@@ -71,6 +67,7 @@
             <div class="form-group row">
                 <fieldset class="scheduler-border">
                     <legend class="scheduler-border">@localizer["Template Fields"]</legend>
+                    
                     <div class="card-body">
                         <div id="FieldDetails" class="card-body table-responsive">
                             @if (Model.FieldDetails != null)
@@ -117,32 +114,25 @@
                     return m;
                 }
             });
-
-            // $("#DraftingFormId").on("change", function () {
-            //     RenderFormElement();
-            // });
-
             $("#TemplateId").on("change", function () {
                 RenderFormElement();
             });
 
-            var recordExists = '@TempData.Peek("RecordExists")';
-            if (recordExists) {
-                Swal.fire({
-                    title: 'Record Exists',
-                    text: 'A record with this template is already exists. Do you want to update it?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, update it!',
-                    cancelButtonText: 'No, cancel!'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Handle the update logic here
-                        // For example, you can submit the form again with a different action
-                        $('#create-form').submit();
-                    }
-                });
-            }
+            // var recordExists = '@TempData.Peek("RecordExists")';
+            // if (recordExists) {
+            //     Swal.fire({
+            //         title: 'Record Exists',
+            //         text: 'A record with this template is already exists. Do you want to update it?',
+            //         icon: 'warning',
+            //         showCancelButton: true,
+            //         confirmButtonText: 'Yes, update it!',
+            //         cancelButtonText: 'No, cancel!'
+            //     }).then((result) => {
+            //         if (result.isConfirmed) {
+            //             $('#create-form').submit();
+            //         }
+            //     });
+            // }
 
         });
         function RenderFormElement() {

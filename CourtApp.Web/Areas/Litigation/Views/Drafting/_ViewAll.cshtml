@@ -4,7 +4,7 @@
         <tr>
             <th>Sr.</th>
             <th>Title</th>
-           
+
             <th>Linked Template</th>
             <th>Actions</th>
         </tr>
@@ -22,22 +22,25 @@
                 <td>
                     @bt.CaseTitle.ToUpper()
                 </td>
-               
+
                 <td>
                     @bt.TemplateName
                 </td>
-               
-                    <td>
-                        <a asp-area="Litigation" asp-controller="Drafting" asp-action="Petition" asp-route-id="@bt.Id" title="Edit Drafting">
-                            <i class="fa fa-pencil-square-o"></i></a>
-                            
 
-                        <a asp-area="Litigation" asp-controller="Drafting" asp-action="GetReport" asp-route-id="@bt.Id" title="Generate Report">
-                            <i class="fa fa-file-word-o"></i>
-                        </a>
-                        
-                    </td>
-             
+                <td>
+                    <a asp-area="Litigation" asp-controller="Drafting" asp-action="Petition" asp-route-id="@bt.Id" title="Edit Drafting">
+                        <i class="fa fa-pencil-square-o"></i>
+                    </a>
+                    &nbsp;
+                    |
+                    &nbsp;
+                    <a asp-area="Litigation" asp-controller="Drafting" asp-action="GetReport"
+                       asp-route-id="@bt.Id" asp-route-langCode="@bt.LangCode" title="Generate Report">
+                        <i class="fa fa-file-word-o"></i>
+                    </a>
+
+                </td>
+
             </tr>
         }
     </tbody>

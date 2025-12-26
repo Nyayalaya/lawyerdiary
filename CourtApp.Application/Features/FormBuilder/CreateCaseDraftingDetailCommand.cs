@@ -18,6 +18,7 @@ namespace CourtApp.Application.Features.FormBuilder
         public Guid CaseId { get; set; }
         public Guid TemplateId { get; set; }
         public Guid DraftingFormId { get; set; }
+        public string LangCode { get; set; } = "en";
         public List<TemplateFields> FieldDetails { get; set; }
     }
 
@@ -50,15 +51,13 @@ namespace CourtApp.Application.Features.FormBuilder
 
                 if (FormEntity.Any())
                     return Result<Guid>.Fail($"Given is already exists.");
-                else
-                {
-                    var _map = _mapper.Map<DraftingDetailEntity>(request);
-                    var templateInfo = await templateInfoRepository.GetByIdAsync(request.TemplateId);
-                    _map.FormId = templateInfo.FormId;
-                    await repository.InsertAsync(_map);
-                    await _UoW.Commit(cancellationToken);
-                    return Result<Guid>.Success(_map.Id);
-                }
+
+                var _map = _mapper.Map<DraftingDetailEntity>(request);
+                var templateInfo = await templateInfoRepository.GetByIdAsync(request.TemplateId);
+                _map.FormId = templateInfo.FormId;
+                await repository.InsertAsync(_map);
+                await _UoW.Commit(cancellationToken);
+                return Result<Guid>.Success(_map.Id);
             }
             return null;
         }

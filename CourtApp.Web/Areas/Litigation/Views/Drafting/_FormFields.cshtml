@@ -1,5 +1,18 @@
 ﻿@model FormBuilderViewModel
+
 <div id="viewAll" class="card-body table-responsive">
+    <div class="row align-items-center">
+        <div class="col-auto">
+            <label>
+                <input type="radio" asp-for="LangCode" value="en" checked /> English
+            </label>
+        </div>
+        <div class="col-auto">
+            <label>
+                <input type="radio" asp-for="LangCode" value="hi" /> हिंदी
+            </label>
+        </div>
+    </div>
     <div class="row">
         <table id="tblRegister" class="table table-striped" style="border:1px;">
             <thead>
@@ -29,7 +42,11 @@
 
                                 @if (@Model.FieldDetails[i].Type == "1")
                                 {
-                                    <input class="form-control" type="@Model.FieldDetails[i].Type" asp-for="@Model.FieldDetails[i].Value" />
+                                    <input class="form-control lang-input english-input"
+                                           type="text"
+                                           id="field_@i"
+                                           asp-for="@Model.FieldDetails[i].Value" />
+                                    @* <input class="form-control" type="@Model.FieldDetails[i].Type" asp-for="@Model.FieldDetails[i].Value" /> *@
                                 }
                                 else if (@Model.FieldDetails[i].Type == "2")
                                 {
@@ -71,3 +88,32 @@
     </div>
 </div>
 
+<script>
+    let currentLang = "en";
+    document.querySelectorAll('input[name="LangCode"]').forEach(radio => {
+        radio.addEventListener('change', function () {
+
+            const isHindi = this.value === 'hi';
+            currentLang = this.value;
+
+            document.querySelectorAll('.lang-input').forEach(input => {
+                input.classList.toggle('hindi-input', isHindi);
+                input.classList.toggle('english-input', !isHindi);
+                input.lang = isHindi ? 'hi' : 'en';
+            });
+
+            Swal.fire({
+                icon: 'info',
+                title: isHindi ? 'हिंदी इनपुट चयनित' : 'English Input Selected',
+                html: isHindi
+                    ? `<b>Hindi typing enabled</b><br>
+                       Press <b>Win + Space</b> and select <b>Hindi</b> keyboard`
+                    : `<b>English typing enabled</b><br>
+                       Press <b>Win + Space</b> and select <b>English</b> keyboard`,
+                timer: 3000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'bottom-end'
+            });
+        });
+    });</script>
