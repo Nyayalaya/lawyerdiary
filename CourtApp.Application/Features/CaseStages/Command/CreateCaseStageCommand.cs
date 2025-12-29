@@ -1,6 +1,8 @@
 ﻿using AspNetCoreHero.Results;
 using AutoMapper;
 using CourtApp.Application.Interfaces.Repositories;
+using CourtApp.Application.Interfaces.Repositories.Common;
+using CourtApp.Domain.Entities.Common;
 using CourtApp.Domain.Entities.LawyerDiary;
 using MediatR;
 using System;
@@ -24,11 +26,15 @@ namespace CourtApp.Application.Features.CaseStages.Command
         private readonly ICaseStageRepository repository;
         private readonly IMapper mapper;
         private IUnitOfWork _unitOfWork { get; set; }
-        public CreateCaseStageCommandHandler(ICaseStageRepository repository, IMapper mapper, IUnitOfWork _unitOfWork)
+        private readonly IMultiLangWordRepository _multiRepo;
+        public CreateCaseStageCommandHandler(ICaseStageRepository repository, IMapper mapper, 
+            IUnitOfWork _unitOfWork,IMultiLangWordRepository _multiRepo)
         {
             this.repository = repository;
             this.mapper = mapper;
             this._unitOfWork = _unitOfWork;
+            this._multiRepo = _multiRepo;
+
         }
 
         public async Task<Result<Guid>> Handle(CreateCaseStageCommand request, CancellationToken cancellationToken)
@@ -51,6 +57,20 @@ namespace CourtApp.Application.Features.CaseStages.Command
 
             // Commit the transaction
             await _unitOfWork.Commit(cancellationToken);
+
+            var keywords = request.CaseStage
+               .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+               .Select(s => new MultiLangDictEntity
+               {
+                   KeyWord = s
+               })
+               .ToList();
+
+            if (keywords.Count > 0)
+            {
+                await _multiRepo.BulkInsertAsync(keywords);
+                await _unitOfWork.Commit(cancellationToken);
+            }
 
             return Result<Guid>.Success(newStage.Id);
         }

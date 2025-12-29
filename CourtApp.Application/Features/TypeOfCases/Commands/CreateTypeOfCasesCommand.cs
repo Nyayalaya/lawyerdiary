@@ -1,6 +1,8 @@
 ﻿using AspNetCoreHero.Results;
 using AutoMapper;
 using CourtApp.Application.Interfaces.Repositories;
+using CourtApp.Application.Interfaces.Repositories.Common;
+using CourtApp.Domain.Entities.Common;
 using CourtApp.Domain.Entities.LawyerDiary;
 using MediatR;
 using System;
@@ -31,15 +33,19 @@ namespace CourtApp.Application.Features.Typeofcasess.Commands
         private readonly ITypeOfCasesRepository repository;
         private readonly IMapper mapper;
         private readonly ICaseNatureRepository caseNatureRepository;
+
         private IUnitOfWork _unitOfWork { get; set; }
+        private readonly IMultiLangWordRepository _multiRepo;
 
         public CreateCaseKindCommandHandler(ITypeOfCasesRepository repository,
-            IMapper mapper, IUnitOfWork _unitOfWork, ICaseNatureRepository caseNatureRepository)
+            IMapper mapper, IUnitOfWork _unitOfWork, ICaseNatureRepository caseNatureRepository,
+            IMultiLangWordRepository _multiRepo)
         {
             this.repository = repository;
             this.mapper = mapper;
             this._unitOfWork = _unitOfWork;
             this.caseNatureRepository = caseNatureRepository;
+            this._multiRepo = _multiRepo;
         }
         public async Task<Result<Guid>> Handle(CreateTypeOfCasesCommand request, CancellationToken cancellationToken)
         {
@@ -76,6 +82,21 @@ namespace CourtApp.Application.Features.Typeofcasess.Commands
             // Commit once after loop for better performance
             await _unitOfWork.Commit(cancellationToken);
 
+            var keywords = request.CaseTypes
+        .SelectMany(c => c.Name_En.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+        .Select(w => w.Trim())
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .Select(w => new MultiLangDictEntity
+        {
+            KeyWord = w
+        })
+        .ToList();
+
+            if (keywords.Any())
+            {
+                await _multiRepo.BulkInsertAsync(keywords);
+                await _unitOfWork.Commit(cancellationToken);
+            }
             return Result<Guid>.Success(lastInsertedId);
 
         }

@@ -36,6 +36,7 @@ namespace CourtApp.Application.Features.FormBuilder
             detail.CaseId = dt.CaseId;
             detail.TemplateId = dt.TemplateId;
             detail.Id = request.Id;
+            detail.LangCode = dt.LangCode;
             //var fmr = dt.FieldDetails.Select(s => new FormFieldDetailValue {Tag=s.Tag,Value=s.Value });
 
             if (dt.FieldDetails != null)

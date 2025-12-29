@@ -1,5 +1,6 @@
 ﻿using AspNetCoreHero.Results;
 using CourtApp.Application.Interfaces.Repositories;
+using CourtApp.Application.Interfaces.Repositories.Common;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -18,6 +19,7 @@ namespace CourtApp.Application.Features.CaseStages.Command
     public class UpdateCaseStageCommandHandler : IRequestHandler<UpdateCaseStageCommand, Result<Guid>>
     {
         private readonly ICaseStageRepository repository;
+        private readonly IMultiLangWordRepository _multiRepo;
         private IUnitOfWork _unitOfWork { get; set; }
         public UpdateCaseStageCommandHandler(ICaseStageRepository repository, IUnitOfWork _unitOfWork)
         {

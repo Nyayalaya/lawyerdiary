@@ -82,6 +82,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 ViewModel.Templates = await GetTemplates();
                 ViewModel.DraftingForms = await GetDraftings();
                 ViewModel.Cases = await UserCaseTitle(Guid.Empty);
+                ViewModel.LangCode = "en";
                 return View("_CreateOrEdit", ViewModel);
             }
             else

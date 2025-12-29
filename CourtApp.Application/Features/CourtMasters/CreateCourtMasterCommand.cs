@@ -4,11 +4,13 @@ using CourtApp.Application.DTOs.CourtMaster;
 using CourtApp.Application.Interfaces.CacheRepositories;
 using CourtApp.Application.Interfaces.Repositories;
 using CourtApp.Application.Interfaces.Repositories.Common;
+using CourtApp.Domain.Entities.Common;
 using CourtApp.Domain.Entities.LawyerDiary;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,10 +34,12 @@ namespace CourtApp.Application.Features.CourtMasters.Command
         private readonly IDistrictMasterRepository _DistrictRepo;
         private readonly ICourtBenchRepository _CourtBenchRepo;
         private readonly IMapper mapper;
+        private readonly IMultiLangWordRepository _multiRepo;
         private IUnitOfWork _unitOfWork { get; set; }
         public CreateCourtMasterCommandHandler(ICourtMasterRepository repository, IMapper mapper,
             IUnitOfWork _unitOfWork, ICourtTypeCacheRepository _CourtTypeRepo,
-            IStateMasterRepository _StateRepo, IDistrictMasterRepository districtRepo, ICourtBenchRepository courtBenchRepository)
+            IStateMasterRepository _StateRepo, IDistrictMasterRepository districtRepo, 
+            ICourtBenchRepository courtBenchRepository, IMultiLangWordRepository multiRepo)
         {
             this.repository = repository;
             this.mapper = mapper;
@@ -44,6 +48,7 @@ namespace CourtApp.Application.Features.CourtMasters.Command
             this._StateRepo = _StateRepo;
             _DistrictRepo = districtRepo;
             this._CourtBenchRepo = courtBenchRepository;
+            _multiRepo = multiRepo;
         }
         public async Task<Result<Guid>> Handle(CreateCourtMasterCommand request, CancellationToken cancellationToken)
         {
@@ -87,14 +92,39 @@ namespace CourtApp.Application.Features.CourtMasters.Command
 
             await _unitOfWork.Commit(cancellationToken);
 
+            var distCourts = request.CourtBenches.Select(s => s.CourtBench_En).ToList();
+            var keywords = new List<MultiLangDictEntity>();
+
+            foreach (var cd in distCourts)
+            {
+                if (string.IsNullOrWhiteSpace(cd))
+                    continue;
+
+                var words = cd
+                    .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s => s.Trim())
+                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                    .Select(s => new MultiLangDictEntity
+                    {
+                        KeyWord = s
+                    });
+
+                keywords.AddRange(words);
+            }
+
+            // OPTIONAL: Remove duplicate keywords (case-insensitive)
+            keywords = keywords
+                .GroupBy(k => k.KeyWord, StringComparer.OrdinalIgnoreCase)
+                .Select(g => g.First())
+                .ToList();
+
+            if (keywords.Any())
+            {
+                await _multiRepo.BulkInsertAsync(keywords);
+                await _unitOfWork.Commit(cancellationToken);
+            }
             return Result<Guid>.Success(courtMaster.Id);
 
-            //var entity = mapper.Map<CourtMasterEntity>(request);
-            //entity.CourtComplexId = request.CourtComplexId != Guid.Empty ? request.CourtComplexId : null;
-            //entity.CourtDistrictId = request.CourtDistrictId != Guid.Empty ? request.CourtDistrictId : null;
-            //await repository.InsertAsync(entity);
-            //await _unitOfWork.Commit(cancellationToken);
-            //return Result<Guid>.Success(entity.Id);
         }
     }
 }

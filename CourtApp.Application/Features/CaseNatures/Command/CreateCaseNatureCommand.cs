@@ -1,6 +1,8 @@
 ﻿using AspNetCoreHero.Results;
 using AutoMapper;
 using CourtApp.Application.Interfaces.Repositories;
+using CourtApp.Application.Interfaces.Repositories.Common;
+using CourtApp.Domain.Entities.Common;
 using CourtApp.Domain.Entities.LawyerDiary;
 using KT3Core.Areas.Global.Classes;
 using MediatR;
@@ -22,12 +24,15 @@ namespace CourtApp.Application.Features.CaseNatures.Command
     {
         private readonly ICaseNatureRepository repository;
         private readonly IMapper mapper;
+        private readonly IMultiLangWordRepository _multiRepo;
         private IUnitOfWork _unitOfWork { get; set; }
-        public CreateCaseNatureCommandHandler(ICaseNatureRepository repository, IMapper mapper, IUnitOfWork _unitOfWork)
+        public CreateCaseNatureCommandHandler(ICaseNatureRepository repository, IMapper mapper, 
+            IUnitOfWork _unitOfWork, IMultiLangWordRepository _multiRepo)
         {
             this.repository = repository;
             this.mapper = mapper;
             this._unitOfWork = _unitOfWork;
+            this._multiRepo = _multiRepo;
         }
         public async Task<Result<Guid>> Handle(CreateCaseNatureCommand request, CancellationToken cancellationToken)
         {
@@ -54,6 +59,21 @@ namespace CourtApp.Application.Features.CaseNatures.Command
             var entity = mapper.Map<NatureEntity>(request);
             await repository.InsertAsync(entity);
             await _unitOfWork.Commit(cancellationToken);
+
+            var keywords = request.Name_En
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => new MultiLangDictEntity
+                {
+                    KeyWord = s
+                })
+                .ToList();
+
+            if (keywords.Count > 0)
+            {
+                await _multiRepo.BulkInsertAsync(keywords);
+                await _unitOfWork.Commit(cancellationToken);
+            }
+
 
             return Result<Guid>.Success(entity.Id);
         }

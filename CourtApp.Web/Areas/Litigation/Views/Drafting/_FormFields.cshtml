@@ -4,12 +4,14 @@
     <div class="row align-items-center">
         <div class="col-auto">
             <label>
-                <input type="radio" asp-for="LangCode" value="en" checked /> English
+                <input type="radio" name="LangCode" value="en"
+                       @(Model.LangCode == "en" ? "checked" : "") /> English
             </label>
         </div>
         <div class="col-auto">
             <label>
-                <input type="radio" asp-for="LangCode" value="hi" /> हिंदी
+                <input type="radio" name="LangCode" value="hi"
+                       @(Model.LangCode == "hi" ? "checked" : "") /> हिंदी
             </label>
         </div>
     </div>
