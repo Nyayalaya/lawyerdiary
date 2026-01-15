@@ -3,105 +3,105 @@
     ViewData["Title"] = "Multi-Language Dictionary";
 }
 
-<table class="table table-bordered table-hover" id="tblConversionData">
-    <thead class="table-dark">
-        <tr>
-            <th>Keyword (EN)</th>
-            <th>Hindi (hi)</th>
-        </tr>
-    </thead>
+<style>
+    .dataTables_length {
+        display: block !important;
+    }
 
-    <tbody>
-        @foreach (var row in Model)
-        {
-            var hindiValue = row.Translations.ContainsKey("hi")
-            ? row.Translations["hi"]
-            : ""; // show blank if no value
+    .dataTables_filter,
+    .dataTables_length {
+        margin: 0;
+    }
 
-            <tr data-id="@row.Id">
-                <td>@row.KeyWord</td>
-                <td>
-                    <input type="text"
-                           class="form-control lang-input"
-                           data-lang="hi"
-                           data-original="@hindiValue"
-                           value="@hindiValue" />
-                </td>
-            </tr>
+    .lang-input {
+        font-family: "Kruti Dev 010", "Mangal", "Arial Unicode MS", sans-serif;
+        font-size: 18px;
+        line-height: 1.8;
+    }
+
+        .lang-input:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
         }
-    </tbody>
-</table>
 
-<button id="saveBtn" class="btn btn-success mt-2">Save All</button>
+    .lang-english {
+        font-family: Arial, Helvetica, sans-serif !important;
+    }
+
+    .help-box {
+        background: #e7f3ff;
+        border-left: 4px solid #2196F3;
+        padding: 12px 15px;
+        margin-bottom: 15px;
+        border-radius: 4px;
+    }
+
+    .example-badge {
+        display: inline-block;
+        background: white;
+        padding: 3px 8px;
+        margin: 2px;
+        border-radius: 3px;
+        border: 1px solid #ddd;
+        font-family: monospace;
+        font-size: 13px;
+    }
+</style>
+
+<div class="container-fluid mt-3">
+
+    <!-- Language Toggle -->
+    <div class="d-flex align-items-center mb-3">
+        <label class="me-2 fw-bold">English: &nbsp;</label>
+
+        <div class="form-check form-switch" style="margin-left:15px;">
+            <input class="form-check-input" type="checkbox" id="langToggle" checked />
+            <label class="form-check-label" for="langToggle">Hindi</label>
+        </div>
+    </div>
+
+    <table class="table table-bordered table-hover" id="tblConversionData">
+        <thead class="table-dark">
+            <tr>
+                <th style="width:40%">Keyword</th>
+                <th style="width:60%">Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var row in Model)
+            {
+                var hindiValue = row.Translations.ContainsKey("hi")
+                ? row.Translations["hi"]
+                : "";
+
+                <tr data-id="@row.Id">
+                    @* <td><strong>@row.KeyWord</strong></td> *@
+                    <td>
+                        <input type="text" data-key="@row.KeyWord" class="form-control keyword-input"
+                               value="@row.KeyWord" data-original="@row.KeyWord" />
+                    </td>
+                    <td>
+                        <input type="text"
+                               class="form-control lang-input"
+                               data-lang="hi"
+                               data-original="@hindiValue"
+                               value="@hindiValue"
+                               placeholder="Type in english"
+                               autocomplete="off"
+                               spellcheck="false" />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button id="saveBtn" class="btn btn-success mt-2">
+        <i class="fas fa-save"></i> Update All
+    </button>
+</div>
+
 @section Scripts
 {
-
-    <script>
-                    var table;
-
-        $(document).ready(function () {
-
-            if (!$.fn.DataTable.isDataTable('#tblConversionData')) {
-                table = $('#tblConversionData').DataTable({
-                    pageLength: 10,
-                    stateSave: true,
-                    ordering: false
-                });
-            } else {
-                table = $('#tblConversionData').DataTable();
-            }
-
-            $('#saveBtn').off('click').on('click', function () {
-
-                var data = [];
-
-                table.rows().every(function () {
-                    var row = $(this.node());
-                    var id = row.data('id');
-
-                    var input = row.find('.lang-input[data-lang="hi"]');
-                    var original = input.data('original') ?? '';
-                    var current = input.val() ?? '';
-
-                    if (original !== current) {
-                        data.push({
-                            id: id,
-                            translations: { hi: current }
-                        });
-                    }
-                });
-
-                if (data.length === 0) {
-                    Swal.fire({
-                        title: "There are no change in the data!",
-                        icon: "warning"
-                    });
-                    return;
-                }
-
-                $.ajax({
-                    url: '@Url.Action("Save")',
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify(data),
-                    success: function (response) {
-
-                        Swal.fire({
-                            title: response.message,
-                            icon: "success"
-                        });
-
-                        table.rows().every(function () {
-                            var row = $(this.node());
-                            row.find('.lang-input[data-lang="hi"]')
-                                .data('original', function () {
-                                    return $(this).val();
-                                });
-                        });
-                    }
-                });
-            });
-        });
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="~/js/mulitlingualscript.js"></script>
 }
-

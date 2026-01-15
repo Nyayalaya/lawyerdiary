@@ -94,17 +94,32 @@
     });
 
     $("#reload").click(function () {
-        $('#CaseIds').multiselect('deselectAll', false);
-        $('#CaseIds').multiselect('updateButtonText');
-
-        $('#TitleIds').multiselect('deselectAll', false);
-        $('#TitleIds').multiselect('updateButtonText');
+        resetMultiSelect('#CaseIds');
+        resetMultiSelect('#TitleIds');
 
         $('#FormTypeId').val(null).trigger('change');
-
         $('#viewAll').html("");
         $("#lblHeader").text("");
     });
+
+    function resetMultiSelect(selector) {
+
+        const $ms = $(selector);
+
+        // deselect everything
+        $ms.multiselect('deselectAll', false);
+
+        // clear search text
+        const $search = $ms.next('.btn-group').find('.multiselect-search');
+        $search.val('');
+
+        // IMPORTANT: rebuild to restore full list
+        $ms.multiselect('rebuild');
+
+        // update button text
+        $ms.multiselect('updateButtonText');
+    }
+
 
     $("#FormTypeId").on("change", function () {
         $("#lblHeader").text($("#FormTypeId :selected").text())

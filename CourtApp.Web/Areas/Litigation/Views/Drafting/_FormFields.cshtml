@@ -1,7 +1,34 @@
 ﻿@model FormBuilderViewModel
 
+<style>
+    .lang-input {
+        font-family: "Kruti Dev 010", "Mangal", "Arial Unicode MS", sans-serif;
+        font-size: 18px;
+        line-height: 1.8;
+    }
+
+        .lang-input:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+        }
+
+    .lang-english {
+        font-family: Arial, Helvetica, sans-serif !important;
+    }
+
+    .help-box {
+        background: #e7f3ff;
+        border-left: 4px solid #2196F3;
+        padding: 12px 15px;
+        margin-bottom: 15px;
+        border-radius: 4px;
+    }
+</style>
+
 <div id="viewAll" class="card-body table-responsive">
-    <div class="row align-items-center">
+
+    <!-- Language Radio Buttons -->
+    <div class="row align-items-center mb-3">
         <div class="col-auto">
             <label>
                 <input type="radio" name="LangCode" value="en"
@@ -15,6 +42,8 @@
             </label>
         </div>
     </div>
+
+    <!-- Table -->
     <div class="row">
         <table id="tblRegister" class="table table-striped" style="border:1px;">
             <thead>
@@ -41,14 +70,12 @@
                             </td>
                             <td>
                                 <input type="hidden" asp-for="@Model.FieldDetails[i].Type" />
-
                                 @if (@Model.FieldDetails[i].Type == "1")
                                 {
                                     <input class="form-control lang-input english-input"
                                            type="text"
                                            id="field_@i"
                                            asp-for="@Model.FieldDetails[i].Value" />
-                                    @* <input class="form-control" type="@Model.FieldDetails[i].Type" asp-for="@Model.FieldDetails[i].Value" /> *@
                                 }
                                 else if (@Model.FieldDetails[i].Type == "2")
                                 {
@@ -80,9 +107,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="5" align="center">
-                            Record is not there
-                        </td>
+                        <td colspan="5" align="center">Record is not there</td>
                     </tr>
                 }
             </tbody>
@@ -90,32 +115,65 @@
     </div>
 </div>
 
+<script src="~/js/krutidevtounicode.js"></script>
+
 <script>
-    let currentLang = "en";
-    document.querySelectorAll('input[name="LangCode"]').forEach(radio => {
-        radio.addEventListener('change', function () {
+    $(document).ready(function () {
 
-            const isHindi = this.value === 'hi';
-            currentLang = this.value;
+        var isHindiMode = $('input[name="LangCode"]:checked').val() === 'hi';
+        var isConverting = false;
 
-            document.querySelectorAll('.lang-input').forEach(input => {
-                input.classList.toggle('hindi-input', isHindi);
-                input.classList.toggle('english-input', !isHindi);
-                input.lang = isHindi ? 'hi' : 'en';
-            });
+        // Language toggle
+        $('input[name="LangCode"]').on('change', function () {
+            isHindiMode = this.value === 'hi';
+            $('.lang-input').toggleClass('lang-english', !isHindiMode);
+        });
 
-            Swal.fire({
-                icon: 'info',
-                title: isHindi ? 'हिंदी इनपुट चयनित' : 'English Input Selected',
-                html: isHindi
-                    ? `<b>Hindi typing enabled</b><br>
-                       Press <b>Win + Space</b> and select <b>Hindi</b> keyboard`
-                    : `<b>English typing enabled</b><br>
-                       Press <b>Win + Space</b> and select <b>English</b> keyboard`,
-                timer: 3000,
-                showConfirmButton: false,
-                toast: true,
-                position: 'bottom-end'
+        // Detect KrutiDev characters (ASCII-based)
+        function containsKruti(text) {
+            return /[A-Za-z\[\]\+\\\^\~\`\{\}]/.test(text);
+        }
+
+        // Live KrutiDev → Unicode
+        $('.lang-input').on('input', function () {
+
+            if (!isHindiMode || isConverting) return;
+
+            var $this = $(this);
+            var originalText = $this.val();
+
+            // Convert ONLY if Kruti characters exist
+            if (!containsKruti(originalText)) return;
+
+            isConverting = true;
+
+            // Preserve cursor position
+            var cursorPos = this.selectionStart;
+
+            var converted = krutiDevToUnicode(originalText);
+
+            $this.val(converted);
+
+            // Restore cursor position (best effort)
+            this.setSelectionRange(cursorPos, cursorPos);
+
+            isConverting = false;
+        });
+
+        // Ensure Unicode is posted (SAFE)
+        $('#viewAll').closest('form').on('submit', function () {
+
+            if (!isHindiMode) return;
+
+            $('.lang-input').each(function () {
+                var val = $(this).val();
+
+                // Convert ONLY if still KrutiDev
+                if (containsKruti(val)) {
+                    $(this).val(krutiDevToUnicode(val));
+                }
             });
         });
-    });</script>
+    });
+</script>
+

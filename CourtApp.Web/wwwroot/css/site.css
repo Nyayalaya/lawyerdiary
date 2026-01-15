@@ -78,6 +78,7 @@ table {
     border: 1px solid #ddd;
     border-collapse: collapse;
 }
+
 tr {
     height: 30px; /* Set height for rows */
 }
@@ -107,3 +108,42 @@ th, td {
     .dt-button:hover {
         background-color: #45a049; /* Darker green when hovered */
     }
+
+
+/* Unicode Hindi */
+.hindi-unicode {
+    font-family: 'Noto Sans Devanagari', 'Mangal', 'Kalimati', sans-serif;
+    font-size: 17px;
+}
+
+/* English */
+.english-unicode {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 16px;
+}
+
+/* Toggle styling */
+.lang-toggle {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+    .lang-toggle label {
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+@font-face {
+    font-family: "KrutiDev010";
+    src: url("'../fonts/Kruti10/Kruti Dev 010 Regular.ttf'") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* KrutiDev typing */
+.kruti-input {
+    font-family: "KrutiDev010";
+    font-size: 18px;
+}

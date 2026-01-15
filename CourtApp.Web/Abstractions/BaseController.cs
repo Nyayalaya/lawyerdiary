@@ -625,27 +625,49 @@ namespace CourtApp.Web.Abstractions
             }
             return Json(null);
         }
+        //public async Task<JsonResult> GetCompTitlesByCases(List<Guid> caseIds)
+        //{
+        //    var response = await _mediator.Send(new GetCaseTitleQuery() { CaseIds = caseIds });
+        //    if (response.Succeeded)
+        //    {
+        //        var dtl = response.Data.FirstOrDefault();
+        //        var titles = new List<DropDownSViewModel>();
+        //        if (dtl != null)
+        //            foreach (var item in dtl.CaseApplicantDetails)
+        //            {
+        //                DropDownSViewModel d = new DropDownSViewModel();
+        //                d.Id = item.ApplicantNo.ToString();
+        //                d.Name = item.ApplicantDetail;
+        //                titles.Add(d);
+        //            }
+        //        ;
+        //        var fn = titles.Distinct().OrderBy(o => o.Name).ToList();
+        //        return Json(fn);
+        //    }
+        //    return Json(null);
+        //}
+
         public async Task<JsonResult> GetCompTitlesByCases(List<Guid> caseIds)
         {
-            var response = await _mediator.Send(new GetCaseTitleQuery() { CaseIds = caseIds });
-            if (response.Succeeded)
-            {
-                var dtl = response.Data.FirstOrDefault();
-                var titles = new List<DropDownSViewModel>();
-                if (dtl != null)
-                    foreach (var item in dtl.CaseApplicantDetails)
-                    {
-                        DropDownSViewModel d = new DropDownSViewModel();
-                        d.Id = item.ApplicantNo.ToString();
-                        d.Name = item.ApplicantDetail;
-                        titles.Add(d);
-                    }
-                ;
-                var fn = titles.Distinct().OrderBy(o => o.Name).ToList();
-                return Json(fn);
-            }
-            return Json(null);
+            var result = await _mediator.Send(
+                new GetCaseTitleDropdownQuery(caseIds, User.GetUserLinkedIds())
+            );
+
+            if (result == null || result.SecondTitles == null)
+                return Json(new List<DropDownSViewModel>());
+
+            var response = result.SecondTitles
+                .Select(x => new DropDownSViewModel
+                {
+                    Id = x.Id,
+                    Name = x.Name
+                })
+                .OrderBy(x => x.Name)
+                .ToList();
+
+            return Json(response);
         }
+
         public async Task<SelectList> GetDraftings()
         {
             var response = await _mediator.Send(new GetFormBuilderCachedQuery());
