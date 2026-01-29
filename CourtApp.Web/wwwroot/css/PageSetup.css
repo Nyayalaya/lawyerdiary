@@ -1,0 +1,135 @@
+﻿/* =========================
+   SCREEN STYLES (Editor / Preview)
+   ========================= */
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    background: #f5f5f5;
+    margin: 0;
+    padding: 20px;
+}
+
+/* Generic page container */
+.page {
+    background: #ffffff;
+    margin: 20px auto;
+    padding: 20mm;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    position: relative;
+}
+
+/* =========================
+   STANDARD PAPER SIZES
+   ========================= */
+
+.page-a4 {
+    width: 210mm;
+    min-height: 297mm;
+}
+
+.page-a3 {
+    width: 297mm;
+    min-height: 420mm;
+}
+
+.page-letter {
+    width: 8.5in;
+    min-height: 11in;
+}
+
+.page-legal {
+    width: 8.5in;
+    min-height: 14in;
+}
+
+.page-executive {
+    width: 7.25in;
+    min-height: 10.5in;
+}
+
+.page-tabloid {
+    width: 11in;
+    min-height: 17in;
+}
+
+/* =========================
+   ENVELOPE SIZES
+   ========================= */
+
+.env-10 {
+    width: 9.5in;
+    min-height: 4.125in;
+}
+
+.env-monarch {
+    width: 7.5in;
+    min-height: 3.875in;
+}
+
+.env-dl {
+    width: 220mm;
+    min-height: 110mm;
+}
+
+.env-c5 {
+    width: 229mm;
+    min-height: 162mm;
+}
+
+.env-c6 {
+    width: 162mm;
+    min-height: 114mm;
+}
+
+/* =========================
+   PAGE LABEL (SCREEN ONLY)
+   ========================= */
+
+.page::before {
+    content: attr(data-page-type);
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    font-size: 10px;
+    color: #999;
+    text-transform: uppercase;
+}
+
+/* =========================
+   PRINT STYLES (CRITICAL)
+   ========================= */
+
+@media print {
+
+    body {
+        background: #ffffff;
+        padding: 0;
+        margin: 0;
+    }
+
+    .page {
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+        /* FORCE ONE PAGE PER ENVELOPE */
+        break-after: page;
+        page-break-after: always;
+    }
+
+        .page::before {
+            display: none;
+        }
+}
+.align-right {
+    text-align: right !important;
+}
+.align-center {
+    text-align: center !important;
+}
+.align-left {
+    text-align: left !important;
+}
+.align-justify {
+    text-align: justify !important;
+}

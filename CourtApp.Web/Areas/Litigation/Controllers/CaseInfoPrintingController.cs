@@ -75,7 +75,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                 var formHtmlList = new List<string>();
                 var formNames = new List<string>();
                 formNames.Add("Notice");
-                formNames.Add("Envelop");
+                formNames.Add("Envelope");
                 bool isAddress = !string.IsNullOrWhiteSpace(formName) &&
                  formNames.Any(x => formName.Contains(x, StringComparison.OrdinalIgnoreCase));
                 bool isNotice = formName.Contains("Notice");
@@ -89,7 +89,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                     {
                         // If not a notice, override the view name
                         if (!isNotice)
-                            vwName = "_Envelop";
+                            vwName = "_GlobalFormPrintPartial";
 
                         // Ensure AppNo is not null
                         var selectedAppNos = AppNo ?? new List<string>();
@@ -128,10 +128,11 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                         }
                     }
                 }
-                if (vwName != "_Envelop")
-                    return PartialView(vwName, formHtmlList);
-                else
-                    return PartialView("_Envalop", formHtmlList);
+                return PartialView(vwName, formHtmlList);
+                //if (vwName != "_Envelop")
+                //    return PartialView(vwName, formHtmlList);
+                //else
+                //    return PartialView("_Envalop", formHtmlList);
             }
             catch (Exception ex)
             {

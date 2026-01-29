@@ -139,15 +139,18 @@
             $("#TitleIds").multiselect('rebuild');
         });
     });
-
     $("#btnPrint").click(function () {
-        debugger;
         var frmType = $("#FormTypeId :selected").text();
-        if (frmType === "ENVELOP")
-            printEnvalop();
-        else
-            printData();
+        printData1();
     });
+
+    //$("#btnPrint").click(function () {
+    //    var frmType = $("#FormTypeId :selected").text();
+    //    if (frmType === "ENVELOP")
+    //        printEnvalop();
+    //    else
+    //        printData();
+    //});
 
     function printEnvalop() {
         var divToPrint = document.getElementById("printableArea").innerHTML;
@@ -233,12 +236,46 @@
 
 
     function printData1() {
-        var divToPrint = document.getElementById("printableArea");
-        newWin = window.open("");
-        newWin.document.write(divToPrint.outerHTML);
-        newWin.print();
-        newWin.close();
+
+        const content = document.getElementById("printableArea").innerHTML;
+
+        const printWindow = window.open('', '_blank', 'width=1200,height=800');
+
+        printWindow.document.open();
+        printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Print</title>
+
+            <!-- Load SAME CSS -->
+            <link rel="stylesheet" href="/css/pagesetup.css">
+
+            <style>
+                @media print {
+                    body {
+                        margin: 0;
+                        padding: 0;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            ${content}
+        </body>
+        </html>
+    `);
+
+        printWindow.document.close();
+
+        // IMPORTANT: wait for styles to apply
+        printWindow.onload = function () {
+            printWindow.focus();
+            printWindow.print();
+            printWindow.close();
+        };
     }
+
 
     function printData_() {
         var divToPrint = document.getElementById("printableArea");
@@ -452,170 +489,7 @@
     }
 
 
-    function printDatatoday() {
-        var divToPrint = document.getElementById("printableArea");
-        var newWin = window.open("", "_blank");
 
-        newWin.document.write('<html><head><title>Print Form</title>');
-
-        newWin.document.write(`
-        <style>
-            @media print {
-                @page {
-                    size: A4 portrait;
-                    margin: 20mm 15mm 20mm 15mm;
-                }
-
-                body {
-                    font-size: 14px;
-                    font-family: Arial, sans-serif;
-                    text-align: justify;
-                    margin: 0;
-                    padding: 0;
-                }
-
-                .a4-size {
-                    width: 100%;
-                    max-width: 180mm; /* Prevent content cutoff on right */
-                    margin: 0 auto;
-                    padding: 10mm;
-                    box-sizing: border-box;
-                    page-break-after: always;
-                }
-
-                table {
-                    width: 100%;
-                    table-layout: fixed;
-                    border-collapse: collapse;
-                }
-
-                td {
-                    word-wrap: break-word;
-                    vertical-align: top;
-                    padding: 4px;
-                }
-
-                * {
-                    -webkit-print-color-adjust: exact;
-                    print-color-adjust: exact;
-                }
-            }
-
-            .a4-size {
-                width: 100%;
-                max-width: 180mm;
-                margin: 0 auto;
-                padding: 10mm;
-                box-sizing: border-box;
-            }
-
-            table {
-                width: 100%;
-                table-layout: fixed;
-            }
-
-            td {
-                word-wrap: break-word;
-                vertical-align: top;
-                padding: 4px;
-            }
-        </style>
-    `);
-
-        newWin.document.write('</head><body>');
-        newWin.document.write(divToPrint.outerHTML);
-        newWin.document.write('</body></html>');
-
-        newWin.document.close();
-        newWin.focus();
-        newWin.print();
-        newWin.close();
-    }
-
-    function printDataold() {
-        var divToPrint = document.getElementById("printableArea");
-        var newWin = window.open("", "_blank");
-
-        newWin.document.write('<html><head><title>Print Form</title>');
-
-        // Embedded CSS inside print function
-        newWin.document.write(`
-            <style>
-                @media print {
-                    @page {
-                        size: A4 portrait; /* Ensures A4 print size */
-                        margin: 20mm 10mm 20mm 10mm; /* Top, Right, Bottom, Left margins */
-                    }
-
-                    body {
-                        font-size: 14px;
-                        font-family: Arial, sans-serif;
-                        text-align: justify; /* Ensures justified alignment */
-                        margin: 0;
-                        padding: 0;
-                    }
-
-                    /* Ensure the printable area is centered and does not cut content */
-                    #printableArea {
-                        width: 100%;
-                        max-width: 210mm;
-                        padding-left: 200px; /* Extra left margin as requested */
-                        padding-right: 10px;
-                        word-wrap: break-word;
-                    }
-
-                    /* Ensure no extra margin/padding for proper alignment */
-                    .card-body {
-                        margin: 0;
-                        padding: 0;
-                    }                    
-                }
-            </style>
-        `);
-
-        newWin.document.write('</head><body>');
-        newWin.document.write(divToPrint.outerHTML);
-        newWin.document.write('</body></html>');
-
-        newWin.document.close();
-        newWin.focus();
-        newWin.print();
-        newWin.close();
-    }
-    function printData2() {
-        var divToPrint = document.getElementById("printableArea");
-        var newWin = window.open("", "_blank");
-
-        newWin.document.write(
-            '<!DOCTYPE html>' +
-            '<html lang="en">' +
-            '<head>' +
-            '<meta charset="UTF-8">' +
-            '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
-            '<title>Print</title>' +
-            '<style>' +
-            '@page { margin: 0; }' + // Removes browser header & footer
-            'body { margin: 20px; padding: 0; font-family: Arial, sans-serif; }' +
-            '.print-container { width: 750px; margin-left: 200px;margin-right: 50px; padding: 20px; text-align: justify; border: 1px solid #ddd; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); page-break-after: always; }' +
-            '.content { width: 100%; line-height: 1.6; font-size: 16px; }' +
-            '.applicant-number { float: right; border: 1px solid black; height: 30px; width: 30px; text-align: center; font-weight: bold; }' +
-            '.signature { text-align: right; font-weight: bold; margin-top: 40px; }' +
-            '</style>' +
-            '</head>' +
-            '<body>' +
-            divToPrint.outerHTML +
-            '<script>' +
-            'window.onload = function() {' +
-            '  window.print();' +
-            '  window.onafterprint = function() { window.close(); };' +
-            '};' +
-            '<\/script>' +
-            '</body>' +
-            '</html>'
-        );
-
-        newWin.document.close();
-    }
 
 
 
@@ -648,5 +522,4 @@ function loadData(t, v, title) {
             $('#viewAll').html(data);
         }
     });
-    //$('#viewAll').load('/Litigation/CaseInfoPrinting/LoadFormPrinting?type=' + t + "&Cases=" + v + "&AppNo=" + title);
 }
