@@ -137,7 +137,8 @@ namespace CourtApp.Application.Features.FormPrint
                                 ? $"{s.CisYear}"
                                 : $"{s.CisNo}/{s.CisYear}",
                             CnrNo = s.CnrNo ?? "",
-                            OfficerName=s.OfficerName
+                            OfficerName=s.OfficerName,
+                            Cadre=s.Cadre?.Name_En,
                         }).FirstOrDefault()
                     });
                 }                
