@@ -1,10 +1,10 @@
 ﻿using AspNetCoreHero.Results;
 using AspNetCoreHero.ThrowR;
-using CourtApp.Application.DTOs.Identity;
 using CourtApp.Application.DTOs.Mail;
 using CourtApp.Application.DTOs.Settings;
 using CourtApp.Application.Enums;
 using CourtApp.Application.Exceptions;
+using CourtApp.Application.Features.Auth.Dto;
 using CourtApp.Application.Interfaces;
 using CourtApp.Application.Interfaces.Shared;
 using CourtApp.Infrastructure.Identity.Models;

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CourtApp.Application.DTOs.Identity
+namespace CourtApp.Application.Features.Auth.Dto
 {
     public class RefreshToken
     {

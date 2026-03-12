@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace CourtApp.Application.DTOs.Identity
+namespace CourtApp.Application.Features.Auth.Dto
 {
     public class TokenResponse
     {

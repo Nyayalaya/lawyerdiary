@@ -49,7 +49,7 @@ namespace CourtApp.Web
                 o.HasRippleEffect = true;
             });
             services.AddApplicationLayer();
-            services.AddInfrastructure(_configuration);
+            
             services.AddPersistenceContexts(_configuration);
             services.AddRepositories();
             services.AddSharedInfrastructure(_configuration);

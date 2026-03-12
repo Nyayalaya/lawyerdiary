@@ -1,5 +1,6 @@
 using AspNetCoreHero.Extensions.Logging;
 using CourtApp.Infrastructure.Identity.Models;
+
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;

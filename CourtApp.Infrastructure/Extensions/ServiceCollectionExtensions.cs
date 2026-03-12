@@ -1,4 +1,5 @@
-﻿using CourtApp.Application.Interfaces.CacheRepositories;
+﻿using CourtApp.Application.Interfaces;
+using CourtApp.Application.Interfaces.CacheRepositories;
 using CourtApp.Application.Interfaces.CacheRepositories.Common;
 using CourtApp.Application.Interfaces.CacheRepositories.FormBuilder;
 using CourtApp.Application.Interfaces.Contexts;
@@ -8,8 +9,10 @@ using CourtApp.Application.Interfaces.Repositories.Common;
 using CourtApp.Application.Interfaces.Repositories.FormBuilder;
 using CourtApp.Infrastructure.CacheRepositories;
 using CourtApp.Infrastructure.DbContexts;
+using CourtApp.Infrastructure.Identity.Services;
 using CourtApp.Infrastructure.Repositories;
 using CourtApp.Infrastructure.Shared.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -18,11 +21,16 @@ namespace CourtApp.Infrastructure.Extensions
 {
     public static class ServiceCollectionExtensions
     {
+
         public static void AddPersistenceContexts(this IServiceCollection services, IConfiguration configuration)
         {
             
             services.AddAutoMapper(cfg => { }, Assembly.GetExecutingAssembly());
-            services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
+            services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseNpgsql(configuration.GetConnectionString("Postgres")));
+
+            services.AddScoped<IApplicationDbContext>(provider =>
+                provider.GetRequiredService<ApplicationDbContext>());
         }
 
         public static void AddRepositories(this IServiceCollection services)
@@ -33,6 +41,8 @@ namespace CourtApp.Infrastructure.Extensions
 
             services.AddTransient<ILogRepository, LogRepository>();
             services.AddTransient<IUnitOfWork, UnitOfWork>();
+
+            services.AddTransient<IIdentityService, IdentityService>();
 
             services.AddTransient<IBookTypeRepository, BookTypeRepository>();
             services.AddTransient<IBookTypeCacheRepository, BookTypeCacheRepository>();
@@ -152,6 +162,9 @@ namespace CourtApp.Infrastructure.Extensions
             #region Laywer Billing Detail
             services.AddTransient<IBillingDetailRepository, BillingDetailRepository>();
             #endregion
+
+
+
 
         }
     }

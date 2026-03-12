@@ -1,6 +1,6 @@
-﻿using CourtApp.Application.DTOs.Identity;
-using AspNetCoreHero.Results;
+﻿using AspNetCoreHero.Results;
 using System.Threading.Tasks;
+using CourtApp.Application.Features.Auth.Dto;
 
 namespace CourtApp.Application.Interfaces
 {

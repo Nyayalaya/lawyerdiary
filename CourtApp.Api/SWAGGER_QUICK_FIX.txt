@@ -1,0 +1,241 @@
+# 🔧 Swagger/OpenAPI Quick Fix
+
+## ✅ What Was Fixed
+
+The CourtApp.Api Program.cs now has **full Swagger/Swashbuckle support** with:
+
+✅ Swagger UI for interactive API testing
+✅ OpenAPI specification generation
+✅ JWT Bearer authentication in Swagger
+✅ XML documentation support
+✅ Development-only configuration
+
+---
+
+## 🚀 Quick Start
+
+### 1. Run Application
+```bash
+set ASPNETCORE_ENVIRONMENT=Development
+dotnet run
+```
+
+### 2. Open Swagger UI
+```
+https://localhost:5001/
+```
+
+### 3. Done! ✅
+- See all endpoints
+- Test them directly
+- View documentation
+
+---
+
+## 🌐 URLs to Access
+
+| Purpose | URL |
+|---------|-----|
+| **Swagger UI** | `https://localhost:5001/` |
+| **OpenAPI Spec** | `https://localhost:5001/swagger/v1/swagger.json` |
+| **Swagger JSON** | `https://localhost:5001/swagger/v1/swagger.json` |
+
+---
+
+## 🔑 Key Changes Made
+
+### Before
+```csharp
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();  // Only OpenAPI spec
+}
+```
+
+### After
+```csharp
+// Add Swagger services
+builder.Services.AddSwaggerGen(options => { ... });
+
+// In middleware
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.UseSwagger();  // ✅ Added
+    app.UseSwaggerUI(c => { ... });  // ✅ Added
+}
+```
+
+---
+
+## ✨ Features Enabled
+
+✅ **Interactive API Testing**
+- Try it out button
+- Request/response examples
+- Parameter validation
+
+✅ **Authentication Support**
+- Bearer token input
+- JWT authorization
+- Automatic header injection
+
+✅ **Documentation**
+- Endpoint descriptions
+- Model schemas
+- Example responses
+
+✅ **API Specification**
+- Machine-readable format
+- Import into other tools
+- Code generation support
+
+---
+
+## 📋 Swagger UI Features
+
+| Feature | How to Use |
+|---------|-----------|
+| **View Endpoint** | Click endpoint to expand |
+| **Test Endpoint** | Click "Try it out" |
+| **Add Parameters** | Fill request body/parameters |
+| **Execute** | Click "Execute" button |
+| **View Response** | See response below |
+| **Authorize** | Click "Authorize" button (top-right) |
+| **Add Token** | Paste: `Bearer {token}` |
+
+---
+
+## 🔐 JWT Authorization in Swagger
+
+### Step 1: Get Token
+1. POST to `/api/auth/login`
+2. Use valid credentials
+3. Copy token from response
+
+### Step 2: Authorize
+1. Click "Authorize" button
+2. Paste: `Bearer eyJhbGciOi...`
+3. Click "Authorize"
+
+### Step 3: Test Protected Endpoints
+- Now you can test endpoints with `[Authorize]`
+- Token automatically included
+- See authenticated responses
+
+---
+
+## 🎯 What Now Works
+
+### Before (❌ 404 Error)
+```
+GET https://localhost:7246/swagger → 404 Not Found
+```
+
+### After (✅ Working)
+```
+GET https://localhost:5001/ → Swagger UI (200 OK)
+GET https://localhost:5001/swagger/v1/swagger.json → OpenAPI Spec (200 OK)
+```
+
+---
+
+## 📊 Program.cs Changes
+
+**Added to services:**
+```csharp
+builder.Services.AddSwaggerGen(options =>
+{
+    // API info
+    // JWT security definition
+    // XML documentation
+});
+```
+
+**Added to middleware:**
+```csharp
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "CourtApp.Api v1");
+        c.RoutePrefix = ""; // Root path
+    });
+}
+```
+
+---
+
+## ✅ Verification
+
+After running `dotnet run`:
+
+1. **Check Console Output**
+   ```
+   Swagger UI available at: https://localhost:5001/
+   ```
+
+2. **Visit URL**
+   ```
+   https://localhost:5001/
+   ```
+
+3. **Should See**
+   - Swagger UI interface
+   - List of endpoints
+   - "Authorize" button
+   - API information
+
+4. **Try an Endpoint**
+   - Expand any endpoint
+   - Click "Try it out"
+   - Click "Execute"
+   - See response
+
+---
+
+## 🆘 Troubleshooting
+
+### Problem: Still getting 404
+**Solution:**
+- Verify environment: Development
+- Check port: 5001 (not 7246)
+- Restart application
+- Clear browser cache
+
+### Problem: Swagger UI blank
+**Solution:**
+- Verify controllers exist
+- Check `[ApiController]` attribute
+- Verify `[HttpGet]`, `[HttpPost]` attributes
+- Rebuild solution
+
+### Problem: Can't authorize
+**Solution:**
+- Verify token format: `Bearer {token}`
+- Check token is valid
+- Verify `[Authorize]` on endpoint
+
+---
+
+## 📚 Documentation
+
+For detailed information, read:
+→ `SWAGGER_SETUP.md` - Comprehensive Swagger guide
+
+---
+
+## 🎉 You're All Set!
+
+✅ Swagger UI is enabled
+✅ Can access at root URL
+✅ Can test all endpoints
+✅ Can authorize with JWT
+✅ Ready for development!
+
+---
+
+**Version**: 1.0
+**Status**: ✅ **FIXED AND WORKING**
+**Access**: `https://localhost:5001/`

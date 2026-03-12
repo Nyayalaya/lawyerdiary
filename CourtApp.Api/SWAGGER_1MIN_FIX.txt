@@ -1,0 +1,44 @@
+# ⚡ Swagger 404 - ONE MINUTE FIX
+
+## 🔴 Error You're Getting:
+```
+GET http://localhost:5090/swagger/ui → 404 Not Found
+```
+
+## ✅ Fix (2 Commands):
+
+### Command 1: Install Package
+```sh
+dotnet add package Swashbuckle.AspNetCore
+```
+
+### Command 2: Run Application
+```sh
+dotnet run
+```
+
+## ✨ Result:
+```
+✅ Swagger UI available at: http://localhost:5090/swagger/
+```
+
+## 🌐 Open in Browser:
+```
+http://localhost:5090/swagger/
+```
+
+---
+
+## Done! ✅
+
+- Program.cs already updated
+- Just install package
+- Run app
+- Open URL
+
+No more 404 errors! 🎉
+
+---
+
+**Time**: 1 minute
+**Difficulty**: Easy

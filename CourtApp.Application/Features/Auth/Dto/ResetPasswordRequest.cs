@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace CourtApp.Application.DTOs.Identity
+namespace CourtApp.Application.Features.Auth.Dto
 {
     public class ResetPasswordRequest
     {
