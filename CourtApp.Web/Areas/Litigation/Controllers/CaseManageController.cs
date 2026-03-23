@@ -563,6 +563,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                         // Step 5: Upload the compressed file to Azure Blob Storage
                         string compressedFileName = $"{Path.GetFileNameWithoutExtension(f.Document.FileName)}_{Guid.NewGuid()}.zip";
                         string filePath = await _documentUploadService.UploadFileAsync(memoryStream, compressedFileName, documentType);
+                        _logger.LogError($"File path : {filePath}");
                         //string filePath = await _blobService.UploadOrUpdateFileAsync(memoryStream, compressedFileName, "application/zip", containerName, CancellationToken.None);
 
                         // Step 6: Map Data for Database Entry
@@ -573,10 +574,13 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
                             DocPath = filePath,  // Cloud file URL
                             DocDate = f.DocDate
                         });
+
+                        _logger.LogError($"Document ID  : {f.DocId}");
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError($"Error uploading file {f.Document.FileName}: {ex.Message}");
+                        _logger.LogError($"Exception: {ex.StackTrace}");
                         return StatusCode(500, "Internal Server Error while processing the file.");
                     }
                 }
@@ -606,6 +610,7 @@ namespace CourtApp.Web.Areas.Litigation.Controllers
             {
                 DocId = id
             });
+            _logger.LogWarning("Deleted ID"+ id);
             if (respose.Succeeded)
             {
                 var isDeleted = await _documentUploadService.DeleteFileAsync(fPath);
