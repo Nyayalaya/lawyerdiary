@@ -14,7 +14,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Reflection.Emit;
 using System.Threading;
 using System.Threading.Tasks;
 namespace CourtApp.Infrastructure.DbContexts
@@ -99,14 +98,22 @@ namespace CourtApp.Infrastructure.DbContexts
 
                 }
             }
-            if (_authenticatedUser.UserId == null)
+            try
             {
-                return await base.SaveChangesAsync(cancellationToken);
+                if (_authenticatedUser.UserId == null)
+                {
+                    return await base.SaveChangesAsync(cancellationToken);
+                }
+                else
+                {
+                    int id = await base.SaveChangesAsync(_authenticatedUser.UserId);
+                    return id;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                int id = await base.SaveChangesAsync(_authenticatedUser.UserId);
-                return id;
+                Console.WriteLine("Exception- " + ex.InnerException);
+                return -2;
             }
         }
 

@@ -52,10 +52,10 @@ namespace CourtApp.Application.Features.FormBuilder
                 return Result<Guid>.Fail($"Record is not found.");
             else
             {
-                var templateInfo = await templateInfoRepository.GetByIdAsync(request.TemplateId);
+                //var templateInfo = await templateInfoRepository.GetByIdAsync(request.TemplateId);
                 CaseFormDt.CaseId = request.CaseId;
                 CaseFormDt.TemplateId = request.TemplateId;
-                CaseFormDt.FormId = templateInfo.FormId;
+                //CaseFormDt.FormId = templateInfo.FormId;
                 CaseFormDt.LangCode = request.LangCode;
                 CaseFormDt.FieldDetails = _mapper.Map<List<FormFieldValueEntity>>(request.FieldDetails);
                 
