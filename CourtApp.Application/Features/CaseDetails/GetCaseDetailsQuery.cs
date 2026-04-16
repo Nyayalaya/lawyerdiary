@@ -67,8 +67,16 @@ namespace CourtApp.Application.Features.UserCase
             var baseQuery = from c in _RepoCase.Entites.AsNoTracking()
                             join ac in _assignRepo.Entities on c.Id equals ac.CaseId into caseAssignments
                             from ac in caseAssignments.DefaultIfEmpty()
-                            where c.DisposalDate == null && request.LinkedIds.Contains(c.CreatedBy)
-                                  || request.LinkedIds.Contains(ac.LawyerId.ToString())
+                            where 
+                                (
+                                    request.CallingFrm != "BTD"
+                                    || c.DisposalDate == null
+                                )
+                                &&
+                                (
+                                    request.LinkedIds.Contains(c.CreatedBy)
+                                    || (ac != null && request.LinkedIds.Contains(ac.LawyerId.ToString()))
+                                )
                             select new
                             {
                                 Case = new
